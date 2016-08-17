@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
     UnsignedInteger size = 200;
     NumericalSample sample1(distribution1.getSample( size ));
     NumericalSample sample2(distribution2.getSample( size ));
+    NumericalSample sample3(distribution2.getSample( 30 ));
 
     // Create an empty graph
     Graph myGraph("Normal sample", "x1", "x2", true, "topright");
@@ -88,6 +89,19 @@ int main(int argc, char *argv[])
     // Add it to the graph and draw everything
     myGraph.add(myCloud2);
     myGraph.draw("Graph_Cloud_b_OT", 640, 480);
+
+    // Create the third cloud
+    sample2.split(15);
+    Cloud myCloud3(sample3, "green", "circle", "Third Cloud");
+    Description labels(sample3.getSize());
+    labels[6] = "6";
+    labels[10] = "10";
+    labels[20] = "20";
+    myCloud3.setLabels(labels);
+
+    // Add it to the graph and draw everything
+    myGraph.add(myCloud3);
+    myGraph.draw("Graph_Cloud_c_OT", 640, 480);
   }
   catch (TestFailed & ex)
   {

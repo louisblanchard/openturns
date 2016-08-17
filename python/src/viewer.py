@@ -318,6 +318,9 @@ class View(object):
             elif drawableKind == 'Cloud':
                 plot_kwargs['linestyle'] = 'None'
                 self._ax[0].plot(x, y, **plot_kwargs)
+                for i, label in enumerate(drawable.getLabels()):
+                    if len(label) == 0: continue
+                    self._ax[0].annotate(label, xy=(x[i][0], y[i][0]), xytext = (0, 0), textcoords = 'offset points')
 
             elif drawableKind == 'Curve':
                 self._ax[0].plot(x, y, **plot_kwargs)

@@ -127,7 +127,25 @@ String Cloud::draw() const
     oss << ",pch=" << (pointStyle_ == "dot" ? "\".\"" : code)
         << ",col=\"" << color_
         << "\",lwd=" << lineWidth_
-        << ")";
+        << ")\n";
+    if (labels_.getSize() != 0)
+    {
+      oss << "labels <- rep(\"\", " << labels_.getSize() << ")\n";
+      // We assume that only few labels are printed, otherwise graph is ugly
+      for (UnsignedInteger i = 0; i < labels_.getSize(); ++i)
+      {
+        if (labels_[i] != "")
+        {
+          oss << "labels[" << (i+1) << "] <- \"" << labels_[i] << "\"\n";
+        }
+      }
+      oss << "pos <- c(4,2)\n"
+          << "indices <- which(labels != \"\")\n";
+      // Adjust label horizontally
+      oss << "labelpos <- pos[1+as.numeric(dataOT[indices,1] > mean(range(dataOT[,1])))]\n";
+      // oss << "labelpos <- 3\n";
+      oss << "text(dataOT[indices,1], dataOT[indices,2], labels[indices], cex = 0.75, xpd = TRUE, pos = labelpos, offset = 0.25)\n";
+    }
   }
   return oss;
 }
@@ -136,6 +154,21 @@ String Cloud::draw() const
 Cloud * Cloud::clone() const
 {
   return new Cloud(*this);
+}
+
+/* Accessor for labels */
+Description Cloud::getLabels() const
+{
+  return labels_;
+}
+
+void Cloud::setLabels(const Description & labels)
+{
+  if (labels.getSize() != data_.getSize())
+  {
+    throw InvalidDimensionException(HERE) << "Expected labels of dimension " << data_.getSize() << ": got " << labels.getSize();
+  }
+  labels_ = labels;
 }
 
 /* Check validity of data */
