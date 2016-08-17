@@ -9,7 +9,6 @@
 OTDefaultCollectionConvertFunctions(Drawable)
 
 OTTypedInterfaceObjectHelper(Drawable)
-OTTypedCollectionInterfaceObjectHelper(Drawable)
 
 %include openturns/Drawable.hxx
 
