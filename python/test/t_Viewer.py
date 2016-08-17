@@ -73,6 +73,41 @@ try:
     # view.save('curve5.png')
     view.show(block=False)
 
+    # Text
+    graph = ot.Graph('Annotated cloud', 'x', 'y', True, '')
+    distribution = ot.Normal(2)
+    size = 30
+    sample2D = distribution.getSample(size)
+    cloud = ot.Cloud(sample2D, "red", "fsquare", "Sample2D Cloud");
+    graph.add(cloud)
+
+    # Display extrema indices
+    x1 = [ x[0] for x in sample2D[:,0]]
+    x2 = [ x[0] for x in sample2D[:,1]]
+    idx = [0] * 4
+    idx[0] = x1.index(min(x1))
+    idx[1] = x1.index(max(x1))
+    idx[2] = x2.index(min(x2))
+    idx[3] = x2.index(max(x2))
+
+    labels = ot.Description(sample2D.getSize())
+    for i in xrange(4):
+      labels[idx[i]] = str(idx[i])
+
+    position = ot.Indices(sample2D.getSize())
+    position[idx[0]] = 4
+    position[idx[1]] = 2
+    position[idx[2]] = 3
+    position[idx[3]] = 1
+
+    text = ot.Text(sample2D, labels)
+    text.setColor("red")
+    text.setTextPositions(position)
+
+    graph.add(text)
+    view = View(graph)
+    view.show(block=False)
+
     # CobWeb tests
     size = 100
     dim = 6
@@ -189,6 +224,7 @@ try:
     view = View(graph)
     # view.save('curve12.png')
     view.show()
+
 
 except:
     traceback.print_exc()

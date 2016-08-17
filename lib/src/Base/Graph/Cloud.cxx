@@ -156,21 +156,6 @@ Cloud * Cloud::clone() const
   return new Cloud(*this);
 }
 
-/* Accessor for labels */
-Description Cloud::getLabels() const
-{
-  return labels_;
-}
-
-void Cloud::setLabels(const Description & labels)
-{
-  if (labels.getSize() != data_.getSize())
-  {
-    throw InvalidDimensionException(HERE) << "Expected labels of dimension " << data_.getSize() << ": got " << labels.getSize();
-  }
-  labels_ = labels;
-}
-
 /* Check validity of data */
 void Cloud::checkData(const NumericalSample & data) const
 {
