@@ -21,11 +21,112 @@
 #include <fstream>
 #include "openturns/LinearModelAlgorithm.hxx"
 
-
 BEGIN_NAMESPACE_OPENTURNS
 
 CLASSNAMEINIT(LinearModelAlgorithm);
 
+/* Default constructor */
+LinearModelAlgorithm::LinearModelAlgorithm()
+  : PersistentObject()
+  , inputSample_(0, 0)
+  , outputSample_(0, 0)
+  , result_()
+  , hasRun_(false)
+{
+  // Nothing to do
+}
 
+/* Parameters constructor */
+LinearModelAlgorithm::LinearModelAlgorithm(const NumericalSample & inputSample,
+    const NumericalSample & outputSample)
+  : PersistentObject()
+  , inputSample_(0, 0)
+  , outputSample_(0, 0)
+  , result_()
+  , hasRun_(false)
+{
+  // set data & covariance model
+  setData(inputSample, outputSample);
+}
+
+
+/** set sample  method */
+void LinearModelAlgorithm::setData(const NumericalSample & inputSample,
+    const NumericalSample & outputSample)
+{
+  // Check the sample sizes
+  if (inputSample.getSize() != outputSample.getSize())
+    throw InvalidArgumentException(HERE) << "In LinearModelAlgorithm::LinearModelAlgorithm, input sample size (" << inputSample.getSize() << ") does not match output sample size (" << outputSample.getSize() << ").";
+  // Set samples
+  inputSample_ = inputSample;
+  outputSample_ = outputSample;
+}
+
+
+/* Virtual constructor */
+LinearModelAlgorithm * LinearModelAlgorithm::clone() const
+{
+  return new LinearModelAlgorithm(*this);
+}
+
+
+/* Perform regression */
+void LinearModelAlgorithm::run()
+{
+  // Do not crun again if already computed
+  if (hasRun_) return;
+  LOGINFO("");
+  result_ = LinearModelResult(inputSample_, outputSample_);
+  hasRun_ = true;
+}
+
+
+/* String converter */
+String LinearModelAlgorithm::__repr__() const
+{
+  OSS oss;
+  oss << "class=" << getClassName()
+      << ", inputSample=" << inputSample_
+      << ", outputSample=" << outputSample_
+  return oss;
+}
+
+
+NumericalSample LinearModelAlgorithm::getInputSample() const
+{
+  return inputSample_;
+}
+
+
+NumericalSample LinearModelAlgorithm::getOutputSample() const
+{
+  return outputSample_;
+}
+
+
+LinearModelResult LinearModelAlgorithm::getResult()
+{
+  if (!hasRun_) run(); 
+  return result_;
+}
+
+
+/* Method save() stores the object through the StorageManager */
+void LinearModelAlgorithm::save(Advocate & adv) const
+{
+  PersistentObject::save(adv);
+  adv.saveAttribute( "inputSample_", inputSample_ );
+  adv.saveAttribute( "outputSample_", outputSample_ );
+  adv.saveAttribute( "result_", result_ );
+}
+
+/* Method load() reloads the object from the StorageManager */
+void LinearModelAlgorithm::load(Advocate & adv)
+{
+  PersistentObject::load(adv);
+  adv.loadAttribute( "inputSample_", inputSample_ );
+  adv.loadAttribute( "outputSample_", outputSample_ );
+  adv.loadAttribute( "result_", result_ );
+}
 
 END_NAMESPACE_OPENTURNS
