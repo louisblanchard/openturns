@@ -18,14 +18,12 @@
  *  along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include <fstream>
-#include "openturns/LinearModelAlgorithm.hxx"
-
+#ifndef OPENTURNS_LINEARMODELALGORITHM_HXX
+#define OPENTURNS_LINEARMODELALGORITHM_HXX
 
 BEGIN_NAMESPACE_OPENTURNS
 
-CLASSNAMEINIT(LinearModelAlgorithm);
-
-
 
 END_NAMESPACE_OPENTURNS
+
+#endif /* OPENTURNS_LINEARMODELALGORITHM_HXX */

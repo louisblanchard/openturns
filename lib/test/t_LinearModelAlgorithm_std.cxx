@@ -1,6 +1,6 @@
 //                                               -*- C++ -*-
 /**
- *  @brief LinearModelAlgorithm implements the linear model
+ *  @brief The test file of class LinearModelAlgorithm
  *
  *  Copyright 2005-2016 Airbus-EDF-IMACS-Phimeca
  *
@@ -18,14 +18,13 @@
  *  along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include <fstream>
-#include "openturns/LinearModelAlgorithm.hxx"
+#include "openturns/OT.hxx"
+#include "openturns/OTtestcode.hxx"
 
+using namespace OT;
+using namespace OT::Test;
 
-BEGIN_NAMESPACE_OPENTURNS
-
-CLASSNAMEINIT(LinearModelAlgorithm);
-
-
-
-END_NAMESPACE_OPENTURNS
+int main(int argc, char *argv[])
+{
+ 
+}
