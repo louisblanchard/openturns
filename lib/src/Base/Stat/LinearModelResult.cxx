@@ -19,12 +19,14 @@
  *
  */
 #include "openturns/LinearModelResult.hxx"
+#include "openturns/PersistentObjectFactory.hxx"
 #include "openturns/OSS.hxx"
 
 
 BEGIN_NAMESPACE_OPENTURNS
 
 CLASSNAMEINIT(LinearModelResult);
+
 static const Factory<LinearModelResult> Factory_LinearModelResult;
 
 /* Default constructor */
@@ -71,51 +73,45 @@ LinearModel LinearModelResult::getLinearModel() const
 /* Method that returns the ANOVA table (ANalyse Of VAriance) */
 void LinearModelResult::printANOVAtable() const
 {
+  throw NotYetImplementedException(HERE);
 }
 
 
 /* [1] Draw a plot of residuals versus fitted values */
 Graph LinearModelResult::drawResidualsVsFitted() const
 {
-  Graph graph();
-  return graph;
+  throw NotYetImplementedException(HERE);
 }
 
 /* [2] a Scale-Location plot of sqrt(| residuals |) versus fitted values */
 Graph LinearModelResult::drawScaleLocation() const
 {
-  Graph graph();
-  return graph;
+  throw NotYetImplementedException(HERE);
 }
 
 /* [3] a Normal quantiles-quantiles plot of standardized residuals */
 Graph LinearModelResult::drawNormalQQ() const
 {
-  Graph graph();
-  return graph;
+  throw NotYetImplementedException(HERE);
 }
 
 /* [4] a plot of Cook's distances versus row labels */
 Graph LinearModelResult::drawCookDistanceVsLabels() const
 {
-  Graph graph();
-  return graph;
+  throw NotYetImplementedException(HERE);
 }
 
 /* [5] a plot of residuals versus leverages that adds bands corresponding to Cook's distances of 0.5 and 1. */
 Graph LinearModelResult::drawResidualsVsLeverages() const
 {
-  Graph graph();
-  return graph;
+  throw NotYetImplementedException(HERE);
 }
 
 /* [6] a plot of Cook's distances versus leverage/(1-leverage) */
 Graph LinearModelResult::drawCookDistanceVsLeverages() const
 {
-  Graph graph();
-  return graph;
+  throw NotYetImplementedException(HERE);
 }
-
 
 /* Method save() stores the object through the StorageManager */
 void LinearModelResult::save(Advocate & adv) const

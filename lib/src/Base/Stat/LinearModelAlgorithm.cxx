@@ -73,10 +73,9 @@ LinearModelAlgorithm * LinearModelAlgorithm::clone() const
 /* Perform regression */
 void LinearModelAlgorithm::run()
 {
-  // Do not crun again if already computed
+  // Do not run again if already computed
   if (hasRun_) return;
-  LOGINFO("");
-  result_ = LinearModelResult(inputSample_, outputSample_);
+  throw NotYetImplementedException(HERE);
   hasRun_ = true;
 }
 
@@ -88,6 +87,7 @@ String LinearModelAlgorithm::__repr__() const
   oss << "class=" << getClassName()
       << ", inputSample=" << inputSample_
       << ", outputSample=" << outputSample_
+      << ", result=" << result_;
   return oss;
 }
 
