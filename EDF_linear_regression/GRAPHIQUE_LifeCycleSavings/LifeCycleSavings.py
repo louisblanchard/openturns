@@ -1,36 +1,88 @@
 #! /usr/bin/env python
 
-import os
-import traceback
+from openturns.viewer import View
+import openturns as ot
+import pandas as pd
 
-try:
+# First column in this CSV file is country name, use
+# pandas to easily filter it out.
+data = pd.read_csv("LifeCycleSavings.csv", index_col=0)
 
-    # use non-interactive backend
-    import matplotlib
-    matplotlib.use('Agg')
+Sample = ot.NumericalSample(data.values)
+Sample.setName("LifeCycleSavings")
+Sample.setDescription(["sr","pop15","pop75","dpi","ddpi"])
 
-    from openturns.viewer import View
-    import openturns as ot
+sr    = Sample[:,0]
+pop15 = Sample[:,1]
+pop75 = Sample[:,2]
+dpi   = Sample[:,3]
+ddpi  = Sample[:,4]
 
+# model1
+outputSample = Sample[:,0]
+inputSample = Sample[:,1:5]
 
-    Sample = ot.NumericalSample.ImportFromTextFile("LifeCycleSavings_mod.csv", ",")
-    Sample.setName("LifeCycleSavings")
-    N = Sample.getSize()
-    sr    = Sample[:,0]
-    pop15 = Sample[:,1]
-    pop75 = Sample[:,2]
-    dpi   = Sample[:,3]
-    ddpi  = Sample[:,4]
+algo1 = ot.LinearModelAlgorithm(inputSample, outputSample)
+result1 = algo1.getResult()
 
-    # model1
-    Sample1 = sr
-    Sample2 = pop15 + pop75 + dpi + ddpi
-    
-    # model2
-    f = ot.NumericalMathFunction('x','x^4','y')
-    Sample1 = f(sr)
-    Sample2 = pop75 + dpi
+# for plot in ["drawResidualsVsFitted", "drawScaleLocation", "drawNormalQQ", "drawCookDistanceVsLabels", "drawResidualsVsLeverages", "drawCookDistanceVsLeverages"]:
+#     graph = getattr(result1, plot)()
+#     View(graph)
 
-except:
-    traceback.print_exc()
-    os._exit(1)
+# plot of residuals versus fitted values
+graph = result1.drawResidualsVsFitted()
+View(graph)
+
+# scale-location plot of sqrt(|residuals|) versus fitted values
+graph = result1.drawScaleLocation()
+View(graph)
+
+# Normal quantiles-quantiles plot of standardized residuals
+graph = result1.drawNormalQQ()
+View(graph)
+
+# plot of Cook's distances versus row labels
+graph = result1.drawCookDistanceVsLabels()
+View(graph)
+
+# plot of residuals versus leverages that adds bands corresponding to Cook's distances of 0.5 and 1
+graph = result1.drawResidualsVsLeverages()
+View(graph)
+
+# plot of Cook's distances versus leverage/(1-leverage)
+graph = result1.drawCookDistanceVsLeverages()
+View(graph)
+
+# model2
+f = ot.NumericalMathFunction('x','x^4','y')
+outputSample = f(sr)
+inputSample = pop75
+inputSample.stack(dpi)
+
+algo2 = ot.LinearModelAlgorithm(inputSample, outputSample)
+result2 = algo2.getResult()
+
+# plot of residuals versus fitted values
+graph = result2.drawResidualsVsFitted()
+View(graph)
+
+# scale-location plot of sqrt(|residuals|) versus fitted values
+graph = result2.drawScaleLocation()
+View(graph)
+
+# Normal quantiles-quantiles plot of standardized residuals
+graph = result2.drawNormalQQ()
+View(graph)
+
+# plot of Cook's distances versus row labels
+graph = result2.drawCookDistanceVsLabels()
+View(graph)
+
+# plot of residuals versus leverages that adds bands corresponding to Cook's distances of 0.5 and 1
+graph = result2.drawResidualsVsLeverages()
+View(graph)
+
+# plot of Cook's distances versus leverage/(1-leverage)
+graph = result2.drawCookDistanceVsLeverages()
+View(graph)
+

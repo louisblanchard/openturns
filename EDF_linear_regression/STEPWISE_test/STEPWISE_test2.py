@@ -1,33 +1,41 @@
 #! /usr/bin/env python
 
-import os
-import traceback
+import openturns as ot
+from math import log
 
-try:
+Sample = ot.NumericalSample.ImportFromTextFile("DATA_test2.csv", ",")
+# Sample.setDescription(["BIO","SAL","pH","K","Na","Zn"])
+print(Sample)
 
-    # use non-interactive backend
-    import matplotlib
-    matplotlib.use('Agg')
+X = Sample[:, 1:4]
+Y = Sample[:, 0]
 
-    from openturns.viewer import View
-    import openturns as ot
+# Build a model BIO~SAL+pH+K+Na+Zn
+factory = ot.LinearModelStepwiseFactory(X, Y)
+factory.add(factory.getInteractions(X.getDescription(), 1))
 
-    Sample = ot.NumericalSample.ImportFromTextFile("DATA_test2.csv", ",")
-    BIO = Sample[:,0]
-    SAL = Sample[:,1]
-    pH  = Sample[:,2]
-    K   = Sample[:,3]
-    Na  = Sample[:,4]
-    Zn  = Sample[:,5]
-    N   = Sample.getSize()
+i_0 = factory.getIndices(["1"])
+i_max = factory.getIndices()
+i_min = i_0
 
-    BIO.setName("BIO")
-    SAL.setName("SAL")
-    pH.setName("pH")
-    K.setName("K")
-    Na.setName("Na")
-    Zn.setName("Zn")
+## Forward
+lm_forward_AIC_result = factory.build(i_min, i_max, i_min, 2)
+lm_forward_BIC_result = factory.build(i_min, i_max, i_min, log(45))
 
-except:
-    traceback.print_exc()
-    os._exit(1)
+## Backward
+lm_backward_AIC_result = factory.build(i_max, i_min, i_max, 2)
+lm_backward_BIC_result = factory.build(i_max, i_min, i_max, log(45))
+
+## Both
+lm_both_AIC_result = factory.build(i_min, i_max, i_0, 2)
+lm_both_BIC_result = factory.build(i_min, i_max, i_0, log(45))
+
+lm_forward_AIC_result.printANOVAtable()
+lm_forward_BIC_result.printANOVAtable()
+
+lm_backward_AIC_result.printANOVAtable()
+lm_backward_BIC_result.printANOVAtable()
+
+lm_both_AIC_result.printANOVAtable()
+lm_both_BIC_result.printANOVAtable()
+

@@ -1,24 +1,19 @@
 #! /usr/bin/env python
 
-import os
-import traceback
+import openturns as ot
 
-try:
+Sample = ot.NumericalSample.ImportFromTextFile("DATA.csv", ",")
+ctl = Sample[:,0]
+trt = Sample[:,1]
 
-    # use non-interactive backend
-    import matplotlib
-    matplotlib.use('Agg')
+inputSample = ot.NumericalSample(ctl.getSize(), [0])
+inputSample.add(ot.NumericalSample(trt.getSize(), [1]))
+inputSample.setDescription(["Trt"])
 
-    from openturns.viewer import View
-    import openturns as ot
+outputSample = ctl
+outputSample.add(trt)
+outputSample.setDescription(["weight"])
 
-    Sample = ot.NumericalSample.ImportFromTextFile("DATA.csv", ",")
-    ctl = Sample[:,0]
-    trt = Sample[:,1]
-    N   = Sample.getSize()
-    ctl.setName("ctl")
-    trt.setName("trt")
-
-except:
-    traceback.print_exc()
-    os._exit(1)
+LinearModelAlgorithm algo(inputSample, outputSample)
+result = algo.getResult()
+result.printANOVAtable()
