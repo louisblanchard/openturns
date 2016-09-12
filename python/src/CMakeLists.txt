@@ -159,6 +159,7 @@ ot_add_python_module(statistics statistics_module.i
                       LinearModel.i LinearModel_doc.i.in
                       LinearModelAlgorithm.i LinearModelAlgorithm_doc.i.in
                       LinearModelFactory.i LinearModelFactory_doc.i.in
+                      LinearModelResult.i LinearModelResult_doc.i.in
                       TestResult.i TestResult_doc.i.in
                       RandomGenerator.i RandomGenerator_doc.i.in
                       RandomGeneratorState.i
