@@ -1,0 +1,233 @@
+% Permission is granted to copy, distribute and/or modify this document
+% under the terms of the GNU Free Documentation License, Version 1.2
+% or any later version published by the Free Software Foundation;
+% with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+% Texts.  A copy of the license is included in the section entitled "GNU
+% Free Documentation License".
+% Copyright 2015 EDF
+%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Use Cases Guide}
+
+This section presents the main functionalities of the new sensitivity classes in their context.\\
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Sensitivity algorithms}
+The objective of the Use Case is to estimate the sensitivity indices (commonly called Sobol indices) which quantify correlation between the input variables and the output variable of a model described by a numerical function.\\
+
+These indices allow to evaluate the importance of a single variable or a specific set of variables. \\
+In theory, Sobol indices range is $\left[0; 1\right]$ ; the more the indice value is close to 1 the more the variable is important toward the output of the function. The Sobol indices can be computed at different orders.\\
+In practice, first order, second order and total order sensitivity indices are computed because it is difficult to measure higher order (in terms of precision and cost) and it is complicated to analyze result.\\
+The first order indices evaluate the importance of one variable at a time ($d$ indices stored in a {\itshape NumericalSample}, with $d$ the input dimension of the model).\\
+The second order indices evaluate the importance of every pair of variables ($\binom{d}{2} = \frac{d \times \left( d-1\right) }{2}$ indices stored via a {\itshape SymmetricMatrix} for each marginal).\\
+The $d$ total indices give the relative importance of every variables except the variable $X_i$, for every variable.\\
+For vectorial outputs, aggregated indices could be computed. These last one correspond a linear combination of marginal first order indices and write :
+\begin{eqnarray}
+ S_i & = & \frac{\sum_{k=1}^{q} \Var{Y^k} S_{i}^{k}}{\sum_{k=1}^{q} \Var{Y^k}}.\\
+ ST_i & = & \frac{\sum_{k=1}^{q} \Var{Y^k} ST_{i}^{k}}{\sum_{k=1}^{q} \Var{Y^k} }.
+\end{eqnarray}
+where:
+\begin{itemize}
+ \item $S_i$ is the $i$-th aggregated first order index,
+ \item $ST_i$ is the $i$-th aggregated total order index,
+ \item $\Var{Y^k}$ is the variance of the $k$-th output marginal,
+ \item $S_i^k$ is the $i$-th first order index of the $k$-th marginal,
+ \item $ST_i^k$ is the $i$-th total order index of the $k$-th marginal.
+\end{itemize}
+
+To evaluate all indices, the Sobol indices are estimated by sampling, from two input samples and a numerical function. The two samples should be independent. In practice, we never fix samples as input argument to be sure that samples are independent and that underlying distribution model has an independent copula.\\
+
+Note that very often, the \texttt{Saltelli} method is used for first order and total order indices. The method is implemented in OpenTURNS thanks to the {\itshape SaltelliSensitivityAlgorithm} class and is knwon to lack of precision for non centered output data (Update June~2016: this had been fixed by Pull Request 240) and for small variances. Alternative methods are implemented and seem more robust:
+\begin{itemize}
+\item Martinez thanks to the {\itshape MartinezSensitivityAlgorithm} class,
+\item Jansen thanks to the {\itshape JansenSensitivityAlgorithm} class,
+\item Mauntz-Kucherenko thanks to the {\itshape MauntzKucherenkoSensitivityAlgorithm} class.
+\end{itemize}
+Also, computation of second order indices uses the so called Sobol method (and thus require appropriate design). Usually, computation of first and total order indices requires $N \times (d+2)$ calls to the function, and $N \times (2d+2)$ for first, second order and total indices.\\
+Finally it is possible to evaluate confidence intervals for these indices. The sensitivity algorithm classes provides a \texttt{getFirstOrderIndicesInterval} and \texttt{getTotalOrderIndicesInterval} methods.
+
+
+User can refer to docstrings for more details.
+
+OpenTURNS requires :
+
+\requirements{
+  \begin{description}
+
+  \item[$\bullet$] distribution : {\itshape dist}, with independent copula
+  \item[type:] Distribution
+  \item[$\bullet$] a size : {\itshape size}, the size of samples
+  \item[type:] int \\
+  or
+  \item[$\bullet$] an experiment : {\itshape experiment}, a weighted experiment
+  \item[type:] WeightedExperiment\\
+
+ \item[$\bullet$] a function : {\itshape model}, numerical model
+ \item[type:] NumericalMathFunction \\
+
+  \item[$\bullet$] a boolean : {\itshape computeSecondOrder}, compute second order indices
+  \item[type:] bool \\
+
+ \end{description}
+}
+{
+  \begin{description}
+  \item[$\bullet$] the different Sobol indices
+  \item[type:] NumericalPoint, for first and total indices
+  \item[type:] SymmetricMatrix, for second order indices
+  \end{description}
+}
+
+Python script for the UseCase :
+
+\begin{lstlisting}
+import openturns as ot
+
+#----------------------------------------------------#
+#-- Define designs for first/total & second orders --#
+#----------------------------------------------------#
+
+input_dimension = 3
+output_dimension = 1
+
+formula = ['sin(_pi*X1)+7*sin(_pi*X2)*sin(_pi*X2)+\
+   0.1*((_pi*X3)*(_pi*X3)*(_pi*X3)*(_pi*X3))*sin(_pi*X1)']
+model = ot.NumericalMathFunction(['X1', 'X2', 'X3'], ['Y'], formula)
+distribution = ot.ComposedDistribution([ot.Uniform(-1.0, 1.0)] * input_dimension)
+
+# Size of simulation
+size = 1000
+
+# Compute Second order indices and thus defines appropriate designs
+computeSecondOrder = True
+
+#--------------------------------------------------
+# 1) First usage : use of the interface constructor
+#--------------------------------------------------
+# Interface constructor relies on Martinez algorithm
+sensitivity_algo = ot.SobolIndicesAlgorithm(distribution, size, model, computeSecondOrder)
+# with experiment
+lhs = ot.LHSExperiment(distribution, size)
+# sensitivity_algo = ot.SobolIndicesAlgorithm(lhs, model, computeSecondOrder)
+
+#------------------------------------#
+#-- Compute indices and intervals  --#
+#------------------------------------#
+# Compute second order indices (first, second and total order indices are
+# computed together)
+secondOrderIndices = sensitivity_algo.getSecondOrderIndices()
+
+# Retrieve first order indices
+firstOrderIndices = sensitivity_algo.getFirstOrderIndices()
+
+# Retrieve total order indices
+totalOrderIndices = sensitivity_algo.getTotalOrderIndices()
+
+# Retrieve intervals
+nr_bootstrap = 100
+confidence_level = 0.95
+sensitivity_algorithm.setBootstrapSize(nr_bootstrap)
+sensitivity_algorithm.setBootstrapConfidenceLevel(confidence_level)
+firstOrderIndicesInterval = sensitivity_algorithm.getFirstOrderIndicesInterval()
+totalOrderIndicesInterval = sensitivity_algorithm.getTotalOrderIndicesInterval()
+
+#-----------------------------------------------------#
+#-- Compute same indices & intervals using Martinez --#
+#-----------------------------------------------------#
+
+msensitivity_algo = ot.MartinezSensitivityAlgorithm(distribution, size, model, computeSecondOrder)
+martinezFirstOrderIndices = msensitivity_algo.getFirstOrderIndices()
+martinezTotalOrderIndices = msensitivity_algo.getTotalOrderIndices()
+# Asymptotic intervals
+# In the case of Martinez, if output is Gaussian, we may use the Fisher transform and get an asymptotic confidence interval
+ot.ResourceMap.SetAsBool("MartinezSensitivityAlgorithm-UseAsmpytoticInterval", True)
+martinezfirstOrderIndicesInterval = msensitivity_algorithm.getFirstOrderIndicesInterval()
+martineatotalOrderIndicesInterval = msensitivity_algorithm.getTotalOrderIndicesInterval()
+
+#------------------------------------------#
+#-- Graphs : plot indices with bootstrap --#
+#------------------------------------------#
+# Method that invokes draw of aggregated indices
+full_graph = sensitivity_algorithm.draw()
+
+# Method that invokes draw of marginal indices (no bootstrap)
+graph = sensitivity_algorithm.draw(0)
+
+\end{lstlisting}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Evaluation of sensitivity indices without model}
+Very often, numerical model could not be exhibited as a {\itshape NumericalMathFunction} and thus we could not refer to the previous usage. For that purpose, the {\itshape SobolIndicesAlgorithmImplementation} class provides a {\itshape Generate} method which enables to build a full input design of size $N \times (d+2)$ (or $N \times (2d+2)$ if second order indices are computed). Related response (output design) could be evaluated outside the platform and then we could use the appropriate constructor for the evaluation of sensitivity indices.
+
+We highlight that the same designs are required for all methods, e.g. by using {\itshape SobolIndicesAlgorithmImplementation.Generate}, the same data could be consumed by the fourth previous classes and thus evaluate the sensitivity indices.
+
+
+\requirements{
+  \begin{description}
+
+  \item[$\bullet$] distribution : {\itshape dist}, with independent copula
+  \item[type:] Distribution
+  \item[$\bullet$] a size : {\itshape size}, the size of samples
+  \item[type:] int \\
+  or
+  \item[$\bullet$] an experiment : {\itshape experiment}, a weighted experiment
+  \item[type:] WeightedExperiment\\
+
+  \item[$\bullet$] a boolean : {\itshape computeSecondOrder}, compute second order indices
+  \item[type:] bool \\
+
+ \end{description}
+}
+{
+  \begin{description}
+  \item[$\bullet$] the full input design
+  \item[type:] NumericalSample, of size $N \times (d+2)$ (or $N \times (2d+2)$ if computeSecondOrder is True)
+  \end{description}
+}
+
+Python script for the UseCase :
+
+\begin{lstlisting}
+import openturns as ot
+
+#----------------------------------------------------#
+#-- Define designs for first/total & second orders --#
+#----------------------------------------------------#
+
+input_dimension = 3
+output_dimension = 1
+
+formula = ['sin(_pi*X1)+7*sin(_pi*X2)*sin(_pi*X2)+\
+   0.1*((_pi*X3)*(_pi*X3)*(_pi*X3)*(_pi*X3))*sin(_pi*X1)']
+model = ot.NumericalMathFunction(['X1', 'X2', 'X3'], ['Y'], formula)
+distribution = ot.ComposedDistribution([ot.Uniform(-1.0, 1.0)] * input_dimension)
+
+# Size of simulation
+size = 1000
+
+# Compute Second order indices and thus defines appropriate designs
+computeSecondOrder = True
+
+#----------------------------------
+# 1) Evaluate input/output designs
+#----------------------------------
+# Evaluation of in/out designs
+inputDesign = ot.SobolIndicesAlgorithmImplementation.Generate(distribution, size, computeSecondOrder)
+outputDesign = model(inputDesign)
+
+#----------------------------------------------------------------------
+# 2) Algorithm : define algorithms by using the appropriate constructor
+#----------------------------------------------------------------------
+# We can use the same designs for all methods
+saltelli_sensitivity_algo = ot.SaltelliSensitivityAlgorithm(inputDesign, outputDesign, size)
+jansen_sensitivity_algo = ot.JansenSensitivityAlgorithm(inputDesign, outputDesign, size)
+martinez_sensitivity_algo = ot.MartinezSensitivityAlgorithm(inputDesign, outputDesign, size)
+mauntzkucherenko_sensitivity_algo = ot.MauntzKucherenkoSensitivityAlgorithm(inputDesign, outputDesign, size)
+
+\end{lstlisting}
