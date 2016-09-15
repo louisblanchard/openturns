@@ -74,10 +74,6 @@ public:
 
 private:
 
-  /** set sample  method */
-  void setData(const NumericalSample & inputSample,
-               const NumericalSample & outputSample);
-
   // The input data
   NumericalSample inputSample_;
 

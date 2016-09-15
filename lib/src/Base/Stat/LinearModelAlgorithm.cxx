@@ -45,15 +45,6 @@ LinearModelAlgorithm::LinearModelAlgorithm(const NumericalSample & inputSample,
   , result_()
   , hasRun_(false)
 {
-  // set data & covariance model
-  setData(inputSample, outputSample);
-}
-
-
-/** set sample  method */
-void LinearModelAlgorithm::setData(const NumericalSample & inputSample,
-    const NumericalSample & outputSample)
-{
   // Check the sample sizes
   if (inputSample.getSize() != outputSample.getSize())
     throw InvalidArgumentException(HERE) << "In LinearModelAlgorithm::LinearModelAlgorithm, input sample size (" << inputSample.getSize() << ") does not match output sample size (" << outputSample.getSize() << ").";
@@ -106,7 +97,7 @@ NumericalSample LinearModelAlgorithm::getOutputSample() const
 
 LinearModelResult LinearModelAlgorithm::getResult()
 {
-  if (!hasRun_) run(); 
+  run();
   return result_;
 }
 

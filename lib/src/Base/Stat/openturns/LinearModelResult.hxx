@@ -47,8 +47,8 @@ public:
   LinearModelResult();
 
   /** Parameter constructor */
-  LinearModelResult(const NumericalSample & inputData,
-                    const NumericalSample & outputData,
+  LinearModelResult(const NumericalSample & inputSample,
+                    const NumericalSample & outputSample,
                     const LinearModel & model);
 
   /** Virtual constructor */
@@ -92,10 +92,13 @@ protected:
 
 private:
 
-  /** inputData should be keeped*/
-  NumericalSample inputData_;
+  /** input data */
+  NumericalSample inputSample_;
 
-  /** The linear model */
+  /** output data */
+  NumericalSample outputSample_;
+
+  /** linear model */
   LinearModel linearModel_;
 
 

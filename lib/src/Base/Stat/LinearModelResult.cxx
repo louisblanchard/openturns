@@ -41,7 +41,8 @@ LinearModelResult::LinearModelResult(const NumericalSample & inputSample,
     const NumericalSample & outputSample,
     const LinearModel & linearModel)
   : PersistentObject()
-  , inputData_(inputSample)
+  , inputSample_(inputSample)
+  , outputSample_(outputSample)
   , linearModel_(linearModel)
 {
   const UnsignedInteger size = inputSample.getSize();
@@ -117,7 +118,8 @@ Graph LinearModelResult::drawCookDistanceVsLeverages() const
 void LinearModelResult::save(Advocate & adv) const
 {
   PersistentObject::save(adv);
-  adv.saveAttribute( "inputData_", inputData_ );
+  adv.saveAttribute( "inputSample_", inputSample_ );
+  adv.saveAttribute( "outputSample_", outputSample_ );
   adv.saveAttribute( "linearModel_", linearModel_ );
 }
 
@@ -126,7 +128,8 @@ void LinearModelResult::save(Advocate & adv) const
 void LinearModelResult::load(Advocate & adv)
 {
   PersistentObject::load(adv);
-  adv.loadAttribute( "inputData_", inputData_ );
+  adv.loadAttribute( "inputSample_", inputSample_ );
+  adv.loadAttribute( "outputSample_", outputSample_ );
   adv.loadAttribute( "linearModel_", linearModel_ );
 }
 
