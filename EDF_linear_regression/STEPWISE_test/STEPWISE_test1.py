@@ -36,16 +36,16 @@ i_max = factory.getIndices()
 i_min = factory.getIndices(factory.getInteractions(X.getDescription(), 1))
 
 ## Forward
-lm_forward_AIC_result = factory.build(i_min, i_max, i_min, 2)
-lm_forward_BIC_result = factory.build(i_min, i_max, i_min, log(100))
+lm_forward_AIC_result = factory.buildForward(i_min, i_max, 2)
+lm_forward_BIC_result = factory.buildForward(i_min, i_max, log(100))
 
 ## Backward
-lm_backward_AIC_result = factory.build(i_max, i_min, i_max, 2)
-lm_backward_BIC_result = factory.build(i_max, i_min, i_max, log(100))
+lm_backward_AIC_result = factory.buildBackward(i_max, i_min, 2)
+lm_backward_BIC_result = factory.buildBackward(i_max, i_min, log(100))
 
 ## Both
-lm_both_AIC_result = factory.build(i_min, i_max, i_0, 2)
-lm_both_BIC_result = factory.build(i_min, i_max, i_0, log(100))
+lm_both_AIC_result = factory.buildBoth(i_min, i_max, i_0, 2)
+lm_both_BIC_result = factory.buildBoth(i_min, i_max, i_0, log(100))
 
 lm_forward_AIC_result.printANOVAtable()
 lm_forward_BIC_result.printANOVAtable()
