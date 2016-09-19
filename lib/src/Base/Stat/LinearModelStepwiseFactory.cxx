@@ -71,18 +71,6 @@ NumericalSample LinearModelStepwiseFactory::getInputSample() const
   return inputSample_;
 }
 
-/* Indices of minimal model accessor */
-Indices LinearModelStepwiseFactory::getSmin() const
-{
-  return Smin_;
-}
-
-/* Indices of maximal model accessor */
-Indices LinearModelStepwiseFactory::getSmax() const
-{
-  return Smax_;
-}
-
 /* formula accessor */
 String LinearModelStepwiseFactory::getFormula() const
 {
@@ -90,30 +78,36 @@ String LinearModelStepwiseFactory::getFormula() const
 }
 
 /* Interactions accessor */
-Description LinearModelStepwiseFactory::getInteractions(const Description monomials, const UnsignedInteger degree) const
+Description LinearModelStepwiseFactory::getInteractions(const Description & monomials, const UnsignedInteger degree) const
 {
   throw NotYetImplementedException(HERE);
 }
 
 /* Polynomial accessor */
-String LinearModelStepwiseFactory::getPolynomial(const Description monomial, const UnsignedInteger degree) const
+Description LinearModelStepwiseFactory::getPolynomial(const Description & monomial, const UnsignedInteger degree) const
 {
   throw NotYetImplementedException(HERE);
 }
 
+String LinearModelStepwiseFactory::getPolynomial(const String & monomial, const UnsignedInteger degree) const
+{
+  throw NotYetImplementedException(HERE);
+}
+
+
 /* columns Indices accessor */
-Indices LinearModelStepwiseFactory::getIndices(const Description indice) const
+Indices LinearModelStepwiseFactory::getIndices(const Description & indice) const
 {
   throw NotYetImplementedException(HERE);
 }
 
 /* Add methods */
-void LinearModelStepwiseFactory::add(const Description collection_name)
+void LinearModelStepwiseFactory::add(const Description & name)
 {
   throw NotYetImplementedException(HERE);
 }
 
-void LinearModelStepwiseFactory::add(const String name)
+void LinearModelStepwiseFactory::add(const String & name)
 {
   throw NotYetImplementedException(HERE);
 }

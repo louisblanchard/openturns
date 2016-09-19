@@ -47,7 +47,7 @@ public:
   LinearModelStepwiseFactory();
 
   /** Parameters constructor */
-  LinearModelStepwiseFactory(const NumericalSample & inputSample);
+  explicit LinearModelStepwiseFactory(const NumericalSample & inputSample);
 
   /** Virtual constructor */
   virtual LinearModelStepwiseFactory * clone() const;
@@ -55,27 +55,22 @@ public:
   /** Sample accessor */
   NumericalSample getInputSample() const;
 
-  /** Indices of minimal model accessor */
-  Indices getSmin() const;
-
-  /** Indices of maximal model accessor */
-  Indices getSmax() const;
-
   /** formula accessor */
   String getFormula() const;
 
   /** Interactions accessor */
-  Description getInteractions(const Description monomials, const UnsignedInteger degree) const;
+  Description getInteractions(const Description & monomials, const UnsignedInteger degree) const;
 
   /** Polynomial accessor */
-  String getPolynomial(const Description monomial, const UnsignedInteger degree) const;
+  Description getPolynomial(const Description & monomial, const UnsignedInteger degree) const;
+  String getPolynomial(const String & monomial, const UnsignedInteger degree) const;
 
   /** columns Indices accessor */
-  Indices getIndices(const Description indice) const;
+  Indices getIndices(const Description & indice) const;
 
   /** add methods */
-  void add(const Description collection_name);
-  void add(const String name);
+  void add(const Description & name);
+  void add(const String & name);
 
   /** Build a linear model using stepwise regression with "forward" search method */
   LinearModelResult buildForward(Indices Smin, 
@@ -117,7 +112,6 @@ private:
   /** The function */
   NumericalMathFunction func_;
 
-
   /** Build a linear model using stepwise regression */
   LinearModelResult build(Indices Smin, 
                           Indices Smax, 
@@ -127,7 +121,6 @@ private:
   /** functions to find argmax of the optimal criteria  */ 
   NumericalScalar evaluateWith(const Indices j);
   NumericalScalar evaluateWithout(const Indices j);  
-  
 
 }; /* class LinearModelStepwiseFactory */
 
