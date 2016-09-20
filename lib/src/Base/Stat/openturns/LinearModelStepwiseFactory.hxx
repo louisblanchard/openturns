@@ -122,6 +122,8 @@ private:
   /** Build a linear model using stepwise regression */
   LinearModelResult build(const Indices & minimalIndices,
                           const Indices & startIndices,
+                          const Bool forward,
+                          const Bool backward,
                           const NumericalScalar k);
 
   /** functions to find argmax of the optimal criteria  */

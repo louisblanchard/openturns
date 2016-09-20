@@ -114,7 +114,7 @@ void LinearModelStepwiseFactory::add(const String & name)
 LinearModelResult LinearModelStepwiseFactory::buildForward(const Indices & minimalIndices,
                                                            const NumericalScalar k)
 {
-  return build(minimalIndices, minimalIndices, k);
+  return build(minimalIndices, minimalIndices, true, false, k);
 }
 
 /* Build a linear model using stepwise regression with "backward" search method */
@@ -123,7 +123,7 @@ LinearModelResult LinearModelStepwiseFactory::buildBackward(const Indices & mini
 {
   Indices startIndices(monomials_.getSize());
   startIndices.fill();
-  return build(minimalIndices, startIndices, k);
+  return build(minimalIndices, startIndices, false, true, k);
 }
 
 /* Build a linear model using stepwise regression with "both" search method */
@@ -131,12 +131,14 @@ LinearModelResult LinearModelStepwiseFactory::buildBoth(const Indices & minimalI
                                                         const Indices & startIndices,
                                                         const NumericalScalar k)
 {
-  return build(minimalIndices, startIndices, k);
+  return build(minimalIndices, startIndices, true, true, k);
 }
 
 /* Build a linear model using stepwise regression */
 LinearModelResult LinearModelStepwiseFactory::build(const Indices & minimalIndices,
                                                     const Indices & startIndices,
+                                                    const Bool forward,
+                                                    const Bool backward,
                                                     const NumericalScalar k)
 {
   /* k : the multiple of the degrees of freedom used for the penality
