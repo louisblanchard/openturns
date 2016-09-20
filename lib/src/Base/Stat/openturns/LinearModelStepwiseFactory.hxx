@@ -41,6 +41,8 @@ BEGIN_NAMESPACE_OPENTURNS
 class OT_API LinearModelStepwiseFactory :
   public PersistentObject
 {
+  CLASSNAME;
+
 public:
 
   /** Default constructor is private */
@@ -52,6 +54,10 @@ public:
   /** Virtual constructor */
   virtual LinearModelStepwiseFactory * clone() const;
 
+  /** String converter */
+  String __repr__() const;
+  String __str__(const String & offset = "") const;
+
   /** Sample accessor */
   NumericalSample getInputSample() const;
 
@@ -59,11 +65,11 @@ public:
   String getFormula() const;
 
   /** Interactions accessor */
-  Description getInteractions(const Description & monomials, const UnsignedInteger degree) const;
+  Description getInteractions(const Description & variables, const UnsignedInteger degree) const;
 
   /** Polynomial accessor */
-  Description getPolynomial(const Description & monomial, const UnsignedInteger degree) const;
-  String getPolynomial(const String & monomial, const UnsignedInteger degree) const;
+  Description getPolynomial(const Description & variables, const UnsignedInteger degree) const;
+  String getPolynomial(const String & variable, const UnsignedInteger degree) const;
 
   /** columns Indices accessor */
   Indices getIndices(const Description & indice) const;
@@ -73,54 +79,54 @@ public:
   void add(const String & name);
 
   /** Build a linear model using stepwise regression with "forward" search method */
-  LinearModelResult buildForward(Indices Smin, 
-                                 Indices Smax, 
-                                 const NumericalScalar k); 
+  LinearModelResult buildForward(const Indices & minimalIndices,
+                                 const NumericalScalar k);
 
   /** Build a linear model using stepwise regression with "backward" search method */
-  LinearModelResult buildBackward(Indices Smax, 
-                                  Indices Smin, 
-                                  const NumericalScalar k); 
+  LinearModelResult buildBackward(const Indices & minimalIndices,
+                                  const NumericalScalar k);
 
   /** Build a linear model using stepwise regression with "both" search method */
-  LinearModelResult buildBoth(Indices Smin, 
-                              Indices Smax, 
-                              Indices Sini, 
-                              const NumericalScalar k); 
+  LinearModelResult buildBoth(const Indices & minimalIndices,
+                              const Indices & startIndices,
+                              const NumericalScalar k);
+
+  /** Method save() stores the object through the StorageManager */
+  void save(Advocate & adv) const;
+
+  /** Method load() reloads the object from the StorageManager */
+  void load(Advocate & adv);
+
 
 
 private:
 
-  /** The input data  */ 
+  /** The input data  */
   NumericalSample inputSample_;
-
-  /** The indices of minimal model */ 
-  Indices Smin_;
-
-  /** The indices of maximal model */ 
-  Indices Smax_;
 
   /** The formula description */
   String formula_;
 
-  /** The monomials collection */ 
-  String monomial_;
+  /** The monomials collection */
+  Description monomials_;
 
-  /** The current matrix */ 
-  Matrix Zcurrent_; 
+  /** The current matrix */
+  Matrix currentMatrix_;
+
+  /** The indices of current model */
+  Indices currentIndices_;
 
   /** The function */
   NumericalMathFunction func_;
 
   /** Build a linear model using stepwise regression */
-  LinearModelResult build(Indices Smin, 
-                          Indices Smax, 
-                          Indices Sini,
+  LinearModelResult build(const Indices & minimalIndices,
+                          const Indices & startIndices,
                           const NumericalScalar k);
 
-  /** functions to find argmax of the optimal criteria  */ 
-  NumericalScalar evaluateWith(const Indices j);
-  NumericalScalar evaluateWithout(const Indices j);  
+  /** functions to find argmax of the optimal criteria  */
+  NumericalScalar evaluateWith(const Indices & j);
+  NumericalScalar evaluateWithout(const Indices & j);
 
 }; /* class LinearModelStepwiseFactory */
 
