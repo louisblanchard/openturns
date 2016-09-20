@@ -24,28 +24,25 @@ factory = ot.LinearModelStepwiseFactory(X, Y)
 factory.add(factory.getInteractions(X.getDescription(), 3))
 
 # I(Xi)^2
-for x in X.getDescription():
-  factory.add(factory.getPolynomial(x, 2))
+factory.add(factory.getPolynomial(X.getDescription(), 2))
 
 # I(Xi)^3
-for x in X.getDescription():
-  factory.add(factory.getPolynomial(x, 3))
+factory.add(factory.getPolynomial(X.getDescription(), 3))
 
-i_0 = factory.getIndices(["1"])
-i_max = factory.getIndices()
-i_min = factory.getIndices(factory.getInteractions(X.getDescription(), 1))
+i_min = factory.getIndices(["1"])
+i_0 = factory.getIndices(factory.getInteractions(X.getDescription(), 1))
 
 ## Forward
-lm_forward_AIC_result = factory.buildForward(i_min, i_max, 2)
-lm_forward_BIC_result = factory.buildForward(i_min, i_max, log(100))
+lm_forward_AIC_result = factory.buildForward(i_min, 2)
+lm_forward_BIC_result = factory.buildForward(i_min, log(100))
 
 ## Backward
-lm_backward_AIC_result = factory.buildBackward(i_max, i_min, 2)
-lm_backward_BIC_result = factory.buildBackward(i_max, i_min, log(100))
+lm_backward_AIC_result = factory.buildBackward(i_min, 2)
+lm_backward_BIC_result = factory.buildBackward(i_min, log(100))
 
 ## Both
-lm_both_AIC_result = factory.buildBoth(i_min, i_max, i_0, 2)
-lm_both_BIC_result = factory.buildBoth(i_min, i_max, i_0, log(100))
+lm_both_AIC_result = factory.buildBoth(i_min, i_0, 2)
+lm_both_BIC_result = factory.buildBoth(i_min, i_0, log(100))
 
 lm_forward_AIC_result.printANOVAtable()
 lm_forward_BIC_result.printANOVAtable()
