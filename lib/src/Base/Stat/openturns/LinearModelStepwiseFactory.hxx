@@ -148,10 +148,10 @@ private:
   NumericalScalar computeLogLikelihood();  
   
   /** Compute the likelihood function for stepwise regression with "forward" search method */
-  NumericalScalar computeLogLikelihoodForward(const Indices & j);
+  NumericalScalar computeLogLikelihoodForward(const UnsignedInteger j);
 
   /** Compute the likelihood function for stepwise regression with "backward" search method */
-  NumericalScalar computeLogLikelihoodBackward(const Indices & j);
+  NumericalScalar computeLogLikelihoodBackward(const UnsignedInteger j);
 
 }; /* class LinearModelStepwiseFactory */
 

@@ -115,7 +115,7 @@ LinearModelResult LinearModelStepwiseFactory::buildForward(const Indices & minim
                                                            const NumericalScalar k,
                                                            const UnsignedInteger itermax)
 {
-  return build(minimalIndices, minimalIndices, true, false, k);
+  return build(minimalIndices, minimalIndices, true, false, k, itermax);
 }
 
 /* Build a linear model using stepwise regression with "backward" search method */
@@ -125,7 +125,7 @@ LinearModelResult LinearModelStepwiseFactory::buildBackward(const Indices & mini
 {
   Indices startIndices(monomials_.getSize());
   startIndices.fill();
-  return build(minimalIndices, startIndices, false, true, k);
+  return build(minimalIndices, startIndices, false, true, k, itermax);
 }
 
 /* Build a linear model using stepwise regression with "both" search method */
@@ -134,7 +134,7 @@ LinearModelResult LinearModelStepwiseFactory::buildBoth(const Indices & minimalI
                                                         const NumericalScalar k,
                                                         const UnsignedInteger itermax)
 {
-  return build(minimalIndices, startIndices, true, true, k);
+  return build(minimalIndices, startIndices, true, true, k, itermax);
 }
 
 /* Build a linear model using stepwise regression */
@@ -169,13 +169,13 @@ NumericalScalar LinearModelStepwiseFactory::computeLogLikelihood()
 }
 
 /* Compute the likelihood function for stepwise regression with "forward" search method */
-NumericalScalar LinearModelStepwiseFactory::computeLogLikelihoodForward(const Indices & j)
+NumericalScalar LinearModelStepwiseFactory::computeLogLikelihoodForward(const UnsignedInteger j)
 {
   throw NotYetImplementedException(HERE);
 }
 
 /* Compute the likelihood function for stepwise regression with "backward" search method */
-NumericalScalar LinearModelStepwiseFactory::computeLogLikelihoodBackward(const Indices & j)
+NumericalScalar LinearModelStepwiseFactory::computeLogLikelihoodBackward(const UnsignedInteger j)
 {
   throw NotYetImplementedException(HERE);
 }
