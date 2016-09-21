@@ -27,6 +27,7 @@
 #include "openturns/NumericalSample.hxx"
 #include "openturns/NumericalMathFunction.hxx"
 #include "openturns/Matrix.hxx"
+#include "openturns/CovarianceMatrix.hxx"
 #include "openturns/ResourceMap.hxx"
 #include "openturns/Indices.hxx"
 
@@ -80,16 +81,19 @@ public:
 
   /** Build a linear model using stepwise regression with "forward" search method */
   LinearModelResult buildForward(const Indices & minimalIndices,
-                                 const NumericalScalar k);
+                                 const NumericalScalar k,
+                                 const UnsignedInteger itermax);
 
   /** Build a linear model using stepwise regression with "backward" search method */
   LinearModelResult buildBackward(const Indices & minimalIndices,
-                                  const NumericalScalar k);
+                                  const NumericalScalar k,
+                                  const UnsignedInteger itermax);
 
   /** Build a linear model using stepwise regression with "both" search method */
   LinearModelResult buildBoth(const Indices & minimalIndices,
                               const Indices & startIndices,
-                              const NumericalScalar k);
+                              const NumericalScalar k,
+                              const UnsignedInteger itermax);
 
   /** Method save() stores the object through the StorageManager */
   void save(Advocate & adv) const;
@@ -119,16 +123,35 @@ private:
   /** The function */
   NumericalMathFunction func_;
 
+  /** penalization term */
+  NumericalScalar penality_;
+
+  /** The covariance matrix inverse: A=(X^T X)^-1 */
+  CovarianceMatrix currentGramInverse_;
+
+  /** The non-square matrix : B= A X^T   */
+  Matrix currentB_;
+
   /** Build a linear model using stepwise regression */
   LinearModelResult build(const Indices & minimalIndices,
                           const Indices & startIndices,
                           const Bool forward,
                           const Bool backward,
-                          const NumericalScalar k);
+                          const NumericalScalar k,
+                          const UnsignedInteger itermax);
 
   /** functions to find argmax of the optimal criteria  */
   NumericalScalar evaluateWith(const Indices & j);
   NumericalScalar evaluateWithout(const Indices & j);
+
+  /** Compute the likelihood function */
+  NumericalScalar computeLogLikelihood();  
+  
+  /** Compute the likelihood function for stepwise regression with "forward" search method */
+  NumericalScalar computeLogLikelihoodForward(const Indices & j);
+
+  /** Compute the likelihood function for stepwise regression with "backward" search method */
+  NumericalScalar computeLogLikelihoodBackward(const Indices & j);
 
 }; /* class LinearModelStepwiseFactory */
 

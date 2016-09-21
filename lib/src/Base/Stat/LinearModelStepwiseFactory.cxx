@@ -112,14 +112,16 @@ void LinearModelStepwiseFactory::add(const String & name)
 
 /* Build a linear model using stepwise regression with "forward" search method */
 LinearModelResult LinearModelStepwiseFactory::buildForward(const Indices & minimalIndices,
-                                                           const NumericalScalar k)
+                                                           const NumericalScalar k,
+                                                           const UnsignedInteger itermax)
 {
   return build(minimalIndices, minimalIndices, true, false, k);
 }
 
 /* Build a linear model using stepwise regression with "backward" search method */
 LinearModelResult LinearModelStepwiseFactory::buildBackward(const Indices & minimalIndices,
-                                                            const NumericalScalar k)
+                                                            const NumericalScalar k,
+                                                            const UnsignedInteger itermax)
 {
   Indices startIndices(monomials_.getSize());
   startIndices.fill();
@@ -129,7 +131,8 @@ LinearModelResult LinearModelStepwiseFactory::buildBackward(const Indices & mini
 /* Build a linear model using stepwise regression with "both" search method */
 LinearModelResult LinearModelStepwiseFactory::buildBoth(const Indices & minimalIndices,
                                                         const Indices & startIndices,
-                                                        const NumericalScalar k)
+                                                        const NumericalScalar k,
+                                                        const UnsignedInteger itermax)
 {
   return build(minimalIndices, startIndices, true, true, k);
 }
@@ -139,7 +142,8 @@ LinearModelResult LinearModelStepwiseFactory::build(const Indices & minimalIndic
                                                     const Indices & startIndices,
                                                     const Bool forward,
                                                     const Bool backward,
-                                                    const NumericalScalar k)
+                                                    const NumericalScalar k,
+                                                    const UnsignedInteger itermax)
 {
   /* k : the multiple of the degrees of freedom used for the penality
         - k=2      Akaike   information criterion (AIC)
@@ -154,6 +158,24 @@ NumericalScalar LinearModelStepwiseFactory::evaluateWith(const Indices & j)
 }
 
 NumericalScalar LinearModelStepwiseFactory::evaluateWithout(const Indices & j)
+{
+  throw NotYetImplementedException(HERE);
+}
+
+/* Compute the likelihood function */
+NumericalScalar LinearModelStepwiseFactory::computeLogLikelihood()
+{
+  throw NotYetImplementedException(HERE);
+}
+
+/* Compute the likelihood function for stepwise regression with "forward" search method */
+NumericalScalar LinearModelStepwiseFactory::computeLogLikelihoodForward(const Indices & j)
+{
+  throw NotYetImplementedException(HERE);
+}
+
+/* Compute the likelihood function for stepwise regression with "backward" search method */
+NumericalScalar LinearModelStepwiseFactory::computeLogLikelihoodBackward(const Indices & j)
 {
   throw NotYetImplementedException(HERE);
 }
