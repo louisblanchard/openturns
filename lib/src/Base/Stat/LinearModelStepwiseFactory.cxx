@@ -30,17 +30,20 @@ CLASSNAMEINIT(LinearModelStepwiseFactory);
 LinearModelStepwiseFactory::LinearModelStepwiseFactory()
   : PersistentObject()
   , inputSample_(0, 0)
+  , outputSample_(0, 0)
 {
   // Nothing to do
 }
 
 /* Parameters constructor */
-LinearModelStepwiseFactory::LinearModelStepwiseFactory(const NumericalSample & inputSample)
+LinearModelStepwiseFactory::LinearModelStepwiseFactory(const NumericalSample & inputSample, const NumericalSample & outputSample)
   : PersistentObject()
   , inputSample_(0, 0)
+  , outputSample_(0, 0)
 {
   // Set samples
   inputSample_ = inputSample;
+  outputSample_ = outputSample;
 }
 
 
@@ -67,6 +70,12 @@ String LinearModelStepwiseFactory::__str__(const String & offset) const
 NumericalSample LinearModelStepwiseFactory::getInputSample() const
 {
   return inputSample_;
+}
+
+/* Input sample accessor */
+NumericalSample LinearModelStepwiseFactory::getOutputSample() const
+{
+  return outputSample_;
 }
 
 /* Formula accessor */

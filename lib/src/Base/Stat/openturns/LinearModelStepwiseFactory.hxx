@@ -50,7 +50,7 @@ public:
   LinearModelStepwiseFactory();
 
   /** Parameters constructor */
-  explicit LinearModelStepwiseFactory(const NumericalSample & inputSample);
+  LinearModelStepwiseFactory(const NumericalSample & inputSample, const NumericalSample & outputSample);
 
   /** Virtual constructor */
   virtual LinearModelStepwiseFactory * clone() const;
@@ -61,6 +61,9 @@ public:
 
   /** Input sample accessor */
   NumericalSample getInputSample() const;
+
+  /** Output sample accessor */
+  NumericalSample getOutputSample() const;
 
   /** Formula accessor */
   String getFormula() const;
@@ -107,6 +110,9 @@ private:
 
   /** The input data  */
   NumericalSample inputSample_;
+
+  /** The output data  */
+  NumericalSample outputSample_;
 
   /** The formula description */
   String condensedFormula_;
