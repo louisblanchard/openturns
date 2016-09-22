@@ -63,25 +63,25 @@ String LinearModelStepwiseFactory::__str__(const String & offset) const
   return OSS(false) << "class=" << getClassName();
 }
 
-/* Sample accessor */
+/* Input sample accessor */
 NumericalSample LinearModelStepwiseFactory::getInputSample() const
 {
   return inputSample_;
 }
 
-/* formula accessor */
+/* Formula accessor */
 String LinearModelStepwiseFactory::getFormula() const
 {
   return formula_;
 }
 
-/* Interactions accessor */
+/* Get formulas of interactions between variables */
 Description LinearModelStepwiseFactory::getInteractions(const Description & variables, const UnsignedInteger degree) const
 {
   throw NotYetImplementedException(HERE);
 }
 
-/* Polynomial accessor */
+/* Get formulas of monomials */
 Description LinearModelStepwiseFactory::getPolynomial(const Description & variables, const UnsignedInteger degree) const
 {
   throw NotYetImplementedException(HERE);
@@ -93,19 +93,19 @@ String LinearModelStepwiseFactory::getPolynomial(const String & variable, const 
 }
 
 
-/* columns Indices accessor */
-Indices LinearModelStepwiseFactory::getIndices(const Description & indice) const
+/* Get column indices of given formulas */
+Indices LinearModelStepwiseFactory::getIndices(const Description & formulas) const
 {
   throw NotYetImplementedException(HERE);
 }
 
-/* Add methods */
-void LinearModelStepwiseFactory::add(const Description & name)
+/* Add formulas */
+void LinearModelStepwiseFactory::add(const Description & formulas)
 {
   throw NotYetImplementedException(HERE);
 }
 
-void LinearModelStepwiseFactory::add(const String & name)
+void LinearModelStepwiseFactory::add(const String & formula)
 {
   throw NotYetImplementedException(HERE);
 }
@@ -113,28 +113,28 @@ void LinearModelStepwiseFactory::add(const String & name)
 /* Build a linear model using stepwise regression with "forward" search method */
 LinearModelResult LinearModelStepwiseFactory::buildForward(const Indices & minimalIndices,
                                                            const NumericalScalar k,
-                                                           const UnsignedInteger itermax)
+                                                           const UnsignedInteger maximumIterationNumber)
 {
-  return build(minimalIndices, minimalIndices, true, false, k, itermax);
+  return build(minimalIndices, minimalIndices, true, false, k, maximumIterationNumber);
 }
 
 /* Build a linear model using stepwise regression with "backward" search method */
 LinearModelResult LinearModelStepwiseFactory::buildBackward(const Indices & minimalIndices,
                                                             const NumericalScalar k,
-                                                            const UnsignedInteger itermax)
+                                                            const UnsignedInteger maximumIterationNumber)
 {
   Indices startIndices(monomials_.getSize());
   startIndices.fill();
-  return build(minimalIndices, startIndices, false, true, k, itermax);
+  return build(minimalIndices, startIndices, false, true, k, maximumIterationNumber);
 }
 
 /* Build a linear model using stepwise regression with "both" search method */
 LinearModelResult LinearModelStepwiseFactory::buildBoth(const Indices & minimalIndices,
                                                         const Indices & startIndices,
                                                         const NumericalScalar k,
-                                                        const UnsignedInteger itermax)
+                                                        const UnsignedInteger maximumIterationNumber)
 {
-  return build(minimalIndices, startIndices, true, true, k, itermax);
+  return build(minimalIndices, startIndices, true, true, k, maximumIterationNumber);
 }
 
 /* Build a linear model using stepwise regression */
@@ -143,7 +143,7 @@ LinearModelResult LinearModelStepwiseFactory::build(const Indices & minimalIndic
                                                     const Bool forward,
                                                     const Bool backward,
                                                     const NumericalScalar k,
-                                                    const UnsignedInteger itermax)
+                                                    const UnsignedInteger maximumIterationNumber)
 {
   /* k : the multiple of the degrees of freedom used for the penality
         - k=2      Akaike   information criterion (AIC)

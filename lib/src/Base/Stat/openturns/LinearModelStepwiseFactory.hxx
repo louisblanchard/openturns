@@ -59,41 +59,41 @@ public:
   String __repr__() const;
   String __str__(const String & offset = "") const;
 
-  /** Sample accessor */
+  /** Input sample accessor */
   NumericalSample getInputSample() const;
 
-  /** formula accessor */
+  /** Formula accessor */
   String getFormula() const;
 
-  /** Interactions accessor */
+  /** Get formulas of interactions between variables */
   Description getInteractions(const Description & variables, const UnsignedInteger degree) const;
 
-  /** Polynomial accessor */
+  /** Get formulas of monomials */
   Description getPolynomial(const Description & variables, const UnsignedInteger degree) const;
   String getPolynomial(const String & variable, const UnsignedInteger degree) const;
 
-  /** columns Indices accessor */
-  Indices getIndices(const Description & indice) const;
+  /** Get column indices of given formulas */
+  Indices getIndices(const Description & formulas) const;
 
-  /** add methods */
-  void add(const Description & name);
-  void add(const String & name);
+  /** Add formulas */
+  void add(const Description & formulas);
+  void add(const String & formula);
 
   /** Build a linear model using stepwise regression with "forward" search method */
   LinearModelResult buildForward(const Indices & minimalIndices,
                                  const NumericalScalar k,
-                                 const UnsignedInteger itermax);
+                                 const UnsignedInteger maximumIterationNumber);
 
   /** Build a linear model using stepwise regression with "backward" search method */
   LinearModelResult buildBackward(const Indices & minimalIndices,
                                   const NumericalScalar k,
-                                  const UnsignedInteger itermax);
+                                  const UnsignedInteger maximumIterationNumber);
 
   /** Build a linear model using stepwise regression with "both" search method */
   LinearModelResult buildBoth(const Indices & minimalIndices,
                               const Indices & startIndices,
                               const NumericalScalar k,
-                              const UnsignedInteger itermax);
+                              const UnsignedInteger maximumIterationNumber);
 
   /** Method save() stores the object through the StorageManager */
   void save(Advocate & adv) const;
@@ -109,22 +109,22 @@ private:
   NumericalSample inputSample_;
 
   /** The formula description */
-  String formula_;
+  String condensedFormula_;
 
   /** The monomials collection */
-  Description monomials_;
+  Description formulas_;
+
+  /** Penalization term */
+  NumericalScalar penality_;
+
+  /** The matrix X^T_{max} containing all monomials */
+  Matrix maxXt_;
 
   /** The current matrix */
-  Matrix currentMatrix_;
+  Matrix currentXt_;
 
   /** The indices of current model */
   Indices currentIndices_;
-
-  /** The function */
-  NumericalMathFunction func_;
-
-  /** penalization term */
-  NumericalScalar penality_;
 
   /** The covariance matrix inverse: A=(X^T X)^-1 */
   CovarianceMatrix currentGramInverse_;
@@ -138,20 +138,20 @@ private:
                           const Bool forward,
                           const Bool backward,
                           const NumericalScalar k,
-                          const UnsignedInteger itermax);
+                          const UnsignedInteger maximumIterationNumber);
 
   /** functions to find argmax of the optimal criteria  */
-  NumericalScalar evaluateWith(const Indices & j);
-  NumericalScalar evaluateWithout(const Indices & j);
+  NumericalScalar evaluateWith(const UnsignedInteger index);
+  NumericalScalar evaluateWithout(const UnsignedInteger index);
 
   /** Compute the likelihood function */
   NumericalScalar computeLogLikelihood();  
   
   /** Compute the likelihood function for stepwise regression with "forward" search method */
-  NumericalScalar computeLogLikelihoodForward(const UnsignedInteger j);
+  NumericalScalar computeLogLikelihoodForward(const UnsignedInteger index);
 
   /** Compute the likelihood function for stepwise regression with "backward" search method */
-  NumericalScalar computeLogLikelihoodBackward(const UnsignedInteger j);
+  NumericalScalar computeLogLikelihoodBackward(const UnsignedInteger index);
 
 }; /* class LinearModelStepwiseFactory */
 
