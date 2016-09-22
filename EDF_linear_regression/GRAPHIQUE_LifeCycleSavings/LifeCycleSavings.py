@@ -25,7 +25,7 @@ inputSample = Sample[:,1:5]
 algo1 = ot.LinearModelAlgorithm(inputSample, outputSample)
 result1 = algo1.getResult()
 
-# for plot in ["drawResidualsVsFitted", "drawScaleLocation", "drawNormalQQ", "drawCookDistanceVsLabels", "drawResidualsVsLeverages", "drawCookDistanceVsLeverages"]:
+# for plot in ["drawResidualsVsFitted", "drawScaleLocation", "drawQQplot", "drawCookDistance", "drawResidualsVsLeverages", "drawCookVsLeverages"]:
 #     graph = getattr(result1, plot)()
 #     View(graph)
 
@@ -38,11 +38,11 @@ graph = result1.drawScaleLocation()
 View(graph)
 
 # Normal quantiles-quantiles plot of standardized residuals
-graph = result1.drawNormalQQ()
+graph = result1.drawQQplot()
 View(graph)
 
 # plot of Cook's distances versus row labels
-graph = result1.drawCookDistanceVsLabels()
+graph = result1.drawCookDistance()
 View(graph)
 
 # plot of residuals versus leverages that adds bands corresponding to Cook's distances of 0.5 and 1
@@ -50,7 +50,7 @@ graph = result1.drawResidualsVsLeverages()
 View(graph)
 
 # plot of Cook's distances versus leverage/(1-leverage)
-graph = result1.drawCookDistanceVsLeverages()
+graph = result1.drawCookVsLeverages()
 View(graph)
 
 # model2
@@ -71,11 +71,11 @@ graph = result2.drawScaleLocation()
 View(graph)
 
 # Normal quantiles-quantiles plot of standardized residuals
-graph = result2.drawNormalQQ()
+graph = result2.drawQQplot()
 View(graph)
 
 # plot of Cook's distances versus row labels
-graph = result2.drawCookDistanceVsLabels()
+graph = result2.drawCookDistance()
 View(graph)
 
 # plot of residuals versus leverages that adds bands corresponding to Cook's distances of 0.5 and 1
@@ -83,6 +83,6 @@ graph = result2.drawResidualsVsLeverages()
 View(graph)
 
 # plot of Cook's distances versus leverage/(1-leverage)
-graph = result2.drawCookDistanceVsLeverages()
+graph = result2.drawCookVsLeverages()
 View(graph)
 

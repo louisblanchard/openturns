@@ -91,13 +91,13 @@ Graph LinearModelResult::drawScaleLocation() const
 }
 
 /* [3] a Normal quantiles-quantiles plot of standardized residuals */
-Graph LinearModelResult::drawNormalQQ() const
+Graph LinearModelResult::drawQQplot() const
 {
   throw NotYetImplementedException(HERE);
 }
 
 /* [4] a plot of Cook's distances versus row labels */
-Graph LinearModelResult::drawCookDistanceVsLabels() const
+Graph LinearModelResult::drawCookDistance() const
 {
   throw NotYetImplementedException(HERE);
 }
@@ -109,7 +109,7 @@ Graph LinearModelResult::drawResidualsVsLeverages() const
 }
 
 /* [6] a plot of Cook's distances versus leverage/(1-leverage) */
-Graph LinearModelResult::drawCookDistanceVsLeverages() const
+Graph LinearModelResult::drawCookVsLeverages() const
 {
   throw NotYetImplementedException(HERE);
 }

@@ -79,16 +79,16 @@ protected:
   Graph drawScaleLocation() const;
 
   /** [3] a Normal quantiles-quantiles plot of standardized residuals */
-  Graph drawNormalQQ() const;
+  Graph drawQQplot() const;
 
   /** [4] a plot of Cook's distances versus row labels */
-  Graph drawCookDistanceVsLabels() const;
+  Graph drawCookDistance() const;
 
   /** [5] a plot of residuals versus leverages that adds bands corresponding to Cook's distances of 0.5 and 1. */
   Graph drawResidualsVsLeverages() const;
 
   /** [6] a plot of Cook's distances versus leverage/(1-leverage) */
-  Graph drawCookDistanceVsLeverages() const;
+  Graph drawCookVsLeverages() const;
 
 private:
 
