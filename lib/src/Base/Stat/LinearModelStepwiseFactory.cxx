@@ -122,17 +122,6 @@ LinearModelResult LinearModelStepwiseFactory::build(const NumericalSample & inpu
   throw NotYetImplementedException(HERE);
 }
 
-/* functions to find argmax of the optimal criteria  */
-NumericalScalar LinearModelStepwiseFactory::evaluateWith(const UnsignedInteger index)
-{
-  throw NotYetImplementedException(HERE);
-}
-
-NumericalScalar LinearModelStepwiseFactory::evaluateWithout(const UnsignedInteger index)
-{
-  throw NotYetImplementedException(HERE);
-}
-
 /* Compute the likelihood function */
 NumericalScalar LinearModelStepwiseFactory::computeLogLikelihood()
 {

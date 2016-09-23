@@ -121,14 +121,20 @@ private:
   /** The current matrix */
   Matrix currentXt_;
 
-  /** The indices of current model */
-  Indices currentIndices_;
-
   /** The covariance matrix inverse: A=(X^T X)^-1 */
   CovarianceMatrix currentGramInverse_;
 
-  /** The non-square matrix : B= A X^T   */
-  Matrix currentB_;
+  /** The current B NumericalPoint */
+  NumericalPoint currentB_;
+
+  /** The current M matrix */
+  Matrix currentM_;
+
+  /** The current M*B NumericalPoint */
+  NumericalPoint currentMB_;
+
+  /** The indices of current model */
+  Indices currentIndices_;
 
   /** Build a linear model using stepwise regression */
   LinearModelResult build(const Indices & minimalIndices,
@@ -137,10 +143,6 @@ private:
                           const Bool backward,
                           const NumericalScalar k,
                           const UnsignedInteger maximumIterationNumber);
-
-  /** functions to find argmax of the optimal criteria  */
-  NumericalScalar evaluateWith(const UnsignedInteger index);
-  NumericalScalar evaluateWithout(const UnsignedInteger index);
 
   /** Compute the likelihood function */
   NumericalScalar computeLogLikelihood();  
