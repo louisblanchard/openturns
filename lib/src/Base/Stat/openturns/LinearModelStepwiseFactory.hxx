@@ -46,11 +46,13 @@ class OT_API LinearModelStepwiseFactory :
 
 public:
 
+  enum Direction { FORWARD = 1, BACKWARD = 2, BOTH = 3 };
+
   /** Default constructor is private */
   LinearModelStepwiseFactory();
 
   /** Parameters constructor */
-  LinearModelStepwiseFactory(const NumericalSample & inputSample, const NumericalSample & outputSample);
+  explicit LinearModelStepwiseFactory(const Description & variables);
 
   /** Virtual constructor */
   virtual LinearModelStepwiseFactory * clone() const;
@@ -59,44 +61,31 @@ public:
   String __repr__() const;
   String __str__(const String & offset = "") const;
 
-  /** Input sample accessor */
-  NumericalSample getInputSample() const;
-
-  /** Output sample accessor */
-  NumericalSample getOutputSample() const;
-
   /** Formula accessor */
   String getFormula() const;
-
-  /** Get formulas of interactions between variables */
-  Description getInteractions(const Description & variables, const UnsignedInteger degree) const;
-
-  /** Get formulas of monomials */
-  Description getPolynomial(const Description & variables, const UnsignedInteger degree) const;
-  String getPolynomial(const String & variable, const UnsignedInteger degree) const;
-
-  /** Get column indices of given formulas */
-  Indices getIndices(const Description & formulas) const;
 
   /** Add formulas */
   void add(const Description & formulas);
   void add(const String & formula);
 
+  /** Get column indices of given formulas */
+  Indices getIndices(const Description & formulas) const;
+
+  /** Get formulas of interactions between variables */
+  Description getInteractions(const UnsignedInteger degree, const Description & variables = Description()) const;
+
+  /** Get formulas of monomials */
+  Description getPolynomial(const UnsignedInteger degree, const Description & variables = Description()) const;
+  String getPolynomial(const UnsignedInteger degree, const String & variable) const;
+
   /** Build a linear model using stepwise regression with "forward" search method */
-  LinearModelResult buildForward(const Indices & minimalIndices,
-                                 const NumericalScalar k,
-                                 const UnsignedInteger maximumIterationNumber);
-
-  /** Build a linear model using stepwise regression with "backward" search method */
-  LinearModelResult buildBackward(const Indices & minimalIndices,
-                                  const NumericalScalar k,
-                                  const UnsignedInteger maximumIterationNumber);
-
-  /** Build a linear model using stepwise regression with "both" search method */
-  LinearModelResult buildBoth(const Indices & minimalIndices,
-                              const Indices & startIndices,
-                              const NumericalScalar k,
-                              const UnsignedInteger maximumIterationNumber);
+  LinearModelResult build(const NumericalSample & inputSample,
+                          const NumericalSample & outputSample,
+                          const UnsignedInteger direction,
+                          const Indices & minimalIndices,
+                          const Indices & startIndices,
+                          const NumericalScalar k,
+                          const UnsignedInteger maximumIterationNumber);
 
   /** Method save() stores the object through the StorageManager */
   void save(Advocate & adv) const;
@@ -107,6 +96,9 @@ public:
 
 
 private:
+
+  /** Input variables */
+  Description variables_;
 
   /** The input data  */
   NumericalSample inputSample_;

@@ -21,7 +21,7 @@
 #ifndef OPENTURNS_LINEARMODELALGORITHM_HXX
 #define OPENTURNS_LINEARMODELALGORITHM_HXX
 
-#include "openturns/PersistentObject.hxx"
+#include "openturns/MetaModelAlgorithm.hxx"
 #include "openturns/NumericalSample.hxx"
 #include "openturns/LinearModelResult.hxx"
 
@@ -35,7 +35,7 @@ BEGIN_NAMESPACE_OPENTURNS
  */
 
 class OT_API LinearModelAlgorithm :
-  public PersistentObject
+  public MetaModelAlgorithm
 {
   CLASSNAME;
 
@@ -55,12 +55,12 @@ public:
   /** String converter */
   String __repr__() const;
 
-  /** Perform regression */
-  void run();
-
   /** Sample accessors */
   NumericalSample getInputSample() const;
   NumericalSample getOutputSample() const;
+
+  /** Perform regression */
+  void run();
 
   /** result accessor */
   LinearModelResult getResult();

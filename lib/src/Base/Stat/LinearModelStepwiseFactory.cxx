@@ -29,6 +29,7 @@ CLASSNAMEINIT(LinearModelStepwiseFactory);
 /* Default constructor */
 LinearModelStepwiseFactory::LinearModelStepwiseFactory()
   : PersistentObject()
+  , variables_(0)
   , inputSample_(0, 0)
   , outputSample_(0, 0)
 {
@@ -36,14 +37,13 @@ LinearModelStepwiseFactory::LinearModelStepwiseFactory()
 }
 
 /* Parameters constructor */
-LinearModelStepwiseFactory::LinearModelStepwiseFactory(const NumericalSample & inputSample, const NumericalSample & outputSample)
+LinearModelStepwiseFactory::LinearModelStepwiseFactory(const Description & variables)
   : PersistentObject()
+  , variables_(variables)
   , inputSample_(0, 0)
   , outputSample_(0, 0)
 {
-  // Set samples
-  inputSample_ = inputSample;
-  outputSample_ = outputSample;
+  // Nothing to do
 }
 
 
@@ -66,37 +66,25 @@ String LinearModelStepwiseFactory::__str__(const String & offset) const
   return OSS(false) << "class=" << getClassName();
 }
 
-/* Input sample accessor */
-NumericalSample LinearModelStepwiseFactory::getInputSample() const
-{
-  return inputSample_;
-}
-
-/* Input sample accessor */
-NumericalSample LinearModelStepwiseFactory::getOutputSample() const
-{
-  return outputSample_;
-}
-
 /* Formula accessor */
 String LinearModelStepwiseFactory::getFormula() const
 {
-  return formula_;
+  return condensedFormula_;
 }
 
 /* Get formulas of interactions between variables */
-Description LinearModelStepwiseFactory::getInteractions(const Description & variables, const UnsignedInteger degree) const
+Description LinearModelStepwiseFactory::getInteractions(const UnsignedInteger degree, const Description & variables) const
 {
   throw NotYetImplementedException(HERE);
 }
 
 /* Get formulas of monomials */
-Description LinearModelStepwiseFactory::getPolynomial(const Description & variables, const UnsignedInteger degree) const
+Description LinearModelStepwiseFactory::getPolynomial(const UnsignedInteger degree, const Description & variables) const
 {
   throw NotYetImplementedException(HERE);
 }
 
-String LinearModelStepwiseFactory::getPolynomial(const String & variable, const UnsignedInteger degree) const
+String LinearModelStepwiseFactory::getPolynomial(const UnsignedInteger degree, const String & variable) const
 {
   throw NotYetImplementedException(HERE);
 }
@@ -119,40 +107,14 @@ void LinearModelStepwiseFactory::add(const String & formula)
   throw NotYetImplementedException(HERE);
 }
 
-/* Build a linear model using stepwise regression with "forward" search method */
-LinearModelResult LinearModelStepwiseFactory::buildForward(const Indices & minimalIndices,
-                                                           const NumericalScalar k,
-                                                           const UnsignedInteger maximumIterationNumber)
-{
-  return build(minimalIndices, minimalIndices, true, false, k, maximumIterationNumber);
-}
-
-/* Build a linear model using stepwise regression with "backward" search method */
-LinearModelResult LinearModelStepwiseFactory::buildBackward(const Indices & minimalIndices,
-                                                            const NumericalScalar k,
-                                                            const UnsignedInteger maximumIterationNumber)
-{
-  Indices startIndices(monomials_.getSize());
-  startIndices.fill();
-  return build(minimalIndices, startIndices, false, true, k, maximumIterationNumber);
-}
-
-/* Build a linear model using stepwise regression with "both" search method */
-LinearModelResult LinearModelStepwiseFactory::buildBoth(const Indices & minimalIndices,
-                                                        const Indices & startIndices,
-                                                        const NumericalScalar k,
-                                                        const UnsignedInteger maximumIterationNumber)
-{
-  return build(minimalIndices, startIndices, true, true, k, maximumIterationNumber);
-}
-
 /* Build a linear model using stepwise regression */
-LinearModelResult LinearModelStepwiseFactory::build(const Indices & minimalIndices,
-                                                    const Indices & startIndices,
-                                                    const Bool forward,
-                                                    const Bool backward,
-                                                    const NumericalScalar k,
-                                                    const UnsignedInteger maximumIterationNumber)
+LinearModelResult LinearModelStepwiseFactory::build(const NumericalSample & inputSample,
+    const NumericalSample & outputSample,
+    const UnsignedInteger direction,
+    const Indices & minimalIndices,
+    const Indices & startIndices,
+    const NumericalScalar k,
+    const UnsignedInteger maximumIterationNumber)
 {
   /* k : the multiple of the degrees of freedom used for the penality
         - k=2      Akaike   information criterion (AIC)
@@ -161,12 +123,12 @@ LinearModelResult LinearModelStepwiseFactory::build(const Indices & minimalIndic
 }
 
 /* functions to find argmax of the optimal criteria  */
-NumericalScalar LinearModelStepwiseFactory::evaluateWith(const Indices & j)
+NumericalScalar LinearModelStepwiseFactory::evaluateWith(const UnsignedInteger index)
 {
   throw NotYetImplementedException(HERE);
 }
 
-NumericalScalar LinearModelStepwiseFactory::evaluateWithout(const Indices & j)
+NumericalScalar LinearModelStepwiseFactory::evaluateWithout(const UnsignedInteger index)
 {
   throw NotYetImplementedException(HERE);
 }

@@ -21,8 +21,8 @@
 #ifndef OPENTURNS_LINEARMODELRESULT_HXX
 #define OPENTURNS_LINEARMODELRESULT_HXX
 
+#include "openturns/MetaModelResult.hxx"
 #include "openturns/LinearModel.hxx"
-#include "openturns/PersistentObject.hxx"
 #include "openturns/NumericalSample.hxx"
 #include "openturns/Graph.hxx"
 
@@ -36,7 +36,7 @@ BEGIN_NAMESPACE_OPENTURNS
  */
 
 class OT_API LinearModelResult
-  : public PersistentObject 
+  : public MetaModelResult
 {
   CLASSNAME;
 
@@ -49,13 +49,19 @@ public:
   /** Parameter constructor */
   LinearModelResult(const NumericalSample & inputSample,
                     const NumericalSample & outputSample,
-                    const LinearModel & model);
+                    const LinearModel & model,
+                    const NumericalPoint & residuals,
+                    const NumericalPoint & relativeErrors);
 
   /** Virtual constructor */
   LinearModelResult * clone() const;
 
   /** String converter */
   String __repr__() const;
+
+  /** Sample accessors */
+  NumericalSample getInputSample() const;
+  NumericalSample getOutputSample() const;
 
   /** Linear model accessor */
   LinearModel getLinearModel() const;
@@ -65,9 +71,6 @@ public:
 
   /** Method load() reloads the object from the StorageManager */
   void load(Advocate & adv);
-
-
-protected:
 
   /** Method that returns the ANOVA table (ANalyse Of VAriance) */
   void printANOVAtable() const;

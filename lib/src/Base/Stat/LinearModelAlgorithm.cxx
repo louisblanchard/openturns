@@ -27,7 +27,7 @@ CLASSNAMEINIT(LinearModelAlgorithm);
 
 /* Default constructor */
 LinearModelAlgorithm::LinearModelAlgorithm()
-  : PersistentObject()
+  : MetaModelAlgorithm()
   , inputSample_(0, 0)
   , outputSample_(0, 0)
   , result_()
@@ -39,7 +39,7 @@ LinearModelAlgorithm::LinearModelAlgorithm()
 /* Parameters constructor */
 LinearModelAlgorithm::LinearModelAlgorithm(const NumericalSample & inputSample,
     const NumericalSample & outputSample)
-  : PersistentObject()
+  : MetaModelAlgorithm()
   , inputSample_(0, 0)
   , outputSample_(0, 0)
   , result_()

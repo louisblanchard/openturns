@@ -31,7 +31,7 @@ static const Factory<LinearModelResult> Factory_LinearModelResult;
 
 /* Default constructor */
 LinearModelResult::LinearModelResult()
-  : PersistentObject()
+  : MetaModelResult()
 {
   // Nothing to do
 }
@@ -39,8 +39,10 @@ LinearModelResult::LinearModelResult()
 /* Parameter constructor */
 LinearModelResult::LinearModelResult(const NumericalSample & inputSample,
     const NumericalSample & outputSample,
-    const LinearModel & linearModel)
-  : PersistentObject()
+    const LinearModel & linearModel,
+    const NumericalPoint & residuals,
+    const NumericalPoint & relativeErrors)
+  : MetaModelResult(NumericalMathFunction(inputSample, outputSample), NumericalMathFunction(), residuals, relativeErrors)
   , inputSample_(inputSample)
   , outputSample_(outputSample)
   , linearModel_(linearModel)
@@ -68,6 +70,20 @@ String LinearModelResult::__repr__() const
 LinearModel LinearModelResult::getLinearModel() const
 {
   return linearModel_;
+}
+
+
+/* Input sample accessor */
+NumericalSample LinearModelResult::getInputSample() const
+{
+  return inputSample_;
+}
+
+
+/* Output sample accessor */
+NumericalSample LinearModelResult::getOutputSample() const
+{
+  return outputSample_;
 }
 
 
