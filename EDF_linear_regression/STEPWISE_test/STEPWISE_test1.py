@@ -30,7 +30,7 @@ factory.add(factory.getPolynomial(2))
 factory.add(factory.getPolynomial(3))
 
 i_min = factory.getIndices(["1"])
-i_0 = factory.getIndices(factory.getInteractions(X.getDescription(), 1))
+i_0 = factory.getIndices(factory.getInteractions(1))
 
 ## Forward
 lm_forward_AIC_result = factory.build(X, Y, 1, i_min, [], 2)
