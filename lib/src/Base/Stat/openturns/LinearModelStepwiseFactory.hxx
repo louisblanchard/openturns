@@ -46,13 +46,16 @@ class OT_API LinearModelStepwiseFactory :
 
 public:
 
-  enum Direction { FORWARD = 1, BACKWARD = 2, BOTH = 3 };
+  enum Direction { FORWARD = 1, BACKWARD = -1, BOTH = 0 };
 
   /** Default constructor is private */
   LinearModelStepwiseFactory();
 
   /** Parameters constructor */
-  explicit LinearModelStepwiseFactory(const Description & variables);
+  explicit LinearModelStepwiseFactory(const Description & variables,
+                                      const Direction direction,
+                                      const NumericalScalar penalty,
+                                      const UnsignedInteger maximumIterationNumber);
 
   /** Virtual constructor */
   virtual LinearModelStepwiseFactory * clone() const;
@@ -61,8 +64,23 @@ public:
   String __repr__() const;
   String __str__(const String & offset = "") const;
 
-  /** Formula accessor */
+  /** Get Formula */
   String getFormula() const;
+
+  /** Get direction of the stepwise regression method  */
+  Direction getDirection() const;
+
+  /** Get penalty of the stepwise regression method */
+  NumericalScalar getPenalty() const;
+
+  /** Set direction of the stepwise regression method */
+  void setDirection(const Direction direction);
+
+  /** Set penalty of the stepwise regression method  */
+  void setPenalty(const NumericalScalar penalty);
+
+  /** Set maximum number of iterations of the stepwise regression method  */
+  void setMaximumIterationNumber(const NumericalScalar maxiter);
 
   /** Add formulas */
   void add(const Description & formulas);
@@ -81,11 +99,8 @@ public:
   /** Build a linear model using stepwise regression with "forward" search method */
   LinearModelResult build(const NumericalSample & inputSample,
                           const NumericalSample & outputSample,
-                          const UnsignedInteger direction,
                           const Indices & minimalIndices,
-                          const Indices & startIndices,
-                          const NumericalScalar k,
-                          const UnsignedInteger maximumIterationNumber);
+                          const Indices & startIndices);
 
   /** Method save() stores the object through the StorageManager */
   void save(Advocate & adv) const;
@@ -112,8 +127,16 @@ private:
   /** The monomials collection */
   Description formulas_;
 
-  /** Penalization term */
-  NumericalScalar penality_;
+  /** The multiple of the degrees of freedom used for the penalty of the stepwise regression method
+      - 2      Akaike   information criterion (AIC)
+      - log(n) Bayesian information criterion (BIC)  */
+  NumericalScalar penalty_;
+
+  /** The maximum number of iterations of the stepwise regression method */
+  NumericalScalar maxiter_; 
+
+  /** The direction of the stepwise regression method */
+  Direction direction_;
 
   /** The matrix X^T_{max} containing all monomials */
   Matrix maxXt_;
@@ -135,14 +158,6 @@ private:
 
   /** The indices of current model */
   Indices currentIndices_;
-
-  /** Build a linear model using stepwise regression */
-  LinearModelResult build(const Indices & minimalIndices,
-                          const Indices & startIndices,
-                          const Bool forward,
-                          const Bool backward,
-                          const NumericalScalar k,
-                          const UnsignedInteger maximumIterationNumber);
 
   /** Compute the likelihood function */
   NumericalScalar computeLogLikelihood();  

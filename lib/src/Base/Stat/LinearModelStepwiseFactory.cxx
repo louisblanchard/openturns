@@ -30,18 +30,23 @@ CLASSNAMEINIT(LinearModelStepwiseFactory);
 LinearModelStepwiseFactory::LinearModelStepwiseFactory()
   : PersistentObject()
   , variables_(0)
-  , inputSample_(0, 0)
-  , outputSample_(0, 0)
+  , direction_(0)
+  , penalty_(-1)
+  , maxiter_(1000)
 {
   // Nothing to do
 }
 
 /* Parameters constructor */
-LinearModelStepwiseFactory::LinearModelStepwiseFactory(const Description & variables)
+LinearModelStepwiseFactory::LinearModelStepwiseFactory(const Description & variables,
+                                                       const Direction direction,
+                                                       const NumericalScalar penalty,
+                                                       const UnsignedInteger maximumIterationNumber)
   : PersistentObject()
   , variables_(variables)
-  , inputSample_(0, 0)
-  , outputSample_(0, 0)
+  , direction_(direction)
+  , penalty_(penalty)
+  , maxiter_(maximumIterationNumber)
 {
   // Nothing to do
 }
@@ -66,10 +71,40 @@ String LinearModelStepwiseFactory::__str__(const String & offset) const
   return OSS(false) << "class=" << getClassName();
 }
 
-/* Formula accessor */
+/* Get Formula */
 String LinearModelStepwiseFactory::getFormula() const
 {
   return condensedFormula_;
+}
+
+/* Get penalty of the stepwise regression method */
+NumericalScalar LinearModelStepwiseFactory::getPenalty() const
+{
+  return penalty_;
+}
+
+/* Get direction of the stepwise regression method */
+Direction LinearModelStepwiseFactory::getDirection() const
+{
+  return direction_;
+}
+
+/* Set direction of the stepwise regression method */
+void LinearModelStepwiseFactory::setDirection(const Direction direction)
+{
+  direction_ = direction;   
+}
+
+/* Set penalty of the stepwise regression method  */
+void LinearModelStepwiseFactory::setPenalty(const NumericalScalar penalty)
+{
+  penalty_ = penalty;   
+}
+
+/* Set maximum number of iterations of the stepwise regression method  */
+void LinearModelStepwiseFactory::setMaximumIterationNumber(const NumericalScalar maxiter)
+{
+  maxiter_ = maxiter;   
 }
 
 /* Get formulas of interactions between variables */
@@ -109,16 +144,10 @@ void LinearModelStepwiseFactory::add(const String & formula)
 
 /* Build a linear model using stepwise regression */
 LinearModelResult LinearModelStepwiseFactory::build(const NumericalSample & inputSample,
-    const NumericalSample & outputSample,
-    const UnsignedInteger direction,
-    const Indices & minimalIndices,
-    const Indices & startIndices,
-    const NumericalScalar k,
-    const UnsignedInteger maximumIterationNumber)
+                                                    const NumericalSample & outputSample,
+                                                    const Indices & minimalIndices,
+                                                    const Indices & startIndices)
 {
-  /* k : the multiple of the degrees of freedom used for the penality
-        - k=2      Akaike   information criterion (AIC)
-        - k=log(n) Bayesian information criterion (BIC)  */
   throw NotYetImplementedException(HERE);
 }
 
