@@ -172,14 +172,51 @@ void LinearModelStepwiseFactory::add(const String & formula)
   throw NotYetImplementedException(HERE);
 }
 
-/* TBB functor to speed-up forward insertion index computation */
+/*
+  logLikelihood(\hat\beta, \hat\sigma | Y) = -(n/2) ( log(2\pi) + log(\hat\sigma^2) + 1)
+  where
+     \hat\sigma^2 = (1/n) (Y - HY) (Y - HY)^T
+                H = X (X^T X)^{-1} X^T
+
+  When (X^T X)^{-1} has been computed, there are update methods to compute
+  the inverse when a column is added to or removed from X.
+*/
+
+/* TBB functor to speed-up backward insertion index computation
+
+    If X is augmented by one column:
+      X_+ = (X x_+)
+                         / A + (1/c) D D^T |  -(1/c) D \
+      (X_+ X^T_+)^{-1} = |-----------------+-----------|
+                         \      -(1/c) D^T |   (1/c)   /
+     with   D = A X^T x_+
+            c = x_+^T x_+ - x_+^T X D
+
+    By definition,
+      H_+ = X_+ (X_+^T X_+)^{-1} X_+^T
+    And thus
+      H_+ Y = X A X^T Y + (1/(x_+^T x_+ - x_+^T X A X^T x_+))*(
+                       X A X^T x_+ x_+^T X A X^T
+                     - X A X^T x_+ x_+^T
+                     - x_+ x_+^T X A X^T
+                     + x_+ x_+^T)
+    We compute
+      M = X A
+      B = X^T Y
+      epsilon = Y - X A X^T Y = Y - M B
+    and for each column j in Smax \ S*,
+        b_j = X^T x_j
+        d_j = M b_j
+        v_j = x_j - d_j
+        Y - H_j Y = epsilon - (x_j^T epsilon /(x_j^T v_j)) v_j
+*/
 struct UpdateForwardFunctor
 {
   const Indices & indexSet_;
   const Matrix & X_;
   const Matrix & Xmax_;
-  const Matrix & epsilon_; // Y - X A Xt Y
-  const Matrix & M_;       // X A
+  const Matrix & epsilon_;
+  const Matrix & M_;
   NumericalScalar criterion_;
   UnsignedInteger bestIndex_;
 
@@ -206,7 +243,40 @@ struct UpdateForwardFunctor
   }
 }; /* end struct UpdateForwardFunctor */
 
-/* TBB functor to speed-up backward insertion index computation */
+/* TBB functor to speed-up backward insertion index computation
+
+    If column i is removed from X:
+      X_{-i} = X where column i is removed
+      A_{-i,-i} = A where column and row i are removed
+                = (a_{jk})_{j,k=1..p, j<>i, k<>i}
+      A_{i,-i} = (a_{ij})_{j=1..p, j<>i}
+    It can be shown that
+      (X_{-i}^T X_{-i})^{-1} = A_{-i,-i} - (1/a_{ii}) A_{-i,i} A_{i,-i}
+    And thus
+      H_- = X_{-i} (X_{-i}^T X_{-i})^{-1} X_{-i}^T
+      H_- Y = X_{-i} (X_{-i}^T X_{-i})^{-1} X_{-i}^T Y
+            = X_{-i} A_{-i,-i} X_{-i}^T - (1/a_{ii})  X_{-i} A_{-i,i} A_{i,-i} X_{-i}^T Y
+
+    In order to reduce data copies, we do not compute X_{-i} and A_{-i,-i},
+    but emulate the same operations by putting zeros at the right places.
+    We denote [Q]_{i=0} matrix Q where i-th row is replaced by zeros.
+      X_{-i} A_{-i,-i} = ([X]_{i=0} A)_{-i}
+    Instead of
+      H_- Y = X_{-i} A_{-i,-i} X_{-i}^T - (1/a_{ii})  X_{-i} A_{-i,i} A_{i,-i} X_{-i}^T Y
+    we write
+      H_- Y = [X]_{i=0} A [X^T Y]_{i=0} - (1/a_{ii})  [X]_{i=0} A_{,i} A_{i,} [X^T Y]_{i=0}
+    The final trick is to replace [X]_{i=0} by X in top-left multiplications, and throw i-th
+    coefficient and replace it by 0.
+
+    We compute
+      B = X^T Y
+    and for each column j in S* \ Smin,
+      b_j = [B]_{j=0}
+      e_j = A b_j
+      Y - H_- Y = Y - X (e_j - ((e_j)_j/a_{jj}) A_{,j})
+    Note that j in S* \ Smin refers to columns in Xmax, we need an array to store
+    positions of these columns in X.
+ */
 struct UpdateBackwardFunctor
 {
   const Indices & indexSet_;
@@ -214,7 +284,7 @@ struct UpdateBackwardFunctor
   const Matrix & X_;
   const Matrix & Y_;
   const Matrix & A_;
-  const Matrix B_; // Not a reference because each thread needs its own copy because it modifies B
+  const Matrix B_; // Not a reference because each thread needs its own copy, B is modified
   NumericalScalar criterion_;
   UnsignedInteger bestIndex_;
 
