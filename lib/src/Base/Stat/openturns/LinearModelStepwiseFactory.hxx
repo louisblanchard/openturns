@@ -85,6 +85,7 @@ public:
   /** Add formulas */
   void add(const Description & formulas);
   void add(const String & formula);
+  void add(const NumericalSample & userColumns);
 
   /** Remove formulas */
   void remove(const Description & formulas);
@@ -139,6 +140,9 @@ private:
 
   /** The monomials collection */
   Description formulas_;
+
+  /** User-defined columns */
+  NumericalSample userColumns_;
 
   /** The input data  */
   NumericalSample inputSample_;

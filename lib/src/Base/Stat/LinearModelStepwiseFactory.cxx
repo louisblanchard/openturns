@@ -176,6 +176,11 @@ void LinearModelStepwiseFactory::add(const String & formula)
   throw NotYetImplementedException(HERE);
 }
 
+void LinearModelStepwiseFactory::add(const NumericalSample & userColumns)
+{
+  throw NotYetImplementedException(HERE);
+}
+
 /* Remove formulas */
 void LinearModelStepwiseFactory::remove(const Description & formulas)
 {
