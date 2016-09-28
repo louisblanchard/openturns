@@ -33,6 +33,12 @@ factory.add(factory.getPolynomial(2))
 # I(Xi)^3
 factory.add(factory.getPolynomial(3))
 
+# To add some user-defined columns, it is also possible to pass
+# a NumericalSample, for instance:
+#   expI = ot.NumericalSample(np.exp(X))
+#   expI.setDescription(["exp(x1)", "exp(x2)", "exp(x3)", "exp(x4)"])
+#   factory.add(expI)
+
 i_min = factory.getIndices(["1"])
 i_0 = factory.getIndices(factory.getInteractions(1))
 
