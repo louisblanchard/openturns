@@ -18,12 +18,12 @@ myLinearModel = ot.NumericalMathFunction(['x1', 'x2', 'x3', 'x4'], ['y'],
 Y = myLinearModel(X) + R
 print(Y)
 
-penality_BIC = log(X.getSize())
-penality_AIC = 2.
+penalty_BIC = log(X.getSize())
+penalty_AIC = 2.
 maxiteration = 1000
 
 # Build a model Y~(X1+X2+X3+X4)^3+I(Xi)^2+I(Xi)^3
-factory = ot.LinearModelStepwiseFactory(X.getDescription(),0,penality_BIC,maxiteration)
+factory = ot.LinearModelStepwiseFactory(X.getDescription(),0,penalty_BIC,maxiteration)
 # (X1+X2+X3+X4)^3
 factory.add(factory.getInteractions(3))
 
@@ -38,23 +38,23 @@ i_0 = factory.getIndices(factory.getInteractions(1))
 
 ## Forward
 factory.setDirection(1)
-factory.setPenalty(penality_AIC)
+factory.setPenalty(penalty_AIC)
 lm_forward_AIC_result = factory.build(X, Y, i_min)
-factory.setPenalty(penality_BIC)
+factory.setPenalty(penalty_BIC)
 lm_forward_BIC_result = factory.build(X, Y, i_min)
 
 ## Backward
 factory.setDirection(-1)
-factory.setPenalty(penality_AIC)
+factory.setPenalty(penalty_AIC)
 lm_backward_AIC_result = factory.build(X, Y, i_min)
-factory.setPenalty(penality_BIC)
+factory.setPenalty(penalty_BIC)
 lm_backward_BIC_result = factory.build(X, Y, i_min)
 
 ## Both
 factory.setDirection(0)
-factory.setPenalty(penality_AIC)
+factory.setPenalty(penalty_AIC)
 lm_both_AIC_result = factory.build(X, Y, i_min, i_0)
-factory.setPenalty(penality_BIC)
+factory.setPenalty(penalty_BIC)
 lm_both_BIC_result = factory.build(X, Y, i_min, i_0)
 
 lm_forward_AIC_result.printANOVAtable()
