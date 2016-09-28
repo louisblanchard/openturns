@@ -46,16 +46,16 @@ class OT_API LinearModelStepwiseFactory :
 
 public:
 
-  enum Direction { FORWARD = 1, BACKWARD = -1, BOTH = 0 };
+  enum Direction { BACKWARD = -1, BOTH = 0, FORWARD = 1 };
 
-  /** Default constructor is private */
+  /** Default constructor */
   LinearModelStepwiseFactory();
 
   /** Parameters constructor */
   explicit LinearModelStepwiseFactory(const Description & variables,
-                                      const Direction direction,
-                                      const NumericalScalar penalty,
-                                      const UnsignedInteger maximumIterationNumber);
+                                      const SignedInteger direction = BOTH,
+                                      const NumericalScalar penalty = -1.0 /* < 0 means BIC, by convention */,
+                                      const UnsignedInteger maximumIterationNumber = 1000);
 
   /** Virtual constructor */
   virtual LinearModelStepwiseFactory * clone() const;
@@ -74,7 +74,7 @@ public:
   NumericalScalar getPenalty() const;
 
   /** Set direction of the stepwise regression method */
-  void setDirection(const Direction direction);
+  void setDirection(const SignedInteger direction);
 
   /** Set penalty of the stepwise regression method  */
   void setPenalty(const NumericalScalar penalty);
@@ -108,24 +108,16 @@ public:
   /** Method load() reloads the object from the StorageManager */
   void load(Advocate & adv);
 
-
-
 private:
+
+  /** Compute the likelihood function */
+  NumericalScalar computeLogLikelihood();
 
   /** Input variables */
   Description variables_;
 
-  /** The input data  */
-  NumericalSample inputSample_;
-
-  /** The output data  */
-  NumericalSample outputSample_;
-
-  /** The formula description */
-  String condensedFormula_;
-
-  /** The monomials collection */
-  Description formulas_;
+  /** The direction of the stepwise regression method */
+  Direction direction_;
 
   /** The multiple of the degrees of freedom used for the penalty of the stepwise regression method
       - 2      Akaike   information criterion (AIC)
@@ -133,40 +125,34 @@ private:
   NumericalScalar penalty_;
 
   /** The maximum number of iterations of the stepwise regression method */
-  NumericalScalar maxiter_; 
+  NumericalScalar maximumIterationNumber_;
 
-  /** The direction of the stepwise regression method */
-  Direction direction_;
+  /** The formula description */
+  String condensedFormula_;
 
-  /** The matrix X^T_{max} containing all monomials */
-  Matrix maxXt_;
+  /** The monomials collection */
+  Description formulas_;
+
+  /** The input data  */
+  NumericalSample inputSample_;
+
+  /** The output data  */
+  NumericalSample outputSample_;
+
+  /** The matrix X_{max} containing all monomials */
+  Matrix maxX_;
 
   /** The current matrix */
-  Matrix currentXt_;
+  Matrix currentX_;
 
   /** The covariance matrix inverse: A=(X^T X)^-1 */
   CovarianceMatrix currentGramInverse_;
 
-  /** The current B NumericalPoint */
+  /** The current NumericalPoint B=X^T Y */
   NumericalPoint currentB_;
-
-  /** The current M matrix */
-  Matrix currentM_;
-
-  /** The current M*B NumericalPoint */
-  NumericalPoint currentMB_;
 
   /** The indices of current model */
   Indices currentIndices_;
-
-  /** Compute the likelihood function */
-  NumericalScalar computeLogLikelihood();  
-  
-  /** Compute the likelihood function for stepwise regression with "forward" search method */
-  NumericalScalar computeLogLikelihoodForward(const UnsignedInteger index);
-
-  /** Compute the likelihood function for stepwise regression with "backward" search method */
-  NumericalScalar computeLogLikelihoodBackward(const UnsignedInteger index);
 
 }; /* class LinearModelStepwiseFactory */
 

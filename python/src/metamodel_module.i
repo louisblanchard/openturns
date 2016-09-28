@@ -62,6 +62,9 @@
 %include MetaModelValidation.i
 %include GeneralizedLinearModelResult.i
 %include GeneralizedLinearModelAlgorithm.i
+%include LinearModelResult.i
+%include LinearModelAlgorithm.i
+%include LinearModelStepwiseFactory.i
 
 /* Uncertainty/Model */
 %include RandomVector.i

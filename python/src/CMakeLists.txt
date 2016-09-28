@@ -157,9 +157,7 @@ ot_add_python_module(statistics statistics_module.i
                       Null.i Null_doc.i.in
 		      HMatrixParameters.i HMatrixParameters_doc.i.in
                       LinearModel.i LinearModel_doc.i.in
-                      LinearModelAlgorithm.i LinearModelAlgorithm_doc.i.in
                       LinearModelFactory.i LinearModelFactory_doc.i.in
-                      LinearModelResult.i LinearModelResult_doc.i.in
                       TestResult.i TestResult_doc.i.in
                       RandomGenerator.i RandomGenerator_doc.i.in
                       RandomGeneratorState.i
@@ -675,6 +673,9 @@ ot_add_python_module(metamodel metamodel_module.i
                       MetaModelValidation.i MetaModelValidation_doc.i.in
 		      GeneralizedLinearModelResult.i GeneralizedLinearModelResult_doc.i.in
 		      GeneralizedLinearModelAlgorithm.i GeneralizedLinearModelAlgorithm_doc.i.in
+                      LinearModelAlgorithm.i LinearModelAlgorithm_doc.i.in
+                      LinearModelResult.i LinearModelResult_doc.i.in
+                      LinearModelStepwiseFactory.i LinearModelStepwiseFactory_doc.i.in
                       LinearTaylor.i LinearTaylor_doc.i.in
                       QuadraticTaylor.i QuadraticTaylor_doc.i.in
                       LinearLeastSquares.i LinearLeastSquares_doc.i.in

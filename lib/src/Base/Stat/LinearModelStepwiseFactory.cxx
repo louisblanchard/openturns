@@ -20,6 +20,7 @@
  */
 #include "openturns/LinearModelStepwiseFactory.hxx"
 #include "openturns/Exception.hxx"
+#include "openturns/SpecFunc.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
 
@@ -30,23 +31,23 @@ CLASSNAMEINIT(LinearModelStepwiseFactory);
 LinearModelStepwiseFactory::LinearModelStepwiseFactory()
   : PersistentObject()
   , variables_(0)
-  , direction_(0)
-  , penalty_(-1)
-  , maxiter_(1000)
+  , direction_(LinearModelStepwiseFactory::BOTH)
+  , penalty_(-1.0)
+  , maximumIterationNumber_(1000)
 {
   // Nothing to do
 }
 
 /* Parameters constructor */
 LinearModelStepwiseFactory::LinearModelStepwiseFactory(const Description & variables,
-                                                       const Direction direction,
+                                                       const SignedInteger direction,
                                                        const NumericalScalar penalty,
                                                        const UnsignedInteger maximumIterationNumber)
   : PersistentObject()
   , variables_(variables)
-  , direction_(direction)
+  , direction_(static_cast<LinearModelStepwiseFactory::Direction>(direction))
   , penalty_(penalty)
-  , maxiter_(maximumIterationNumber)
+  , maximumIterationNumber_(maximumIterationNumber)
 {
   // Nothing to do
 }
@@ -62,13 +63,29 @@ LinearModelStepwiseFactory * LinearModelStepwiseFactory::clone() const
 /* String converter */
 String LinearModelStepwiseFactory::__repr__() const
 {
-  return OSS(true) << "class=" << getClassName();
+  OSS oss(true);
+  oss << "class=" << getClassName()
+      << " variables=" << variables_
+      << " direction=" << direction_
+      << " penalty=" << penalty_
+      << " maximumIterationNumber=" << maximumIterationNumber_
+      << " condensedFormula=" << condensedFormula_
+      << " formulas=" << formulas_;
+  return oss;
 }
 
 /* String converter */
 String LinearModelStepwiseFactory::__str__(const String & offset) const
 {
-  return OSS(false) << "class=" << getClassName();
+  OSS oss(false);
+  oss << "class=" << getClassName()
+      << " variables=" << variables_
+      << " direction=" << direction_
+      << " penalty=" << penalty_
+      << " maximumIterationNumber=" << maximumIterationNumber_
+      << " condensedFormula=" << condensedFormula_
+      << " formulas=" << formulas_;
+  return oss;
 }
 
 /* Get Formula */
@@ -84,27 +101,40 @@ NumericalScalar LinearModelStepwiseFactory::getPenalty() const
 }
 
 /* Get direction of the stepwise regression method */
-Direction LinearModelStepwiseFactory::getDirection() const
+LinearModelStepwiseFactory::Direction LinearModelStepwiseFactory::getDirection() const
 {
   return direction_;
 }
 
 /* Set direction of the stepwise regression method */
-void LinearModelStepwiseFactory::setDirection(const Direction direction)
+void LinearModelStepwiseFactory::setDirection(const SignedInteger direction)
 {
-  direction_ = direction;   
+  switch(direction)
+  {
+    case -1:
+      direction_ = BACKWARD;
+      break;
+    case 0:
+      direction_ = BOTH;
+      break;
+    case 1:
+      direction_ = FORWARD;
+      break;
+    default:
+      throw InvalidArgumentException(HERE) << "Invalid direction argument: " << direction;
+  }
 }
 
 /* Set penalty of the stepwise regression method  */
 void LinearModelStepwiseFactory::setPenalty(const NumericalScalar penalty)
 {
-  penalty_ = penalty;   
+  penalty_ = penalty;
 }
 
 /* Set maximum number of iterations of the stepwise regression method  */
-void LinearModelStepwiseFactory::setMaximumIterationNumber(const NumericalScalar maxiter)
+void LinearModelStepwiseFactory::setMaximumIterationNumber(const NumericalScalar maximumIterationNumber)
 {
-  maxiter_ = maxiter;   
+  maximumIterationNumber_ = maximumIterationNumber;
 }
 
 /* Get formulas of interactions between variables */
@@ -142,6 +172,75 @@ void LinearModelStepwiseFactory::add(const String & formula)
   throw NotYetImplementedException(HERE);
 }
 
+/* TBB functor to speed-up forward insertion index computation */
+struct UpdateForwardFunctor
+{
+  const Indices & indexSet_;
+  const Matrix & X_;
+  const Matrix & Xmax_;
+  const Matrix & epsilon_; // Y - X A Xt Y
+  const Matrix & M_;       // X A
+  NumericalScalar criterion_;
+  UnsignedInteger bestIndex_;
+
+  UpdateForwardFunctor(const Indices & indexSet, const Matrix & X, const Matrix & Xmax, const Matrix & epsilon, const Matrix & M)
+    : indexSet_(indexSet), X_(X), Xmax_(Xmax), epsilon_(epsilon), M_(M)
+    , criterion_(SpecFunc::MaxNumericalScalar), bestIndex_(0) {}
+
+  UpdateForwardFunctor(const UpdateForwardFunctor & other, TBB::Split)
+    : indexSet_(other.indexSet_), X_(other.X_), Xmax_(other.Xmax_), epsilon_(other.epsilon_), M_(other.M_)
+    , criterion_(SpecFunc::MaxNumericalScalar), bestIndex_(0) {}
+
+  void operator() (const TBB::BlockedRange<UnsignedInteger> & r)
+  {
+    throw NotYetImplementedException(HERE);
+  } // operator
+
+  void join(const UpdateForwardFunctor & other)
+  {
+    if (other.criterion_ > criterion_)
+    {
+      criterion_ = other.criterion_;
+      bestIndex_ = other.bestIndex_;
+    }
+  }
+}; /* end struct UpdateForwardFunctor */
+
+/* TBB functor to speed-up backward insertion index computation */
+struct UpdateBackwardFunctor
+{
+  const Indices & indexSet_;
+  const Indices & indexXmaxToX_; // position of columns in X_
+  const Matrix & X_;
+  const Matrix & Y_;
+  const Matrix & A_;
+  const Matrix B_; // Not a reference because each thread needs its own copy because it modifies B
+  NumericalScalar criterion_;
+  UnsignedInteger bestIndex_;
+
+  UpdateBackwardFunctor(const Indices & indexSet, const Indices & indexXmaxToX, const Matrix & X, const Matrix & Y, const Matrix & A, const Matrix & B)
+    : indexSet_(indexSet), indexXmaxToX_(indexXmaxToX), X_(X), Y_(Y), A_(A), B_(B)
+    , criterion_(SpecFunc::MaxNumericalScalar), bestIndex_(0) {}
+
+  UpdateBackwardFunctor(const UpdateBackwardFunctor & other, TBB::Split)
+    : indexSet_(other.indexSet_), indexXmaxToX_(other.indexXmaxToX_), X_(other.X_), Y_(other.Y_), A_(other.A_), B_(other.B_)
+    , criterion_(other.criterion_), bestIndex_(other.bestIndex_) {}
+
+  void operator() (const TBB::BlockedRange<UnsignedInteger> & r)
+  {
+    throw NotYetImplementedException(HERE);
+  } // operator
+
+  void join(const UpdateBackwardFunctor & other)
+  {
+    if (other.criterion_ > criterion_)
+    {
+      criterion_ = other.criterion_;
+      bestIndex_ = other.bestIndex_;
+    }
+  }
+}; /* end struct UpdateBackwardFunctor */
+
 /* Build a linear model using stepwise regression */
 LinearModelResult LinearModelStepwiseFactory::build(const NumericalSample & inputSample,
                                                     const NumericalSample & outputSample,
@@ -153,18 +252,6 @@ LinearModelResult LinearModelStepwiseFactory::build(const NumericalSample & inpu
 
 /* Compute the likelihood function */
 NumericalScalar LinearModelStepwiseFactory::computeLogLikelihood()
-{
-  throw NotYetImplementedException(HERE);
-}
-
-/* Compute the likelihood function for stepwise regression with "forward" search method */
-NumericalScalar LinearModelStepwiseFactory::computeLogLikelihoodForward(const UnsignedInteger j)
-{
-  throw NotYetImplementedException(HERE);
-}
-
-/* Compute the likelihood function for stepwise regression with "backward" search method */
-NumericalScalar LinearModelStepwiseFactory::computeLogLikelihoodBackward(const UnsignedInteger j)
 {
   throw NotYetImplementedException(HERE);
 }
