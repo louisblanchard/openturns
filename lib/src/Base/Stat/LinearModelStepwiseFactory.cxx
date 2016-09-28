@@ -34,6 +34,8 @@ LinearModelStepwiseFactory::LinearModelStepwiseFactory()
   , direction_(LinearModelStepwiseFactory::BOTH)
   , penalty_(-1.0)
   , maximumIterationNumber_(1000)
+  , condensedFormula_("1")
+  , formulas_(1, "1")
 {
   // Nothing to do
 }
@@ -48,6 +50,8 @@ LinearModelStepwiseFactory::LinearModelStepwiseFactory(const Description & varia
   , direction_(static_cast<LinearModelStepwiseFactory::Direction>(direction))
   , penalty_(penalty)
   , maximumIterationNumber_(maximumIterationNumber)
+  , condensedFormula_("1")
+  , formulas_(1, "1")
 {
   // Nothing to do
 }
