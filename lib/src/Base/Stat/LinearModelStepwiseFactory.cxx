@@ -172,6 +172,17 @@ void LinearModelStepwiseFactory::add(const String & formula)
   throw NotYetImplementedException(HERE);
 }
 
+/* Remove formulas */
+void LinearModelStepwiseFactory::remove(const Description & formulas)
+{
+  throw NotYetImplementedException(HERE);
+}
+
+void LinearModelStepwiseFactory::remove(const String & formula)
+{
+  throw NotYetImplementedException(HERE);
+}
+
 /*
   logLikelihood(\hat\beta, \hat\sigma | Y) = -(n/2) ( log(2\pi) + log(\hat\sigma^2) + 1)
   where

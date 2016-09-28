@@ -86,6 +86,10 @@ public:
   void add(const Description & formulas);
   void add(const String & formula);
 
+  /** Remove formulas */
+  void remove(const Description & formulas);
+  void remove(const String & formula);
+
   /** Get column indices of given formulas */
   Indices getIndices(const Description & formulas) const;
 
