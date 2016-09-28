@@ -103,8 +103,8 @@ public:
   /** Build a linear model using stepwise regression with "forward" search method */
   LinearModelResult build(const NumericalSample & inputSample,
                           const NumericalSample & outputSample,
-                          const Indices & minimalIndices,
-                          const Indices & startIndices);
+                          const Indices & minimalIndices = Indices(0),
+                          const Indices & startIndices = Indices(0));
 
   /** Method save() stores the object through the StorageManager */
   void save(Advocate & adv) const;
@@ -116,6 +116,9 @@ private:
 
   /** Compute the likelihood function */
   NumericalScalar computeLogLikelihood();
+
+  /** Build currentX_ and currentIndices_ from given indices */
+  void buildCurrentMatrixFromIndices(const Indices & columns);
 
   /** Input variables */
   Description variables_;
@@ -140,8 +143,8 @@ private:
   /** The input data  */
   NumericalSample inputSample_;
 
-  /** The output data  */
-  NumericalSample outputSample_;
+  /** The output data, stored as a matrix  */
+  Matrix Y_;
 
   /** The matrix X_{max} containing all monomials */
   Matrix maxX_;
@@ -152,12 +155,14 @@ private:
   /** The covariance matrix inverse: A=(X^T X)^-1 */
   CovarianceMatrix currentGramInverse_;
 
-  /** The current NumericalPoint B=X^T Y */
-  NumericalPoint currentB_;
+  /** The current matrix B=X^T Y */
+  Matrix currentB_;
 
   /** The indices of current model */
   Indices currentIndices_;
 
+  /** The position of currentIndices_ columns in currentX_ */
+  Indices columnCurrentX_;
 }; /* class LinearModelStepwiseFactory */
 
 END_NAMESPACE_OPENTURNS

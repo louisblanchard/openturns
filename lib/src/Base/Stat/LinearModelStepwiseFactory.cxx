@@ -31,7 +31,7 @@ CLASSNAMEINIT(LinearModelStepwiseFactory);
 LinearModelStepwiseFactory::LinearModelStepwiseFactory()
   : PersistentObject()
   , variables_(0)
-  , direction_(LinearModelStepwiseFactory::BOTH)
+  , direction_(BOTH)
   , penalty_(-1.0)
   , maximumIterationNumber_(1000)
   , condensedFormula_("1")
@@ -187,6 +187,13 @@ void LinearModelStepwiseFactory::remove(const String & formula)
   throw NotYetImplementedException(HERE);
 }
 
+/* Build currentX_, currentIndices_ and columnCurrentX_ from given indices */
+void LinearModelStepwiseFactory::buildCurrentMatrixFromIndices(const Indices & columns)
+{
+  throw NotYetImplementedException(HERE);
+}
+
+
 /*
   logLikelihood(\hat\beta, \hat\sigma | Y) = -(n/2) ( log(2\pi) + log(\hat\sigma^2) + 1)
   where
@@ -295,7 +302,7 @@ struct UpdateForwardFunctor
 struct UpdateBackwardFunctor
 {
   const Indices & indexSet_;
-  const Indices & indexXmaxToX_; // position of columns in X_
+  const Indices & columnCurrentX_; // position of columns in X_
   const Matrix & X_;
   const Matrix & Y_;
   const Matrix & A_;
@@ -303,12 +310,12 @@ struct UpdateBackwardFunctor
   NumericalScalar criterion_;
   UnsignedInteger bestIndex_;
 
-  UpdateBackwardFunctor(const Indices & indexSet, const Indices & indexXmaxToX, const Matrix & X, const Matrix & Y, const Matrix & A, const Matrix & B)
-    : indexSet_(indexSet), indexXmaxToX_(indexXmaxToX), X_(X), Y_(Y), A_(A), B_(B)
+  UpdateBackwardFunctor(const Indices & indexSet, const Indices & columnCurrentX, const Matrix & X, const Matrix & Y, const Matrix & A, const Matrix & B)
+    : indexSet_(indexSet), columnCurrentX_(columnCurrentX), X_(X), Y_(Y), A_(A), B_(B)
     , criterion_(SpecFunc::MaxNumericalScalar), bestIndex_(0) {}
 
   UpdateBackwardFunctor(const UpdateBackwardFunctor & other, TBB::Split)
-    : indexSet_(other.indexSet_), indexXmaxToX_(other.indexXmaxToX_), X_(other.X_), Y_(other.Y_), A_(other.A_), B_(other.B_)
+    : indexSet_(other.indexSet_), columnCurrentX_(other.columnCurrentX_), X_(other.X_), Y_(other.Y_), A_(other.A_), B_(other.B_)
     , criterion_(other.criterion_), bestIndex_(other.bestIndex_) {}
 
   void operator() (const TBB::BlockedRange<UnsignedInteger> & r)
@@ -332,7 +339,46 @@ LinearModelResult LinearModelStepwiseFactory::build(const NumericalSample & inpu
                                                     const Indices & minimalIndices,
                                                     const Indices & startIndices)
 {
-  throw NotYetImplementedException(HERE);
+  if (variables_.getSize() > 0 && variables_.getSize() != inputSample.getDimension())
+    throw InvalidArgumentException(HERE) << "Error: expected an input sample of dimension=" << variables_.getSize() << ", got dimension=" << inputSample.getDimension();
+  if (outputSample.getDimension() != 1)
+    throw InvalidArgumentException(HERE) << "Error: cannot perform step method based on output sample of dimension different from 1.";
+  if (inputSample.getSize() != outputSample.getSize())
+    throw InvalidArgumentException(HERE) << "Error: the size of the output sample=" << outputSample.getSize() << " is different from the size of the input sample=" << inputSample.getSize();
+
+  inputSample_ = inputSample;
+  Y_ = Matrix(outputSample.getSize(), 1, outputSample.getImplementation()->getData());
+  Matrix Xt(inputSample.getSize(), inputSample.getDimension(), inputSample.getImplementation()->getData());
+  maxX_ = Xt.transpose();
+  if (startIndices.getSize() == 0)
+  {
+    switch(direction_)
+    {
+      case BACKWARD:
+        currentX_ = maxX_;
+        currentIndices_ = Indices(maxX_.getNbColumns());
+        currentIndices_.fill();
+        columnCurrentX_ = currentIndices_;
+        break;
+      case FORWARD:
+        if (minimalIndices.getSize() == 0)
+          throw InvalidArgumentException(HERE) << "Error: minimal indices must be specified when direction is FORWARD";
+        buildCurrentMatrixFromIndices(minimalIndices);
+        break;
+      case BOTH:
+        throw InvalidArgumentException(HERE) << "Error: start indices must be specified when direction is BOTH";
+        break;
+    }
+  }
+  else
+    buildCurrentMatrixFromIndices(startIndices);
+
+  UnsignedInteger iterations = 0;
+  while(iterations < maximumIterationNumber_)
+  {
+    throw NotYetImplementedException(HERE);
+    ++maximumIterationNumber_;
+  }
 }
 
 /* Compute the likelihood function */
