@@ -87,6 +87,48 @@ NumericalSample LinearModelResult::getOutputSample() const
 }
 
 
+/* Number of degrees of freedom */
+UnsignedInteger LinearModelResult::getDegreesOfFreedom() const
+{
+  throw NotYetImplementedException(HERE);
+}
+
+/* Adjusted R-squared test */
+TestResult LinearModelResult::getAdjustedRSquared() const
+{
+  throw NotYetImplementedException(HERE);
+}
+
+/* R-squared test */
+TestResult LinearModelResult::getRSquared() const
+{
+  throw NotYetImplementedException(HERE);
+}
+
+/* Fisher test */
+TestResult LinearModelResult::getFisherTest() const
+{
+  throw NotYetImplementedException(HERE);
+}
+
+/* Kolmogorov-Smirnov normality test */
+TestResult LinearModelResult::getKolmogorovSmirnovTest() const
+{
+  throw NotYetImplementedException(HERE);
+}
+
+/* Anderson-Darling normality test */
+TestResult LinearModelResult::getAndersonDarlingTest() const
+{
+  throw NotYetImplementedException(HERE);
+}
+
+/* Chi-Squared normality test */
+TestResult LinearModelResult::getChiSquaredTest() const
+{
+  throw NotYetImplementedException(HERE);
+}
+
 /* Method that returns the ANOVA table (ANalyse Of VAriance) */
 void LinearModelResult::printANOVAtable() const
 {

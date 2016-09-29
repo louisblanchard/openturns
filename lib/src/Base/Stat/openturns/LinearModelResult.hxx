@@ -66,6 +66,27 @@ public:
   /** Linear model accessor */
   LinearModel getLinearModel() const;
 
+  /** Number of degrees of freedom */
+  UnsignedInteger getDegreesOfFreedom() const;
+
+  /** Adjusted R-squared test */
+  TestResult getAdjustedRSquared() const;
+
+  /** R-squared test */
+  TestResult getRSquared() const;
+
+  /** Fisher test */
+  TestResult getFisherTest() const;
+
+  /** Kolmogorov-Smirnov normality test */
+  TestResult getKolmogorovSmirnovTest() const;
+
+  /** Anderson-Darling normality test */
+  TestResult getAndersonDarlingTest() const;
+
+  /** Chi-Squared normality test */
+  TestResult getChiSquaredTest() const;
+
   /** Method save() stores the object through the StorageManager */
   void save(Advocate & adv) const;
 
