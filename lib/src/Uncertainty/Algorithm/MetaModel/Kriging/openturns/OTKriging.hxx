@@ -28,5 +28,6 @@
 #include "openturns/KrigingResult.hxx"
 #include "openturns/GeneralizedLinearModelResult.hxx"
 #include "openturns/GeneralizedLinearModelAlgorithm.hxx"
+#include "openturns/LinearModelStepwiseAlgorithm.hxx"
 
 #endif /* OPENTURNS_OTKRIGING_HXX */
