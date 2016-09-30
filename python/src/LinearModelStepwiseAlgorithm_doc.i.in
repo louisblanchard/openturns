@@ -1,11 +1,11 @@
-%feature("docstring") OT::LinearModelStepwiseFactory
+%feature("docstring") OT::LinearModelStepwiseAlgorithm
 "Class used to create a linear model from numerical samples.
 
 **Available usages**:
 
-    LinearModelStepwiseFactory()
+    LinearModelStepwiseAlgorithm()
 
-    LinearModelStepwiseFactory(*variables, direction, penalty, maximumIterationNumber*)
+    LinearModelStepwiseAlgorithm(*variables, direction, penalty, maximumIterationNumber*)
 
 See Also
 --------
@@ -39,7 +39,7 @@ the residual couples :math:`(\epsilon_i, \epsilon_{i+1})`, where the residual
 
 // ---------------------------------------------------------------------
 
-%feature("docstring") OT::LinearModelStepwiseFactory::build
+%feature("docstring") OT::LinearModelStepwiseAlgorithm::build
 "Build the linear model from numerical samples.
 
 **Available usages**:
@@ -79,7 +79,7 @@ Examples
 >>> Xsample = distribution.getSample(30)
 >>> func = ot.NumericalMathFunction('x', '2 * x + 1')
 >>> Ysample = func(Xsample) + ot.Normal().getSample(30)
->>> LMF = ot.LinearModelStepwiseFactory()
+>>> LMF = ot.LinearModelStepwiseAlgorithm()
 >>> linearModel = LMF.build(Xsample, Ysample)
 >>> print(linearModel)
 LinearModel name=Unnamed regression=[1.1802,2.0034] confidence intervals=[0.887852, 1.47256]

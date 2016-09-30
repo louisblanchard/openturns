@@ -18,16 +18,17 @@
  *  along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include "openturns/LinearModelStepwiseFactory.hxx"
+#include "openturns/LinearModelStepwiseAlgorithm.hxx"
+#include "openturns/NumericalMathFunction.hxx"
 #include "openturns/Exception.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
 
 
-CLASSNAMEINIT(LinearModelStepwiseFactory);
+CLASSNAMEINIT(LinearModelStepwiseAlgorithm);
 
 /* Default constructor */
-LinearModelStepwiseFactory::LinearModelStepwiseFactory()
+LinearModelStepwiseAlgorithm::LinearModelStepwiseAlgorithm()
   : PersistentObject()
   , direction_(BOTH)
   , penalty_(-1.0)
@@ -40,15 +41,15 @@ LinearModelStepwiseFactory::LinearModelStepwiseFactory()
 }
 
 /* Parameters constructor */
-LinearModelStepwiseFactory::LinearModelStepwiseFactory(const NumericalSample & inputSample,
-                                                       const NumericalSample & outputSample,
-                                                       const SignedInteger direction,
-                                                       const NumericalScalar penalty,
-                                                       const UnsignedInteger maximumIterationNumber)
+LinearModelStepwiseAlgorithm::LinearModelStepwiseAlgorithm(const NumericalSample & inputSample,
+                                                           const NumericalSample & outputSample,
+                                                           const SignedInteger direction,
+                                                           const NumericalScalar penalty,
+                                                           const UnsignedInteger maximumIterationNumber)
   : PersistentObject()
   , inputSample_(inputSample)
   , outputSample_(outputSample)
-  , direction_(static_cast<LinearModelStepwiseFactory::Direction>(direction))
+  , direction_(static_cast<LinearModelStepwiseAlgorithm::Direction>(direction))
   , penalty_(penalty)
   , maximumIterationNumber_(maximumIterationNumber)
   , condensedFormula_("1")
@@ -60,14 +61,14 @@ LinearModelStepwiseFactory::LinearModelStepwiseFactory(const NumericalSample & i
 
 
 /* Virtual constructor */
-LinearModelStepwiseFactory * LinearModelStepwiseFactory::clone() const
+LinearModelStepwiseAlgorithm * LinearModelStepwiseAlgorithm::clone() const
 {
-  return new LinearModelStepwiseFactory(*this);
+  return new LinearModelStepwiseAlgorithm(*this);
 }
 
 
 /* String converter */
-String LinearModelStepwiseFactory::__repr__() const
+String LinearModelStepwiseAlgorithm::__repr__() const
 {
   OSS oss(true);
   oss << "class=" << getClassName()
@@ -80,7 +81,7 @@ String LinearModelStepwiseFactory::__repr__() const
 }
 
 /* String converter */
-String LinearModelStepwiseFactory::__str__(const String & offset) const
+String LinearModelStepwiseAlgorithm::__str__(const String & offset) const
 {
   OSS oss(false);
   oss << "class=" << getClassName()
@@ -93,24 +94,24 @@ String LinearModelStepwiseFactory::__str__(const String & offset) const
 }
 
 /* Sample accessors */
-NumericalSample LinearModelStepwiseFactory::getInputSample() const
+NumericalSample LinearModelStepwiseAlgorithm::getInputSample() const
 {
   return inputSample_;
 }
 
-NumericalSample LinearModelStepwiseFactory::getOutputSample() const
+NumericalSample LinearModelStepwiseAlgorithm::getOutputSample() const
 {
   return outputSample_;
 }
 
 /* Direction accessors */
-LinearModelStepwiseFactory::Direction LinearModelStepwiseFactory::getDirection() const
+LinearModelStepwiseAlgorithm::Direction LinearModelStepwiseAlgorithm::getDirection() const
 {
   return direction_;
 }
 
 /* Set direction of the stepwise regression method */
-void LinearModelStepwiseFactory::setDirection(const SignedInteger direction)
+void LinearModelStepwiseAlgorithm::setDirection(const SignedInteger direction)
 {
   switch(direction)
   {
@@ -130,90 +131,90 @@ void LinearModelStepwiseFactory::setDirection(const SignedInteger direction)
 
 
 /* Penalty accessors */
-NumericalScalar LinearModelStepwiseFactory::getPenalty() const
+NumericalScalar LinearModelStepwiseAlgorithm::getPenalty() const
 {
   return penalty_;
 }
 
-void LinearModelStepwiseFactory::setPenalty(const NumericalScalar penalty)
+void LinearModelStepwiseAlgorithm::setPenalty(const NumericalScalar penalty)
 {
   penalty_ = penalty;
 }
 
 /* Maximum number of iterations accessors */
-UnsignedInteger LinearModelStepwiseFactory::getMaximumIterationNumber() const
+UnsignedInteger LinearModelStepwiseAlgorithm::getMaximumIterationNumber() const
 {
   return maximumIterationNumber_;
 }
 
-void LinearModelStepwiseFactory::setMaximumIterationNumber(const UnsignedInteger maximumIterationNumber)
+void LinearModelStepwiseAlgorithm::setMaximumIterationNumber(const UnsignedInteger maximumIterationNumber)
 {
   maximumIterationNumber_ = maximumIterationNumber;
 }
 
 /* Formula accessor */
-String LinearModelStepwiseFactory::getFormula() const
+String LinearModelStepwiseAlgorithm::getFormula() const
 {
   return condensedFormula_;
 }
 
 /* Add formulas */
-void LinearModelStepwiseFactory::add(const Description & formulas)
+void LinearModelStepwiseAlgorithm::add(const Description & formulas)
 {
   throw NotYetImplementedException(HERE);
 }
 
-void LinearModelStepwiseFactory::add(const String & formula)
+void LinearModelStepwiseAlgorithm::add(const String & formula)
 {
   throw NotYetImplementedException(HERE);
 }
 
-void LinearModelStepwiseFactory::add(const NumericalSample & userColumns)
+void LinearModelStepwiseAlgorithm::add(const NumericalSample & userColumns)
 {
   throw NotYetImplementedException(HERE);
 }
 
 /* Remove formulas */
-void LinearModelStepwiseFactory::remove(const Description & formulas)
+void LinearModelStepwiseAlgorithm::remove(const Description & formulas)
 {
   throw NotYetImplementedException(HERE);
 }
 
-void LinearModelStepwiseFactory::remove(const Indices & columns)
+void LinearModelStepwiseAlgorithm::remove(const Indices & columns)
 {
   throw NotYetImplementedException(HERE);
 }
 
 /* Get column indices of given formulas */
-Indices LinearModelStepwiseFactory::getIndices(const Description & formulas) const
+Indices LinearModelStepwiseAlgorithm::getIndices(const Description & formulas) const
 {
   throw NotYetImplementedException(HERE);
 }
 
 /* Interactions between variables */
-Description LinearModelStepwiseFactory::getInteractions(const UnsignedInteger degree, const Description & variables) const
+Description LinearModelStepwiseAlgorithm::getInteractions(const UnsignedInteger degree, const Description & variables) const
 {
   throw NotYetImplementedException(HERE);
 }
-void LinearModelStepwiseFactory::addInteractions(const UnsignedInteger degree, const Description & variables)
+void LinearModelStepwiseAlgorithm::addInteractions(const UnsignedInteger degree, const Description & variables)
 {
   throw NotYetImplementedException(HERE);
 }
-void LinearModelStepwiseFactory::removeInteractions(const UnsignedInteger degree, const Description & variables)
+void LinearModelStepwiseAlgorithm::removeInteractions(const UnsignedInteger degree, const Description & variables)
 {
   throw NotYetImplementedException(HERE);
 }
 
 /* Power of variables */
-Description LinearModelStepwiseFactory::getPower(const UnsignedInteger degree, const Description & variables) const
+Description LinearModelStepwiseAlgorithm::getPower(const UnsignedInteger degree, const Description & variables) const
 {
   throw NotYetImplementedException(HERE);
 }
-void LinearModelStepwiseFactory::addPower(const UnsignedInteger degree, const Description & variables)
+void LinearModelStepwiseAlgorithm::addPower(const UnsignedInteger degree, const Description & variables)
 {
   throw NotYetImplementedException(HERE);
 }
-void LinearModelStepwiseFactory::removePower(const UnsignedInteger degree, const Description & variables)
+void LinearModelStepwiseAlgorithm::removePower(const UnsignedInteger degree, const Description & variables)
 {
   throw NotYetImplementedException(HERE);
 }
@@ -232,7 +233,7 @@ void LinearModelStepwiseAlgorithm::setStartIndices(const Indices & startIndices)
 
 
 /* Perform regression */
-void LinearModelStepwiseFactory::run()
+void LinearModelStepwiseAlgorithm::run()
 {
   if (hasRun_) return;
 
@@ -281,7 +282,7 @@ void LinearModelStepwiseFactory::run()
 }
 
 /* Build currentX_, currentIndices_ and columnCurrentX_ from given indices */
-void LinearModelStepwiseFactory::buildCurrentMatrixFromIndices(const Indices & columns)
+void LinearModelStepwiseAlgorithm::buildCurrentMatrixFromIndices(const Indices & columns)
 {
   throw NotYetImplementedException(HERE);
 }
@@ -427,25 +428,25 @@ struct UpdateBackwardFunctor
 }; /* end struct UpdateBackwardFunctor */
 
 /* Get linear model result */
-LinearModelResult LinearModelStepwiseFactory::getResult()
+LinearModelResult LinearModelStepwiseAlgorithm::getResult()
 {
 }
 
 /* Compute the likelihood function */
-NumericalScalar LinearModelStepwiseFactory::computeLogLikelihood()
+NumericalScalar LinearModelStepwiseAlgorithm::computeLogLikelihood()
 {
   throw NotYetImplementedException(HERE);
 }
 
 /* Method save() stores the object through the StorageManager */
-void LinearModelStepwiseFactory::save(Advocate & adv) const
+void LinearModelStepwiseAlgorithm::save(Advocate & adv) const
 {
   PersistentObject::save(adv);
   throw NotYetImplementedException(HERE);
 }
 
 /* Method load() reloads the object from the StorageManager */
-void LinearModelStepwiseFactory::load(Advocate & adv)
+void LinearModelStepwiseAlgorithm::load(Advocate & adv)
 {
   PersistentObject::load(adv);
   throw NotYetImplementedException(HERE);

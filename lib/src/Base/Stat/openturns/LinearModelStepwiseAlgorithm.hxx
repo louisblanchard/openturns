@@ -32,12 +32,12 @@
 BEGIN_NAMESPACE_OPENTURNS
 
 /**
- * @class LinearModelStepwiseFactory
+ * @class LinearModelStepwiseAlgorithm
  *
- * Factory for linear model using stepwise regression
+ * The class building linear model using stepwise regression
  */
 
-class OT_API LinearModelStepwiseFactory :
+class OT_API LinearModelStepwiseAlgorithm :
   public PersistentObject
 {
   CLASSNAME;
@@ -47,17 +47,17 @@ public:
   enum Direction { BACKWARD = -1, BOTH = 0, FORWARD = 1 };
 
   /** Default constructor */
-  LinearModelStepwiseFactory();
+  LinearModelStepwiseAlgorithm();
 
   /** Parameters constructor */
-  LinearModelStepwiseFactory(const NumericalSample & inputSample,
-                             const NumericalSample & outputSample,
-                             const SignedInteger direction = BOTH,
-                             const NumericalScalar penalty = -1.0 /* < 0 means BIC, by convention */,
-                             const UnsignedInteger maximumIterationNumber = 1000);
+  LinearModelStepwiseAlgorithm(const NumericalSample & inputSample,
+                               const NumericalSample & outputSample,
+                               const SignedInteger direction = BOTH,
+                               const NumericalScalar penalty = -1.0 /* < 0 means BIC, by convention */,
+                               const UnsignedInteger maximumIterationNumber = 1000);
 
   /** Virtual constructor */
-  virtual LinearModelStepwiseFactory * clone() const;
+  virtual LinearModelStepwiseAlgorithm * clone() const;
 
   /** String converter */
   String __repr__() const;
@@ -188,7 +188,7 @@ private:
 
   /** Whether result is cached */
   Bool hasRun_;
-}; /* class LinearModelStepwiseFactory */
+}; /* class LinearModelStepwiseAlgorithm */
 
 END_NAMESPACE_OPENTURNS
 

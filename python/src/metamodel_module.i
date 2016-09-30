@@ -64,7 +64,7 @@
 %include GeneralizedLinearModelAlgorithm.i
 %include LinearModelResult.i
 %include LinearModelAlgorithm.i
-%include LinearModelStepwiseFactory.i
+%include LinearModelStepwiseAlgorithm.i
 
 /* Uncertainty/Model */
 %include RandomVector.i
