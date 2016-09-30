@@ -23,45 +23,52 @@ penalty_AIC = 2.
 maxiteration = 1000
 
 # Build a model Y~(X1+X2+X3+X4)^3+I(Xi)^2+I(Xi)^3
-factory = ot.LinearModelStepwiseFactory(X.getDescription(),0,penalty_BIC,maxiteration)
+#   X: input sample
+#   Y: output sample
+#   direction: +1 FORWARD, 0 BOTH, -1 BACKWARD
+#   penalty: multiplier of number of degrees of freedom
+#   maxiteration: maximum number of iterations
+algo = ot.LinearModelStepwiseAlgorithm(X, Y, 0, penalty_BIC, maxiteration)
 # (X1+X2+X3+X4)^3
-factory.add(factory.getInteractions(3))
+algo.addInteractions(3)
 
 # I(Xi)^2
-factory.add(factory.getPolynomial(2))
+algo.addPower(2)
 
 # I(Xi)^3
-factory.add(factory.getPolynomial(3))
+algo.addPower(3)
 
 # To add some user-defined columns, it is also possible to pass
 # a NumericalSample, for instance:
 #   expI = ot.NumericalSample(np.exp(X))
 #   expI.setDescription(["exp(x1)", "exp(x2)", "exp(x3)", "exp(x4)"])
-#   factory.add(expI)
+#   algo.add(expI)
 
-i_min = factory.getIndices(["1"])
-i_0 = factory.getIndices(factory.getInteractions(1))
+i_min = algo.getIndices(algo.getInteractions(0))
+algo.setMinimalIndices(i_min)
 
 ## Forward
-factory.setDirection(1)
-factory.setPenalty(penalty_AIC)
-lm_forward_AIC_result = factory.build(X, Y, i_min)
-factory.setPenalty(penalty_BIC)
-lm_forward_BIC_result = factory.build(X, Y, i_min)
+algo.setDirection(1)
+algo.setPenalty(penalty_AIC)
+lm_forward_AIC_result = algo.getResult()
+algo.setPenalty(penalty_BIC)
+lm_forward_BIC_result = algo.getResult()
 
 ## Backward
-factory.setDirection(-1)
-factory.setPenalty(penalty_AIC)
-lm_backward_AIC_result = factory.build(X, Y, i_min)
-factory.setPenalty(penalty_BIC)
-lm_backward_BIC_result = factory.build(X, Y, i_min)
+algo.setDirection(-1)
+algo.setPenalty(penalty_AIC)
+lm_backward_AIC_result = algo.getResult()
+algo.setPenalty(penalty_BIC)
+lm_backward_BIC_result = algo.getResult()
 
 ## Both
-factory.setDirection(0)
-factory.setPenalty(penalty_AIC)
-lm_both_AIC_result = factory.build(X, Y, i_min, i_0)
-factory.setPenalty(penalty_BIC)
-lm_both_BIC_result = factory.build(X, Y, i_min, i_0)
+algo.setDirection(0)
+algo.setPenalty(penalty_AIC)
+i_0 = algo.getIndices(algo.getInteractions(1))
+algo.setStartIndices(i_0)
+lm_both_AIC_result = algo.getResult()
+algo.setPenalty(penalty_BIC)
+lm_both_BIC_result = algo.getResult()
 
 lm_forward_AIC_result.printANOVAtable()
 lm_forward_BIC_result.printANOVAtable()

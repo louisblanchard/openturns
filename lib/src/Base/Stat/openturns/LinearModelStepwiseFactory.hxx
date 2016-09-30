@@ -25,10 +25,8 @@
 #include "openturns/Description.hxx"
 #include "openturns/LinearModelResult.hxx"
 #include "openturns/NumericalSample.hxx"
-#include "openturns/NumericalMathFunction.hxx"
 #include "openturns/Matrix.hxx"
 #include "openturns/CovarianceMatrix.hxx"
-#include "openturns/ResourceMap.hxx"
 #include "openturns/Indices.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
@@ -52,10 +50,11 @@ public:
   LinearModelStepwiseFactory();
 
   /** Parameters constructor */
-  explicit LinearModelStepwiseFactory(const Description & variables,
-                                      const SignedInteger direction = BOTH,
-                                      const NumericalScalar penalty = -1.0 /* < 0 means BIC, by convention */,
-                                      const UnsignedInteger maximumIterationNumber = 1000);
+  LinearModelStepwiseFactory(const NumericalSample & inputSample,
+                             const NumericalSample & outputSample,
+                             const SignedInteger direction = BOTH,
+                             const NumericalScalar penalty = -1.0 /* < 0 means BIC, by convention */,
+                             const UnsignedInteger maximumIterationNumber = 1000);
 
   /** Virtual constructor */
   virtual LinearModelStepwiseFactory * clone() const;
@@ -64,48 +63,58 @@ public:
   String __repr__() const;
   String __str__(const String & offset = "") const;
 
-  /** Get Formula */
-  String getFormula() const;
+  /** Sample accessors */
+  NumericalSample getInputSample() const;
+  NumericalSample getOutputSample() const;
 
-  /** Get direction of the stepwise regression method  */
+  /** Direction accessors */
   Direction getDirection() const;
-
-  /** Get penalty of the stepwise regression method */
-  NumericalScalar getPenalty() const;
-
-  /** Set direction of the stepwise regression method */
   void setDirection(const SignedInteger direction);
 
-  /** Set penalty of the stepwise regression method  */
+  /** Penalty accessors */
+  NumericalScalar getPenalty() const;
   void setPenalty(const NumericalScalar penalty);
 
-  /** Set maximum number of iterations of the stepwise regression method  */
-  void setMaximumIterationNumber(const NumericalScalar maxiter);
+  /** Maximum number of iterations accessors */
+  UnsignedInteger getMaximumIterationNumber() const;
+  void setMaximumIterationNumber(const UnsignedInteger maximumIterationNumber);
+
+  /** Condensed formula accessor */
+  String getFormula() const;
 
   /** Add formulas */
   void add(const Description & formulas);
   void add(const String & formula);
   void add(const NumericalSample & userColumns);
 
-  /** Remove formulas */
+  /** Remove formulas/columns */
   void remove(const Description & formulas);
-  void remove(const String & formula);
+  void remove(const Indices & indices);
 
   /** Get column indices of given formulas */
   Indices getIndices(const Description & formulas) const;
 
-  /** Get formulas of interactions between variables */
+  /** Interactions between variables*/
   Description getInteractions(const UnsignedInteger degree, const Description & variables = Description()) const;
+  void addInteractions(const UnsignedInteger degree, const Description & variables = Description());
+  void removeInteractions(const UnsignedInteger degree, const Description & variables = Description());
 
-  /** Get formulas of monomials */
-  Description getPolynomial(const UnsignedInteger degree, const Description & variables = Description()) const;
-  String getPolynomial(const UnsignedInteger degree, const String & variable) const;
+  /** Power of variables */
+  Description getPower(const UnsignedInteger degree, const Description & variables = Description()) const;
+  void addPower(const UnsignedInteger degree, const Description & variables = Description());
+  void removePower(const UnsignedInteger degree, const Description & variables = Description());
 
-  /** Build a linear model using stepwise regression with "forward" search method */
-  LinearModelResult build(const NumericalSample & inputSample,
-                          const NumericalSample & outputSample,
-                          const Indices & minimalIndices = Indices(0),
-                          const Indices & startIndices = Indices(0));
+  /** Set indices of minimal model */
+  void setMinimalIndices(const Indices & minimalIndices);
+
+  /** Set indices of start model */
+  void setStartIndices(const Indices & startIndices);
+
+  /** Perform regression */
+  void run();
+
+  /** Result accessor */
+  LinearModelResult getResult();
 
   /** Method save() stores the object through the StorageManager */
   void save(Advocate & adv) const;
@@ -121,8 +130,11 @@ private:
   /** Build currentX_ and currentIndices_ from given indices */
   void buildCurrentMatrixFromIndices(const Indices & columns);
 
-  /** Input variables */
-  Description variables_;
+  /** Input sample */
+  NumericalSample inputSample_;
+
+  /** Output sample */
+  NumericalSample outputSample_;
 
   /** The direction of the stepwise regression method */
   Direction direction_;
@@ -135,6 +147,12 @@ private:
   /** The maximum number of iterations of the stepwise regression method */
   NumericalScalar maximumIterationNumber_;
 
+  /** The indices of minimal model */
+  Indices minimalIndices_;
+
+  /** The indices of start model */
+  Indices startIndices_;
+
   /** The formula description */
   String condensedFormula_;
 
@@ -143,9 +161,6 @@ private:
 
   /** User-defined columns */
   NumericalSample userColumns_;
-
-  /** The input data  */
-  NumericalSample inputSample_;
 
   /** The output data, stored as a matrix  */
   Matrix Y_;
@@ -167,6 +182,12 @@ private:
 
   /** The position of currentIndices_ columns in currentX_ */
   Indices columnCurrentX_;
+
+  /** Result */
+  LinearModelResult result_;
+
+  /** Whether result is cached */
+  Bool hasRun_;
 }; /* class LinearModelStepwiseFactory */
 
 END_NAMESPACE_OPENTURNS

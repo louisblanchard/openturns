@@ -29,28 +29,31 @@ CLASSNAMEINIT(LinearModelStepwiseFactory);
 /* Default constructor */
 LinearModelStepwiseFactory::LinearModelStepwiseFactory()
   : PersistentObject()
-  , variables_(0)
   , direction_(BOTH)
   , penalty_(-1.0)
   , maximumIterationNumber_(1000)
   , condensedFormula_("1")
   , formulas_(1, "1")
+  , hasRun_(false)
 {
   // Nothing to do
 }
 
 /* Parameters constructor */
-LinearModelStepwiseFactory::LinearModelStepwiseFactory(const Description & variables,
+LinearModelStepwiseFactory::LinearModelStepwiseFactory(const NumericalSample & inputSample,
+                                                       const NumericalSample & outputSample,
                                                        const SignedInteger direction,
                                                        const NumericalScalar penalty,
                                                        const UnsignedInteger maximumIterationNumber)
   : PersistentObject()
-  , variables_(variables)
+  , inputSample_(inputSample)
+  , outputSample_(outputSample)
   , direction_(static_cast<LinearModelStepwiseFactory::Direction>(direction))
   , penalty_(penalty)
   , maximumIterationNumber_(maximumIterationNumber)
   , condensedFormula_("1")
   , formulas_(1, "1")
+  , hasRun_(false)
 {
   // Nothing to do
 }
@@ -68,7 +71,6 @@ String LinearModelStepwiseFactory::__repr__() const
 {
   OSS oss(true);
   oss << "class=" << getClassName()
-      << " variables=" << variables_
       << " direction=" << direction_
       << " penalty=" << penalty_
       << " maximumIterationNumber=" << maximumIterationNumber_
@@ -82,7 +84,6 @@ String LinearModelStepwiseFactory::__str__(const String & offset) const
 {
   OSS oss(false);
   oss << "class=" << getClassName()
-      << " variables=" << variables_
       << " direction=" << direction_
       << " penalty=" << penalty_
       << " maximumIterationNumber=" << maximumIterationNumber_
@@ -91,19 +92,18 @@ String LinearModelStepwiseFactory::__str__(const String & offset) const
   return oss;
 }
 
-/* Get Formula */
-String LinearModelStepwiseFactory::getFormula() const
+/* Sample accessors */
+NumericalSample LinearModelStepwiseFactory::getInputSample() const
 {
-  return condensedFormula_;
+  return inputSample_;
 }
 
-/* Get penalty of the stepwise regression method */
-NumericalScalar LinearModelStepwiseFactory::getPenalty() const
+NumericalSample LinearModelStepwiseFactory::getOutputSample() const
 {
-  return penalty_;
+  return outputSample_;
 }
 
-/* Get direction of the stepwise regression method */
+/* Direction accessors */
 LinearModelStepwiseFactory::Direction LinearModelStepwiseFactory::getDirection() const
 {
   return direction_;
@@ -128,40 +128,33 @@ void LinearModelStepwiseFactory::setDirection(const SignedInteger direction)
   }
 }
 
-/* Set penalty of the stepwise regression method  */
+
+/* Penalty accessors */
+NumericalScalar LinearModelStepwiseFactory::getPenalty() const
+{
+  return penalty_;
+}
+
 void LinearModelStepwiseFactory::setPenalty(const NumericalScalar penalty)
 {
   penalty_ = penalty;
 }
 
-/* Set maximum number of iterations of the stepwise regression method  */
-void LinearModelStepwiseFactory::setMaximumIterationNumber(const NumericalScalar maximumIterationNumber)
+/* Maximum number of iterations accessors */
+UnsignedInteger LinearModelStepwiseFactory::getMaximumIterationNumber() const
+{
+  return maximumIterationNumber_;
+}
+
+void LinearModelStepwiseFactory::setMaximumIterationNumber(const UnsignedInteger maximumIterationNumber)
 {
   maximumIterationNumber_ = maximumIterationNumber;
 }
 
-/* Get formulas of interactions between variables */
-Description LinearModelStepwiseFactory::getInteractions(const UnsignedInteger degree, const Description & variables) const
+/* Formula accessor */
+String LinearModelStepwiseFactory::getFormula() const
 {
-  throw NotYetImplementedException(HERE);
-}
-
-/* Get formulas of monomials */
-Description LinearModelStepwiseFactory::getPolynomial(const UnsignedInteger degree, const Description & variables) const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-String LinearModelStepwiseFactory::getPolynomial(const UnsignedInteger degree, const String & variable) const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-
-/* Get column indices of given formulas */
-Indices LinearModelStepwiseFactory::getIndices(const Description & formulas) const
-{
-  throw NotYetImplementedException(HERE);
+  return condensedFormula_;
 }
 
 /* Add formulas */
@@ -186,9 +179,105 @@ void LinearModelStepwiseFactory::remove(const Description & formulas)
   throw NotYetImplementedException(HERE);
 }
 
-void LinearModelStepwiseFactory::remove(const String & formula)
+void LinearModelStepwiseFactory::remove(const Indices & columns)
 {
   throw NotYetImplementedException(HERE);
+}
+
+/* Get column indices of given formulas */
+Indices LinearModelStepwiseFactory::getIndices(const Description & formulas) const
+{
+  throw NotYetImplementedException(HERE);
+}
+
+/* Interactions between variables */
+Description LinearModelStepwiseFactory::getInteractions(const UnsignedInteger degree, const Description & variables) const
+{
+  throw NotYetImplementedException(HERE);
+}
+void LinearModelStepwiseFactory::addInteractions(const UnsignedInteger degree, const Description & variables)
+{
+  throw NotYetImplementedException(HERE);
+}
+void LinearModelStepwiseFactory::removeInteractions(const UnsignedInteger degree, const Description & variables)
+{
+  throw NotYetImplementedException(HERE);
+}
+
+/* Power of variables */
+Description LinearModelStepwiseFactory::getPower(const UnsignedInteger degree, const Description & variables) const
+{
+  throw NotYetImplementedException(HERE);
+}
+void LinearModelStepwiseFactory::addPower(const UnsignedInteger degree, const Description & variables)
+{
+  throw NotYetImplementedException(HERE);
+}
+void LinearModelStepwiseFactory::removePower(const UnsignedInteger degree, const Description & variables)
+{
+  throw NotYetImplementedException(HERE);
+}
+
+/* Set indices of minimal model */
+void LinearModelStepwiseAlgorithm::setMinimalIndices(const Indices & minimalIndices)
+{
+  minimalIndices_ = minimalIndices;
+}
+
+/* Set indices of start model */
+void LinearModelStepwiseAlgorithm::setStartIndices(const Indices & startIndices)
+{
+  startIndices_ = startIndices;
+}
+
+
+/* Perform regression */
+void LinearModelStepwiseFactory::run()
+{
+  if (hasRun_) return;
+
+  if (outputSample_.getDimension() != 1)
+    throw InvalidArgumentException(HERE) << "Error: cannot perform step method based on output sample of dimension different from 1.";
+  if (inputSample_.getSize() != outputSample_.getSize())
+    throw InvalidArgumentException(HERE) << "Error: the size of the output sample=" << outputSample_.getSize() << " is different from the size of the input sample=" << inputSample_.getSize();
+
+  Y_ = Matrix(outputSample_.getSize(), 1, outputSample_.getImplementation()->getData());
+  NumericalMathFunction f(inputSample_.getDescription(), formulas_);
+  NumericalSample fx(f(inputSample_));
+  Matrix Xt(fx.getSize(), fx.getDimension(), fx.getImplementation()->getData());
+  maxX_ = Xt.transpose();
+
+  if (startIndices_.getSize() == 0)
+  {
+    switch(direction_)
+    {
+      case BACKWARD:
+        currentX_ = maxX_;
+        currentIndices_ = Indices(maxX_.getNbColumns());
+        currentIndices_.fill();
+        columnCurrentX_ = currentIndices_;
+        break;
+      case FORWARD:
+        if (minimalIndices_.getSize() == 0)
+          throw InvalidArgumentException(HERE) << "Error: minimal indices must be specified when direction is FORWARD";
+        buildCurrentMatrixFromIndices(minimalIndices_);
+        break;
+      case BOTH:
+        throw InvalidArgumentException(HERE) << "Error: start indices must be specified when direction is BOTH";
+        break;
+    }
+  }
+  else
+    buildCurrentMatrixFromIndices(startIndices_);
+
+  throw NotYetImplementedException(HERE);
+  UnsignedInteger iterations = 0;
+  while(iterations < maximumIterationNumber_)
+  {
+    throw NotYetImplementedException(HERE);
+    ++maximumIterationNumber_;
+  }
+  hasRun_ = true;
 }
 
 /* Build currentX_, currentIndices_ and columnCurrentX_ from given indices */
@@ -337,52 +426,9 @@ struct UpdateBackwardFunctor
   }
 }; /* end struct UpdateBackwardFunctor */
 
-/* Build a linear model using stepwise regression */
-LinearModelResult LinearModelStepwiseFactory::build(const NumericalSample & inputSample,
-                                                    const NumericalSample & outputSample,
-                                                    const Indices & minimalIndices,
-                                                    const Indices & startIndices)
+/* Get linear model result */
+LinearModelResult LinearModelStepwiseFactory::getResult()
 {
-  if (variables_.getSize() > 0 && variables_.getSize() != inputSample.getDimension())
-    throw InvalidArgumentException(HERE) << "Error: expected an input sample of dimension=" << variables_.getSize() << ", got dimension=" << inputSample.getDimension();
-  if (outputSample.getDimension() != 1)
-    throw InvalidArgumentException(HERE) << "Error: cannot perform step method based on output sample of dimension different from 1.";
-  if (inputSample.getSize() != outputSample.getSize())
-    throw InvalidArgumentException(HERE) << "Error: the size of the output sample=" << outputSample.getSize() << " is different from the size of the input sample=" << inputSample.getSize();
-
-  inputSample_ = inputSample;
-  Y_ = Matrix(outputSample.getSize(), 1, outputSample.getImplementation()->getData());
-  Matrix Xt(inputSample.getSize(), inputSample.getDimension(), inputSample.getImplementation()->getData());
-  maxX_ = Xt.transpose();
-  if (startIndices.getSize() == 0)
-  {
-    switch(direction_)
-    {
-      case BACKWARD:
-        currentX_ = maxX_;
-        currentIndices_ = Indices(maxX_.getNbColumns());
-        currentIndices_.fill();
-        columnCurrentX_ = currentIndices_;
-        break;
-      case FORWARD:
-        if (minimalIndices.getSize() == 0)
-          throw InvalidArgumentException(HERE) << "Error: minimal indices must be specified when direction is FORWARD";
-        buildCurrentMatrixFromIndices(minimalIndices);
-        break;
-      case BOTH:
-        throw InvalidArgumentException(HERE) << "Error: start indices must be specified when direction is BOTH";
-        break;
-    }
-  }
-  else
-    buildCurrentMatrixFromIndices(startIndices);
-
-  UnsignedInteger iterations = 0;
-  while(iterations < maximumIterationNumber_)
-  {
-    throw NotYetImplementedException(HERE);
-    ++maximumIterationNumber_;
-  }
 }
 
 /* Compute the likelihood function */
