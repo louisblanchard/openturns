@@ -20,7 +20,6 @@
  */
 #include "openturns/LinearModelStepwiseFactory.hxx"
 #include "openturns/Exception.hxx"
-#include "openturns/SpecFunc.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
 
@@ -249,11 +248,11 @@ struct UpdateForwardFunctor
 
   UpdateForwardFunctor(const Indices & indexSet, const Matrix & X, const Matrix & Xmax, const Matrix & epsilon, const Matrix & M)
     : indexSet_(indexSet), X_(X), Xmax_(Xmax), epsilon_(epsilon), M_(M)
-    , criterion_(SpecFunc::MaxNumericalScalar), bestIndex_(0) {}
+    , criterion_(0.0), bestIndex_(0) {}
 
   UpdateForwardFunctor(const UpdateForwardFunctor & other, TBB::Split)
     : indexSet_(other.indexSet_), X_(other.X_), Xmax_(other.Xmax_), epsilon_(other.epsilon_), M_(other.M_)
-    , criterion_(SpecFunc::MaxNumericalScalar), bestIndex_(0) {}
+    , criterion_(other.criterion_), bestIndex_(other.bestIndex_) {}
 
   void operator() (const TBB::BlockedRange<UnsignedInteger> & r)
   {
@@ -317,7 +316,7 @@ struct UpdateBackwardFunctor
 
   UpdateBackwardFunctor(const Indices & indexSet, const Indices & columnCurrentX, const Matrix & X, const Matrix & Y, const Matrix & A, const Matrix & B)
     : indexSet_(indexSet), columnCurrentX_(columnCurrentX), X_(X), Y_(Y), A_(A), B_(B)
-    , criterion_(SpecFunc::MaxNumericalScalar), bestIndex_(0) {}
+    , criterion_(0.0), bestIndex_(0) {}
 
   UpdateBackwardFunctor(const UpdateBackwardFunctor & other, TBB::Split)
     : indexSet_(other.indexSet_), columnCurrentX_(other.columnCurrentX_), X_(other.X_), Y_(other.Y_), A_(other.A_), B_(other.B_)
