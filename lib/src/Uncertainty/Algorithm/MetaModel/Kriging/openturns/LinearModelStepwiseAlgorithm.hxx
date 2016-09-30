@@ -26,7 +26,6 @@
 #include "openturns/LinearModelResult.hxx"
 #include "openturns/NumericalSample.hxx"
 #include "openturns/Matrix.hxx"
-#include "openturns/CovarianceMatrix.hxx"
 #include "openturns/Indices.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
@@ -171,17 +170,17 @@ private:
   /** The current matrix */
   Matrix currentX_;
 
-  /** The covariance matrix inverse: A=(X^T X)^-1 */
-  CovarianceMatrix currentGramInverse_;
+  /** The matrix inverse: A=(X^T X)^-1 */
+  Matrix currentGramInverse_;
 
   /** The current matrix B=X^T Y */
   Matrix currentB_;
 
+  /** The current residual R=Y - X A X^T Y */
+  Matrix currentResidual_;
+
   /** The indices of current model */
   Indices currentIndices_;
-
-  /** The position of currentIndices_ columns in currentX_ */
-  Indices columnCurrentX_;
 
   /** Result */
   LinearModelResult result_;
