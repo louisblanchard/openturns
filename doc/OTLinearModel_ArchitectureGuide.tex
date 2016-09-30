@@ -10,18 +10,25 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Architecture guide}
 
-This document makes up the general specification design for the evolutions of sensitivity analysis
+This document makes up the general specification design for the general linear model stepwise regression analysis
 in OpenTURNS.
 
-\subsection{SobolIndicesAlgorithm}
+\subsection{LinearModelAlgorithm}
 
-All algorithms derive from \texttt{SobolIndicesAlgorithmImplementation}, with standard pimpl idiom
+\texttt{LinearModelAlgorithm} derive from \texttt{MetaModelAlgorithm}, with standard pimpl idiom
 as prescribed by OpenTURNS coding rules.
 
 \begin{figure}[htb]
   \begin{center}
     \includegraphics[scale=0.5]{LinearModelAlgorithm.png}
-    \caption{SobolIndicesAlgorithm class}\label{fig:archi:LinearModelAlgorithm}
+    \caption{LinearModelAlgorithm class}\label{fig:archi:LinearModelAlgorithm}
   \end{center}
 \end{figure}
 
+\texttt{LinearModelStepwiseFactory} derive from \texttt{PersistentObject}
+\begin{figure}[htb]
+  \begin{center}
+    \includegraphics[scale=0.5]{LinearModelStepwiseFactory.png}
+    \caption{LinearModelStepwiseFactory class}\label{fig:archi:LinearModelStepwiseFactory}
+  \end{center}
+\end{figure}

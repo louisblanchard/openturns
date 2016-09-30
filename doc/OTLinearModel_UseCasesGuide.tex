@@ -10,74 +10,300 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Use Cases Guide}
 
-This section presents the main functionalities of the new sensitivity classes in their context.\\
+This section presents the main functionalities of the new general linear model stepwise regression classes in their context.\\
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{general linear model regression}
+
+Let us consider the general linear model : 
+\begin{equation}
+\boxed{
+Y \,=\, X \,\beta\, +\, \epsilon }
+\end{equation}
+
+
+Where $X$ is the design matrix of explanatory variables of size $(n \times p)$,
+$Y$ is the vector of response values of size $(n)$, 
+$\beta $ is a vector of unknown parameters to be estimated of size $(p)$, 
+and $\epsilon $ is the error vector of size $(n)$. $\epsilon$ follows the standard Normal distribution.\\
+We defined $A$ the inverse Gram matrix of $X$ of size $(p\times p)$, 
+and $H$ the projection matrix of size $(n\times n)$ by :
+\begin{equation}
+A \hat{=}(X^T X)^{-1}  \quad,\quad 
+H \hat{=} X_{}\,\big(X^T_{} \,X_{}\big)^{-1} \,X^T_{}  =  X_{}\,A \,X^T_{}
+ \end{equation}
+
+We defined the {\it Log likelihood} function by : 
+\begin{equation}
+\log L(\beta,\sigma\mid Y)= -\frac{n}{2}\big(\log(2\pi)+ \log(\sigma^2)\big)- \frac{1}{\sigma^2}\big(Y-X\beta\big)^T\,\big(Y-X\beta\big)
+\end{equation}
+
+The solution who maximize the {\it Log likelihood} function is :
+\begin{equation}
+\label{beta_sigma_opt}
+  \hat{\beta} \,=\, \big(X^T_{} \,X_{}\big)^{-1} \,X^T \, Y
+\quad,\quad 
+\hat{\sigma}^2 = \frac{1}{n}\big(Y-X \,\hat{\beta}\big)^T\,\big(Y-X \,\hat{\beta}\big)
+\end{equation}
+Using equation (\ref{beta_sigma_opt}), the maximum {\it Log likelihood} turns into :
+\begin{equation}
+\log L(\hat{\beta},\hat{\sigma}\mid Y)=-\frac{n}{2}\big(\log(2\pi)+ \log(\hat{\sigma}^2)+1\big)
+\quad \text{where} \quad
+\hat{\sigma}^2 = \frac{1}{n}\big(Y-H\,Y\big)^T\,\big(Y-H\,Y \big)=\frac{1}{n}\|\,Y-H\,Y\,\|^2_2
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Stepwise regression methods}
+
+The stepwise regression method consists in choosing the best predictive variables by an automatic procedure
+ according to a selected model criterion ( Akaike information criterion (AIC), Bayesian information criterion (BIC)).
+We defined the sets of variables indices $ S_{min}\,\subseteq\, S_0\,\subseteq\, S_{max}$. 
+Let us consider $S$ a set of variables indices and $\# S$ the cardinal of $S$, the (AIC) and (BIC) criteria are :  
+
+\begin{itemize}
+\item (AIC) : $\log L(\hat{\beta},\hat{\sigma}\mid Y) + 2 \times \# S $  
+\item (BIC) : $\log L(\hat{\beta},\hat{\sigma}\mid Y) + \log(n) \times \# S $ .
+\end{itemize}
+
+The main approches are : 
+\begin{itemize}
+\item {\bf Forward selection:} This method starts with initial variables in the model 
+(defined by the set of indices $S_0$), testing the addition of each variable using a chosen model comparison criterion,
+ adding the variable (if any) that improves the model the most, and repeating this process until none improves the model.\\
+\item {\bf Backward selection:} This method  with all candidate variables 
+(defined by the set of indices $S_{max}$), testing the deletion of each variable using a chosen model comparison criterion,
+ deleting the variable (if any) that improves the model the most by being deleted, and repeating this process until no further improvement is possible.\\
+\item {\bf Bidirectional selection:} This method is a combination of the above, testing at each step for variables to be included or excluded.
+\end{itemize}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Forward selection}
 
-\subsection{Sensitivity algorithms}
-The objective of the Use Case is to estimate the sensitivity indices (commonly called Sobol indices) which quantify correlation between the input variables and the output variable of a model described by a numerical function.\\
-
-These indices allow to evaluate the importance of a single variable or a specific set of variables. \\
-In theory, Sobol indices range is $\left[0; 1\right]$ ; the more the indice value is close to 1 the more the variable is important toward the output of the function. The Sobol indices can be computed at different orders.\\
-In practice, first order, second order and total order sensitivity indices are computed because it is difficult to measure higher order (in terms of precision and cost) and it is complicated to analyze result.\\
-The first order indices evaluate the importance of one variable at a time ($d$ indices stored in a {\itshape NumericalSample}, with $d$ the input dimension of the model).\\
-The second order indices evaluate the importance of every pair of variables ($\binom{d}{2} = \frac{d \times \left( d-1\right) }{2}$ indices stored via a {\itshape SymmetricMatrix} for each marginal).\\
-The $d$ total indices give the relative importance of every variables except the variable $X_i$, for every variable.\\
-For vectorial outputs, aggregated indices could be computed. These last one correspond a linear combination of marginal first order indices and write :
-\begin{eqnarray}
- S_i & = & \frac{\sum_{k=1}^{q} \Var{Y^k} S_{i}^{k}}{\sum_{k=1}^{q} \Var{Y^k}}.\\
- ST_i & = & \frac{\sum_{k=1}^{q} \Var{Y^k} ST_{i}^{k}}{\sum_{k=1}^{q} \Var{Y^k} }.
+We defined $X_+$ the $(n \times (p+1))$ matrix composed by $X$ matrix and $x_+$ column : $X_+ = (X \,,\,x_+)$.\\
+We defined the $(n\times n)$ projection matrix by :
+ \begin{equation}
+\label{H+}
+H_+\, \,\hat{=}\, X_{+}\,\big(X^T_{+} \,X_{+}\big)^{-1} \,X^T_{+}  
+ \end{equation}
+The matrix $X^T_{+} \,X_{+}$ is partitionned into four blocks, it can be inverted blockwise as follows:
+\begin{equation}
+\big(X^T_{+} \,X_{+}\big)^{-1} =  
+ \begin{bmatrix}
+A + D\,D^T/C  & -D/C \\
+D^T/C & 1/C
+\end{bmatrix}
+ \quad,\quad D = A\, X^T\,x_+ 
+ \quad,\quad C = x_+^T x_+ -x_+^T \,X\,A \, X^T\, x_+
+ \end{equation}
+Then the projection matrix $H_+$ defined by equation (\ref{H+}) turns into :
+ \begin{eqnarray}
+H_{+} & = & X\,A \, X^T  + \frac{X\,A \, X^T\,x_+\,(X\,A \, X^T\,x_+)^T}{C} - \frac{X\,A \, X^T\,x_+\,x_+^T}{C} - \frac{x_+\,x_+^T \, X\,A \, X^T}{C} + \frac{x_+\,x_+^T}{C}\\
+& = &X\,A \, X^T + \frac{1}{C} \big(\,X\,A \, X^T\,x_+\,x_+^T\,X\,A \, X^T \,-\,X\,A \, X^T\,x_+\,x_+^T \,-\,x_+\,x_+^T \, X\,A \, X^T\,+\,x_+\,x_+^T \,\big)\\
+& = &X\,A \, X^T + \frac{1}{C} \big(\,X\,A \, X^T\,x_+\,x_+^T\,X\,A \, X^T \,-\,X\,A \, X^T\,x_+\,x_+^T \,-\,x_+\,x_+^T \, X\,A \, X^T\,+\,x_+\,x_+^T \,\big)
 \end{eqnarray}
-where:
-\begin{itemize}
- \item $S_i$ is the $i$-th aggregated first order index,
- \item $ST_i$ is the $i$-th aggregated total order index,
- \item $\Var{Y^k}$ is the variance of the $k$-th output marginal,
- \item $S_i^k$ is the $i$-th first order index of the $k$-th marginal,
- \item $ST_i^k$ is the $i$-th total order index of the $k$-th marginal.
-\end{itemize}
 
-To evaluate all indices, the Sobol indices are estimated by sampling, from two input samples and a numerical function. The two samples should be independent. In practice, we never fix samples as input argument to be sure that samples are independent and that underlying distribution model has an independent copula.\\
+We get the residual term : 
+ \begin{eqnarray}
+Y-H_{+}\,Y & = &Y- X\,A \, X^T\,Y -\frac{1}{C}
+\big(\,X\,A \, X^T\,x_+\,(x_+^T\,X\,A \, X^T\,Y) \,-\,X\,A \, X^T\,x_+\,(x_+^T\,Y) \,-\,x_+\,(x_+^T \, X\,A \, X^T\,Y)\,+\,x_+\,(x_+^T\,Y) \,\big)\\
+\label{defH+Y}
+& = & Y-X\,A \, X^T\,Y -\frac{(x_+^T\,X\,A \, X^T\,Y-x_+^T\,Y)}{C}\, \big(\,X\,A \, X^T\,x_+\, \,-\,x_+\,\big)
+\end{eqnarray}
 
-Note that very often, the \texttt{Saltelli} method is used for first order and total order indices. The method is implemented in OpenTURNS thanks to the {\itshape SaltelliSensitivityAlgorithm} class and is knwon to lack of precision for non centered output data (Update June~2016: this had been fixed by Pull Request 240) and for small variances. Alternative methods are implemented and seem more robust:
-\begin{itemize}
-\item Martinez thanks to the {\itshape MartinezSensitivityAlgorithm} class,
-\item Jansen thanks to the {\itshape JansenSensitivityAlgorithm} class,
-\item Mauntz-Kucherenko thanks to the {\itshape MauntzKucherenkoSensitivityAlgorithm} class.
-\end{itemize}
-Also, computation of second order indices uses the so called Sobol method (and thus require appropriate design). Usually, computation of first and total order indices requires $N \times (d+2)$ calls to the function, and $N \times (2d+2)$ for first, second order and total indices.\\
-Finally it is possible to evaluate confidence intervals for these indices. The sensitivity algorithm classes provides a \texttt{getFirstOrderIndicesInterval} and \texttt{getTotalOrderIndicesInterval} methods.
+The Forward maximum {\it Log likelihood} function is defined by :
+\begin{equation}
+\log L(\hat{\beta}_+,\hat{\sigma}_+\mid Y) =-\frac{n}{2}\big(\log(2\pi)+ \log(\hat{\sigma}_+^2)+1\big) 
+\quad \text{where} \quad  
+\hat{\sigma}_+^2  =\frac{1}{n}\|\,Y-H_+\,Y\,\|^2_2 
+\end{equation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Backward selection}
+
+We defined $X_{-i}$ the $(n \times (p-1))$ matrix composed by $X$ matrix without the $x_i$ column.\\ 
+We defined $H_{-}$ the $(n\times n)$ projection matrix by :
+ \begin{equation}
+\label{H-}
+H_{-}\, \,\hat{=}\, X_{-i}\,\big(X^T_{-i} \,X_{-i}\big)^{-1} \,X^T_{-i}
+= X_{-i}\,A_{-i,-i} \, X^T_{-i} \,-\,\frac {1}{A_{i,i}}\,\big(X_{-i}\, A_{-i,i}\big)\, \big(X_{-i}\, A_{-i,i}\big)^T 
+ \end{equation}
+where $A_{-i,-i}$ represents the matrix $A$ without row $i$ and column $i$,
+$A_{-i,i}$ represents the column $i$ of the matrix $A$ without row $i$ and $A_{i,i}$ represents the diagonal term $i$ of the matrix $A$.\\
+
+In a numerical point of view, we want to use the matrix $A$ in the equation (\ref{H-}) without creating the matrix $A_{-i }$.
+Then we define $X_{i=0}$ the matrix $X$ with the column $i$ equal to $0$, and $\forall B \in \mathbb{R}^p$ we note $\big[B\big]_{i=0}$ the row $i$ of $B$ equal to $0$. 
+We get : $\forall b \in \mathbb{R}^n\,,\, \forall c \in \mathbb{R}^p $
+ \begin{equation}
+\label{notation0}
+X_{i=0}^T\,b \,=\,\big[X^T\,b\big]_{i=0} \quad,\quad X_{i=0}\,c \,=\,X\,\big[c\big]_{i=0}
+ \end{equation}
+
+
+ Using equation (\ref{notation0}), the projection matrix $H_{-}$ defined by equation (\ref{H-}) turns into  :
+ \begin{eqnarray}
+H_{-}\, & = & X_{i=0}\,A\,X_{i=0}^T \,-\,\frac {1}{A_{i,i}}\,  \big(X_{i=0}\,A_{,i}\big) \big(X_{i=0}\,A_{,i}\big)^T   \\
+& = & X_{i=0}\,A\,X_{i=0}^T \,-\,\frac {1}{A_{i,i}}\,  \big(X\,\big[A_{,i}\big]_{i=0}  \big) \big(X\,\big[A_{,i}\big]_{i=0} \big)^T 
+\end{eqnarray}
+ Using equation (\ref{notation0}), we get the residual term : 
+ \begin{eqnarray}
+Y-H_{-}\,Y & = &Y- \,X_{i=0}\,A\,X_{i=0}^T\,Y \,+\,\frac {1}{A_{i,i}}\,  \big(X_{i=0}\,A_{,i}\,(A_{i,} X_{i=0}^T\,Y)\,\big)   \\
+ & = & Y-\,X\,\big[\,A\,\big[X^T\,Y\big]_{i=0}\,\big]_{i=0} \,+\,\frac {1}{A_{i,i}}\,  \big( X\,\big[\,A_{,i}\,\big]_{i=0}\,\,(A_{i,} \,\big[X^T\,Y\big]_{i=0})\,\big)   \\
+ & = & Y-\,X\,\big[\,A\,\big[X^T\,Y\big]_{i=0}\, -\,\frac {A_{i,} \,\big[X^T\,Y\big]_{i=0}}{A_{i,i}}\,A_{,i}\,      \big]_{i=0} \\
+\label{defH-Y}
+ & = & Y- \,X\,\big(\,A\,\big[X^T\,Y\big]_{i=0}\, -\,\frac {A_{i,} \,\big[X^T\,Y\big]_{i=0}}{A_{i,i}}\,A_{,i}\,\big)
+\end{eqnarray}
+
+The Backward maximum {\it Log likelihood} function is defined by :
+\begin{equation}
+\log L(\hat{\beta}_{-},\hat{\sigma}_{-}\mid Y) =-\frac{n}{2}\big(\log(2\pi)+ \log(\hat{\sigma}_{-}^2)+1\big)
+\quad \text{where} \quad 
+\hat{\sigma}_{-}^2 =\frac{1}{n}\|\,Y-H_{-}\,Y\,\|^2_2 
+\end{equation}
+
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Stepwise regression algorithms}
+
+\IncMargin{3em}
+\begin{algorithm}
+\KwData{ $S_{min}=$ \texttt{\color{blue}{minimalIndices}}, $S_0=$ \texttt{\color{blue}{startIndices}} , $S_{max}$  }
+\BlankLine
+Initialization : $S^* = S_0$ , $X = (x^k)_{k \in S^*}=\,$\texttt{\color{blue}{currentX\_}} , $Y=\,$\texttt{\color{blue}{Y\_}}  , $n_{iter} = 0 $ , $X_{max} =$ \texttt{\color{blue}{maxX\_}}  \\
+\BlankLine 
+\While{ $n_{iter} < $  \texttt{\color{blue}{maxiter\_}}  }{
+\BlankLine 
+Initialization : $L^i = -\infty \quad,\quad L^{i'} = -\infty$\\
+We compute $L^* = L_{S^*}\hat{=} \log L(\hat{\beta},\hat{\sigma}\mid Y)$ using  \texttt{\color{blue}{computeLogLikelihood()}}
+who update $ A= (X^T X)^{-1}=\,$\texttt{\color{blue}{currentGramInverse\_}} , $B = X^T \,Y=\,$\texttt{\color{blue}{currentB\_}} \\
+\BlankLine 
+\If{$($ \texttt{\color{blue}{direction\_}}   $\in \big\{$ FORWARD,BOTH $\big\})$}{
+We compute the $(n\times p)$ matrix : $ M = X \,A $\\
+We compute the $(n)$ vector : $ Y-\hat{Y}= Y-X\,A \,X^T\,Y= Y-M \,B $ \\
+$ [\,F_i\,,\,i\,] =$  \texttt{\color{blue}{computeUpdateForward}}$(S_{max} \backslash S^*,X,X_{max},M,Y-\hat{Y}) $\\
+$ L^i = \log L(\hat{\beta}_+,\hat{\sigma}_+\mid Y) \quad \text{where}\quad n\,\hat{\sigma}^2_+ = F_{i}  $
+}
+\If{$($ \texttt{\color{blue}{direction\_}}   $\in \big\{$ BACKWARD,BOTH $\big\})$}{
+	$ [\,F_{i'}\,,\,{i'}\,] =$ \texttt{\color{blue}{computeUpdateBackward}}$(S^*\backslash S_{min},X,Y,A,B) $\\
+	$  L^{i'} = \log L(\hat{\beta}_{-},\hat{\sigma}_{-}\mid Y) \quad \text{where}\quad n\,\hat{\sigma}^2_{-} = F_{{i'}}  $
+}
+\uIf{$(L^i+$ \texttt{\color{blue}{penalty\_}} $ > L^*) $ {\bf or} $(L^{i'}-$ \texttt{\color{blue}{penalty\_}} $> L^*)$}{
+\uIf{$(L^i+$ \texttt{\color{blue}{penalty\_}} $) >(L^{i'}-$\texttt{\color{blue}{penalty\_}} $)$  }{
+	$S^* =S^* \,\cup \,  i $
+}
+\Else{
+$S^* =S^* \,\backslash \,  i' $  
+}
+$X = (x^k)_{k \in S^*} $
+}
+\Else{
+Quit
+}
+$n_{iter} = n_{iter} + 1$
+}
+We update \texttt{\color{blue}{currentGramInverse\_}}, \texttt{\color{blue}{currentB\_}} using \texttt{\color{blue}{computeLogLikelihood()}} \\
+We compute $\quad\hat{\beta}= \color{blue}{A\,B}$ , $\hat{Y}=X\,\hat{\beta}$ , 
+$\hat{\varepsilon}=Y-\hat{Y}$ , 
+$\hat{\sigma}^2 = \frac{1}{n} \,\hat{\varepsilon}^T\,\hat{\varepsilon}$ , 
+$H_{i,i} = x_i^T\,A\,x_i$\\
+We construct \texttt{LinearModelResult} with parameters : $(X,Y,\hat{\varepsilon})$.
+\caption{Stepwise method algorithm }
+\end{algorithm}
+
+\texttt{\color{blue}{}}
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{\texttt{ComputeUpdateForward} algorithm}
+
+ The function \texttt{ComputeUpdateForward} compute the least square of the residual term $(Y-H_{+}\,Y)$ : 
+ \begin{equation}
+\boxed{  F_i=\|\,Y-H_{+}\,Y\,\|^2_2 \quad\text{where}\quad i = \displaystyle\arg \max_{S_{max} \backslash S^*}\, F_{j}\,\, }
+ \end{equation}
+
+\IncMargin{2em}
+\begin{algorithm}
+\SetKwInOut{Input}{Input}
+\underline{\texttt{ComputeUpdateForward}}$(S_{max} \backslash S^*,X,X_{max},M,Y-\hat{Y})$\\
+\Input{$(n \times p)$ matrix : \texttt{\color{blue}{X\_}} $\, =X\,$ }
+\Input{$(n \times m)$ matrix : \texttt{\color{blue}{Xmax\_}}$\,= X_{max}\,$  }
+\Input{$(n\times p)$ matrix : \texttt{\color{blue}{M\_}}$\,=M\,$  }
+\Input{$(n)$ vector : \texttt{\color{blue}{epsilon\_}} $\,=Y-\hat{Y}\,$   }
+\BlankLine
+Initialisation : $F_i = -\infty$
+\BlankLine
+\For{($j \in S_{max} \backslash S^* $)}{
+\BlankLine
+We compute the $(n)$ vector : $x_+ - d_+=x_+ - M\, X^T\,x_+ $\\
+We compute the $(n)$ vector : $ Y-H_{+}\,Y = Y-\hat{Y} -\frac{x_+^T\,(Y -\hat{Y})}{x_+^T\,(x_+ -d_+)} \big(x_+ -d_+\big)\,\, $\\
+We compute the scalar : $F_j \hat{=}\|\,Y-H_{+}\,Y\,\|^2_2 $\\
+\If{$F_j \, > \, F_i $ }{
+$F_i\,=\, F_j$ and $i=j$
+}
+}
+\Return{ $F_i$ and $i$}
+\caption{\texttt{ComputeUpdateForward} using equation (\ref{defH+Y})}
+\end{algorithm}
+
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{\texttt{ComputeUpdateBackward} algorithm}
+
+The function \texttt{ComputeUpdateBackward} compute the least square of the residual term  $(Y-H_{-}\,Y)$ : 
+ \begin{equation}
+\boxed{  F_{i'}=\|\,Y-H_{-}\,Y\,\|^2_2 \quad\text{where}\quad {i'} = \displaystyle\arg \max_{S_{max} \backslash S^*}\, F_{j}\,\, }
+ \end{equation}
+
+\IncMargin{2em}
+\begin{algorithm}
+\SetKwInOut{Input}{Input}
+\underline{\texttt{ComputeUpdateBackward}}$(S^*\backslash S_{min},X,Y,A,B)$\\
+\Input{$(n \times p)$ matrix : \texttt{\color{blue}{X\_}} $\, =X\, $  }
+\Input{$(n)$ vector : \texttt{\color{blue}{Y\_}} $=Y\,$ }
+\Input{$(p \times p)$ matrix : \texttt{\color{blue}{A\_}}  $\, =A\, $ }
+\Input{$(p)$ vector : \texttt{\color{blue}{B\_}}$\, =B\,$   }
+\BlankLine
+Initialisation : $F_{i'} = -\infty$
+\BlankLine
+\For{($j \in  S^*\backslash S_{min}$)}{
+\BlankLine
+We compute the $(p)$ vector : $ e_{j} =\,A\,\big[B\big]_{j=0}$\\
+We compute the $(n)$ vector : $ Y- H_{-}\,Y 
+\,=\,Y- \,X\,  \big(\,e_{j} \,-\,\frac {{(e_{j}})_j}{A_{j,j}}\,A_{,j}\,\big)\,\,  $\\
+We compute the scalar : $F_j \hat{=}\|\,Y-H_{-}\,Y\,\|^2_2 $\\
+\If{$F_j \, > \, F_{i'} $ }{
+$F_{i'}\,=\, F_j$ and ${i'}=j$
+}
+}
+\Return{ $F_{i'}$ and ${i'}$}
+\caption{\texttt{ComputeUpdateBackward} using equation (\ref{defH-Y}) }
+\end{algorithm}
+
+
 
 
 User can refer to docstrings for more details.
 
 OpenTURNS requires :
 
+
+
 \requirements{
   \begin{description}
-
-  \item[$\bullet$] distribution : {\itshape dist}, with independent copula
-  \item[type:] Distribution
-  \item[$\bullet$] a size : {\itshape size}, the size of samples
-  \item[type:] int \\
-  or
-  \item[$\bullet$] an experiment : {\itshape experiment}, a weighted experiment
-  \item[type:] WeightedExperiment\\
-
- \item[$\bullet$] a function : {\itshape model}, numerical model
- \item[type:] NumericalMathFunction \\
-
-  \item[$\bullet$] a boolean : {\itshape computeSecondOrder}, compute second order indices
-  \item[type:] bool \\
-
+  \item[$\bullet$]  : {\itshape inputSample}, 2-d sequence of float of dimension $(n\times p ) > (1,1)$.
+  \item[type:] NumericalSample
+  \item[$\bullet$]  : {\itshape outputSample}, 2-d sequence of float of dimension $n>1$. 
+  \item[type:] NumericalSample \\
+  \item[$\bullet$]  : {\itshape minimalIndices}, 1-d sequence of int Indices of minimal model
+  \item[type:] Indices\\
+ \item[$\bullet$] : {\itshape startIndices}, 1-d sequence of int Indices of starting model
+ \item[type:] Indices \\
  \end{description}
 }
 {
   \begin{description}
-  \item[$\bullet$] the different Sobol indices
-  \item[type:] NumericalPoint, for first and total indices
-  \item[type:] SymmetricMatrix, for second order indices
+  \item[$\bullet$] The linear model built from the samples $(inputSample,outputSample)$
+  \item[type:] linearModelResult
   \end{description}
 }
 
@@ -86,148 +312,17 @@ Python script for the UseCase :
 \begin{lstlisting}
 import openturns as ot
 
-#----------------------------------------------------#
-#-- Define designs for first/total & second orders --#
-#----------------------------------------------------#
-
-input_dimension = 3
-output_dimension = 1
-
-formula = ['sin(_pi*X1)+7*sin(_pi*X2)*sin(_pi*X2)+\
-   0.1*((_pi*X3)*(_pi*X3)*(_pi*X3)*(_pi*X3))*sin(_pi*X1)']
-model = ot.NumericalMathFunction(['X1', 'X2', 'X3'], ['Y'], formula)
-distribution = ot.ComposedDistribution([ot.Uniform(-1.0, 1.0)] * input_dimension)
-
-# Size of simulation
-size = 1000
-
-# Compute Second order indices and thus defines appropriate designs
-computeSecondOrder = True
-
-#--------------------------------------------------
-# 1) First usage : use of the interface constructor
-#--------------------------------------------------
-# Interface constructor relies on Martinez algorithm
-sensitivity_algo = ot.SobolIndicesAlgorithm(distribution, size, model, computeSecondOrder)
-# with experiment
-lhs = ot.LHSExperiment(distribution, size)
-# sensitivity_algo = ot.SobolIndicesAlgorithm(lhs, model, computeSecondOrder)
-
-#------------------------------------#
-#-- Compute indices and intervals  --#
-#------------------------------------#
-# Compute second order indices (first, second and total order indices are
-# computed together)
-secondOrderIndices = sensitivity_algo.getSecondOrderIndices()
-
-# Retrieve first order indices
-firstOrderIndices = sensitivity_algo.getFirstOrderIndices()
-
-# Retrieve total order indices
-totalOrderIndices = sensitivity_algo.getTotalOrderIndices()
-
-# Retrieve intervals
-nr_bootstrap = 100
-confidence_level = 0.95
-sensitivity_algorithm.setBootstrapSize(nr_bootstrap)
-sensitivity_algorithm.setBootstrapConfidenceLevel(confidence_level)
-firstOrderIndicesInterval = sensitivity_algorithm.getFirstOrderIndicesInterval()
-totalOrderIndicesInterval = sensitivity_algorithm.getTotalOrderIndicesInterval()
-
-#-----------------------------------------------------#
-#-- Compute same indices & intervals using Martinez --#
-#-----------------------------------------------------#
-
-msensitivity_algo = ot.MartinezSensitivityAlgorithm(distribution, size, model, computeSecondOrder)
-martinezFirstOrderIndices = msensitivity_algo.getFirstOrderIndices()
-martinezTotalOrderIndices = msensitivity_algo.getTotalOrderIndices()
-# Asymptotic intervals
-# In the case of Martinez, if output is Gaussian, we may use the Fisher transform and get an asymptotic confidence interval
-ot.ResourceMap.SetAsBool("MartinezSensitivityAlgorithm-UseAsmpytoticInterval", True)
-martinezfirstOrderIndicesInterval = msensitivity_algorithm.getFirstOrderIndicesInterval()
-martineatotalOrderIndicesInterval = msensitivity_algorithm.getTotalOrderIndicesInterval()
-
-#------------------------------------------#
-#-- Graphs : plot indices with bootstrap --#
-#------------------------------------------#
-# Method that invokes draw of aggregated indices
-full_graph = sensitivity_algorithm.draw()
-
-# Method that invokes draw of marginal indices (no bootstrap)
-graph = sensitivity_algorithm.draw(0)
+ot.RandomGenerator.SetSeed(0)
+distribution = ot.Normal()
+Xsample = distribution.getSample(30)
+func = ot.NumericalMathFunction('x', '2*x+1')
+Ysample = func(Xsample) + ot.Normal().getSample(30)
+LMF = ot.LinearModelStepwiseFactory()
+LMF.add(LMF.getPolynomial(1))
+i_min = LMF.getIndices(["1"])
+linearModelResult = LMF.build(Xsample, Ysample, i_min)
 
 \end{lstlisting}
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\subsection{Evaluation of sensitivity indices without model}
-Very often, numerical model could not be exhibited as a {\itshape NumericalMathFunction} and thus we could not refer to the previous usage. For that purpose, the {\itshape SobolIndicesAlgorithmImplementation} class provides a {\itshape Generate} method which enables to build a full input design of size $N \times (d+2)$ (or $N \times (2d+2)$ if second order indices are computed). Related response (output design) could be evaluated outside the platform and then we could use the appropriate constructor for the evaluation of sensitivity indices.
-
-We highlight that the same designs are required for all methods, e.g. by using {\itshape SobolIndicesAlgorithmImplementation.Generate}, the same data could be consumed by the fourth previous classes and thus evaluate the sensitivity indices.
-
-
-\requirements{
-  \begin{description}
-
-  \item[$\bullet$] distribution : {\itshape dist}, with independent copula
-  \item[type:] Distribution
-  \item[$\bullet$] a size : {\itshape size}, the size of samples
-  \item[type:] int \\
-  or
-  \item[$\bullet$] an experiment : {\itshape experiment}, a weighted experiment
-  \item[type:] WeightedExperiment\\
-
-  \item[$\bullet$] a boolean : {\itshape computeSecondOrder}, compute second order indices
-  \item[type:] bool \\
-
- \end{description}
-}
-{
-  \begin{description}
-  \item[$\bullet$] the full input design
-  \item[type:] NumericalSample, of size $N \times (d+2)$ (or $N \times (2d+2)$ if computeSecondOrder is True)
-  \end{description}
-}
-
-Python script for the UseCase :
-
-\begin{lstlisting}
-import openturns as ot
-
-#----------------------------------------------------#
-#-- Define designs for first/total & second orders --#
-#----------------------------------------------------#
-
-input_dimension = 3
-output_dimension = 1
-
-formula = ['sin(_pi*X1)+7*sin(_pi*X2)*sin(_pi*X2)+\
-   0.1*((_pi*X3)*(_pi*X3)*(_pi*X3)*(_pi*X3))*sin(_pi*X1)']
-model = ot.NumericalMathFunction(['X1', 'X2', 'X3'], ['Y'], formula)
-distribution = ot.ComposedDistribution([ot.Uniform(-1.0, 1.0)] * input_dimension)
-
-# Size of simulation
-size = 1000
-
-# Compute Second order indices and thus defines appropriate designs
-computeSecondOrder = True
-
-#----------------------------------
-# 1) Evaluate input/output designs
-#----------------------------------
-# Evaluation of in/out designs
-inputDesign = ot.SobolIndicesAlgorithmImplementation.Generate(distribution, size, computeSecondOrder)
-outputDesign = model(inputDesign)
-
-#----------------------------------------------------------------------
-# 2) Algorithm : define algorithms by using the appropriate constructor
-#----------------------------------------------------------------------
-# We can use the same designs for all methods
-saltelli_sensitivity_algo = ot.SaltelliSensitivityAlgorithm(inputDesign, outputDesign, size)
-jansen_sensitivity_algo = ot.JansenSensitivityAlgorithm(inputDesign, outputDesign, size)
-martinez_sensitivity_algo = ot.MartinezSensitivityAlgorithm(inputDesign, outputDesign, size)
-mauntzkucherenko_sensitivity_algo = ot.MauntzKucherenkoSensitivityAlgorithm(inputDesign, outputDesign, size)
-
-\end{lstlisting}
