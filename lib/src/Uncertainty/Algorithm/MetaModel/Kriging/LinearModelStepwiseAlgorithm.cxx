@@ -585,7 +585,7 @@ void LinearModelStepwiseAlgorithm::run()
   while(iterations < maximumIterationNumber_)
   {
     // Update A=(X^T*X)^{-1}, B = X^T*Y, residual = Y - X*A*X^T*Y
-    Lstar = penalty_ * currentX_.getNbColumns() - 2.0 * computeLogLikelihood();
+    Lstar = penalty_ * currentX_.getNbColumns() + computeLogLikelihood();
     LOGDEBUG(OSS() << "Iteration " << iterations << ", current criterion=" << Lstar);
 
     NumericalScalar LF = SpecFunc::MaxNumericalScalar;
@@ -604,7 +604,7 @@ void LinearModelStepwiseAlgorithm::run()
       UpdateForwardFunctor updateFunctor(indexSet, currentX_, maxX_, currentResidual_, M);
       TBB::ParallelReduce(0, indexSet.getSize(), updateFunctor);
       indexF = updateFunctor.bestIndex_;
-      LF = penalty_ * (currentX_.getNbColumns() + 1) + size * (1.0 + std::log(2.0 * M_PI) + std::log(updateFunctor.criterion_ / size));
+      LF = penalty_ * (currentX_.getNbColumns() + 1) + size * std::log(updateFunctor.criterion_ / size);
       LOGDEBUG(OSS() << "Best candidate in forward direction is " << indexF << ", squared residual norm=" << updateFunctor.criterion_ << ", criterion=" << LF);
     }
     NumericalScalar LB = SpecFunc::MaxNumericalScalar;
@@ -621,7 +621,7 @@ void LinearModelStepwiseAlgorithm::run()
       UpdateBackwardFunctor updateFunctor(indexSet, columnMaxToCurrent, currentIndices_, currentX_, Y_, currentGramInverse_, currentB_);
       TBB::ParallelReduce(0, indexSet.getSize(), updateFunctor);
       indexB = updateFunctor.bestIndex_;
-      LB = penalty_ * (currentX_.getNbColumns() - 1) + size * (1.0 + std::log(2.0 * M_PI) + std::log(updateFunctor.criterion_ / size));
+      LB = penalty_ * (currentX_.getNbColumns() - 1) + size * std::log(updateFunctor.criterion_ / size);
       LOGDEBUG(OSS() << "Best candidate in backward direction is " << indexB << ", squared residual norm=" << updateFunctor.criterion_ << ", criterion=" << LB);
     }
     if (!(LF < Lstar || LB < Lstar))
@@ -670,7 +670,7 @@ void LinearModelStepwiseAlgorithm::run()
   }
   // Update A=(X^T*X)^{-1}, B = X^T*Y, residual = Y - X*A*X^T*Y
   const UnsignedInteger p(currentX_.getNbColumns());
-  const NumericalScalar criterion(penalty_ * p - 2.0 * computeLogLikelihood());
+  const NumericalScalar criterion(penalty_ * p + computeLogLikelihood());
   LOGDEBUG(OSS() << "Final indices are " << currentIndices_.__str__() << " and criterion is " << criterion);
   NumericalPoint regression(p);
   memcpy(&regression[0], &currentB_(0, 0), sizeof(NumericalScalar)*p);
@@ -715,7 +715,7 @@ NumericalScalar LinearModelStepwiseAlgorithm::computeLogLikelihood()
   memcpy(&residualNP[0], &currentResidual_(0,0), sizeof(NumericalScalar) * size);
 
   const NumericalScalar normSquared = residualNP.normSquare();
-  const NumericalScalar result = -(0.5 * size) * (1.0 + std::log(2.0 * M_PI) + std::log(normSquared / size));
+  const NumericalScalar result = size * std::log(normSquared / size);
   LOGDEBUG(OSS() << "Residual squared norm=" << normSquared << ", loglikelihood=" << result);
   return result;
 }
