@@ -7,7 +7,7 @@ Sample = ot.NumericalSample.ImportFromTextFile("DATA_test2.csv", ",")
 # Sample.setDescription(["BIO","SAL","pH","K","Na","Zn"])
 print(Sample)
 
-X = Sample[:, 1:4]
+X = Sample[:, 1:6]
 Y = Sample[:, 0]
 
 
