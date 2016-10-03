@@ -367,6 +367,7 @@ void LinearModelStepwiseAlgorithm::setStartIndices(const Indices & startIndices)
 */
 struct UpdateForwardFunctor
 {
+  const Description & description_;
   const Indices & indexSet_;
   const Matrix & X_;
   const Matrix & Xmax_;
@@ -375,12 +376,12 @@ struct UpdateForwardFunctor
   NumericalScalar criterion_;
   UnsignedInteger bestIndex_;
 
-  UpdateForwardFunctor(const Indices & indexSet, const Matrix & X, const Matrix & Xmax, const Matrix & residual, const Matrix & M)
-    : indexSet_(indexSet), X_(X), Xmax_(Xmax), residual_(residual), M_(M)
+  UpdateForwardFunctor(const Description & description, const Indices & indexSet, const Matrix & X, const Matrix & Xmax, const Matrix & residual, const Matrix & M)
+    : description_(description), indexSet_(indexSet), X_(X), Xmax_(Xmax), residual_(residual), M_(M)
     , criterion_(SpecFunc::MaxNumericalScalar), bestIndex_(Xmax.getNbColumns()) {}
 
   UpdateForwardFunctor(const UpdateForwardFunctor & other, TBB::Split)
-    : indexSet_(other.indexSet_), X_(other.X_), Xmax_(other.Xmax_), residual_(other.residual_), M_(other.M_)
+    : description_(other.description_), indexSet_(other.indexSet_), X_(other.X_), Xmax_(other.Xmax_), residual_(other.residual_), M_(other.M_)
     , criterion_(other.criterion_), bestIndex_(other.bestIndex_) {}
 
   void operator() (const TBB::BlockedRange<UnsignedInteger> & r)
@@ -406,7 +407,7 @@ struct UpdateForwardFunctor
       const NumericalScalar alpha = dot(xiNP, residualNP) / denominator;
       const NumericalPoint newResidual(residualNP - alpha * viNP);
       const NumericalScalar newCriterion(newResidual.normSquare());
-      LOGDEBUG(OSS() << "Squared residual norm when adding column " << i << ": " << newCriterion);
+      LOGDEBUG(OSS() << "Squared residual norm when adding column " << i << "(" << description_[i] << "): " << newCriterion);
       if (newCriterion < criterion_)
       {
         criterion_ = newCriterion;
@@ -462,6 +463,7 @@ struct UpdateForwardFunctor
  */
 struct UpdateBackwardFunctor
 {
+  const Description & description_;
   const Indices & indexSet_;
   const Indices & columnMaxToCurrent_; // position of maxX_ columns in X_
   const Indices & columnCurrentToMax_; // position of X_ columns in maxX_
@@ -472,14 +474,14 @@ struct UpdateBackwardFunctor
   NumericalScalar criterion_;
   UnsignedInteger bestIndex_;
 
-  UpdateBackwardFunctor(const Indices & indexSet, const Indices & columnMaxToCurrent, const Indices & columnCurrentToMax,
+  UpdateBackwardFunctor(const Description & description, const Indices & indexSet, const Indices & columnMaxToCurrent, const Indices & columnCurrentToMax,
                         const Matrix & X, const Matrix & Y, const Matrix & A, const Matrix & B)
-    : indexSet_(indexSet), columnMaxToCurrent_(columnMaxToCurrent), columnCurrentToMax_(columnCurrentToMax)
+    : description_(description), indexSet_(indexSet), columnMaxToCurrent_(columnMaxToCurrent), columnCurrentToMax_(columnCurrentToMax)
     , X_(X), Y_(Y), A_(A), B_(B)
     , criterion_(SpecFunc::MaxNumericalScalar), bestIndex_(A.getNbColumns()) {}
 
   UpdateBackwardFunctor(const UpdateBackwardFunctor & other, TBB::Split)
-    : indexSet_(other.indexSet_), columnMaxToCurrent_(other.columnMaxToCurrent_), columnCurrentToMax_(other.columnCurrentToMax_)
+    : description_(other.description_), indexSet_(other.indexSet_), columnMaxToCurrent_(other.columnMaxToCurrent_), columnCurrentToMax_(other.columnCurrentToMax_)
     , X_(other.X_), Y_(other.Y_), A_(other.A_), B_(other.B_)
     , criterion_(other.criterion_), bestIndex_(other.bestIndex_) {}
 
@@ -510,7 +512,7 @@ struct UpdateBackwardFunctor
       const Matrix newResidual(Y_ - X_ * fiM);
       memcpy(&newResidualNP[0], &newResidual(0, 0), sizeof(NumericalScalar)*size);
       const NumericalScalar newCriterion(newResidualNP.normSquare());
-      LOGDEBUG(OSS() << "Squared residual norm when removing column " << iMax << ": " << newCriterion);
+      LOGDEBUG(OSS() << "Squared residual norm when removing column " << iMax << "(" << description_[iMax] << ": " << newCriterion);
       if (newCriterion < criterion_)
       {
         criterion_ = newCriterion;
@@ -599,11 +601,11 @@ void LinearModelStepwiseAlgorithm::run()
         if (!currentIndices_.contains(i))
           indexSet.add(i);
       }
-      UpdateForwardFunctor updateFunctor(indexSet, currentX_, maxX_, currentResidual_, M);
+      UpdateForwardFunctor updateFunctor(formulas_, indexSet, currentX_, maxX_, currentResidual_, M);
       TBB::ParallelReduce(0, indexSet.getSize(), updateFunctor);
       indexF = updateFunctor.bestIndex_;
       LF = penalty_ * (currentX_.getNbColumns() + 1) + size * std::log(updateFunctor.criterion_ / size);
-      LOGDEBUG(OSS() << "Best candidate in forward direction is " << indexF << ", squared residual norm=" << updateFunctor.criterion_ << ", criterion=" << LF);
+      LOGDEBUG(OSS() << "Best candidate in forward direction is " << indexF << "(" << formulas_[indexF] << "), squared residual norm=" << updateFunctor.criterion_ << ", criterion=" << LF);
     }
     NumericalScalar LB = SpecFunc::MaxNumericalScalar;
     UnsignedInteger indexB = maxX_.getNbColumns();
@@ -616,11 +618,11 @@ void LinearModelStepwiseAlgorithm::run()
         if (!minimalIndices_.contains(currentIndices_[i]))
           indexSet.add(currentIndices_[i]);
       }
-      UpdateBackwardFunctor updateFunctor(indexSet, columnMaxToCurrent, currentIndices_, currentX_, Y_, currentGramInverse_, currentB_);
+      UpdateBackwardFunctor updateFunctor(formulas_, indexSet, columnMaxToCurrent, currentIndices_, currentX_, Y_, currentGramInverse_, currentB_);
       TBB::ParallelReduce(0, indexSet.getSize(), updateFunctor);
       indexB = updateFunctor.bestIndex_;
       LB = penalty_ * (currentX_.getNbColumns() - 1) + size * std::log(updateFunctor.criterion_ / size);
-      LOGDEBUG(OSS() << "Best candidate in backward direction is " << indexB << ", squared residual norm=" << updateFunctor.criterion_ << ", criterion=" << LB);
+      LOGDEBUG(OSS() << "Best candidate in backward direction is " << indexB << "(" << formulas_[indexB] << "), squared residual norm=" << updateFunctor.criterion_ << ", criterion=" << LB);
     }
     if (!(LF < Lstar || LB < Lstar))
       break;
