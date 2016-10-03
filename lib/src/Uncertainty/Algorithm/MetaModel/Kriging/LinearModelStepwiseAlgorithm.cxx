@@ -489,8 +489,8 @@ struct UpdateBackwardFunctor
     const UnsignedInteger p(B_.getNbRows());
     NumericalPoint yNP(size);
     memcpy(&yNP[0], &Y_(0, 0), sizeof(NumericalScalar)*size);
-    NumericalPoint bNP(p);
-    memcpy(&bNP[0], &B_(0, 0), sizeof(NumericalScalar)*p);
+    Matrix bNP(p,1);
+    memcpy(&bNP(0, 0), &B_(0, 0), sizeof(NumericalScalar)*p);
     NumericalPoint aiNP(p);
     NumericalPoint eiNP(p);
     Matrix fiM(p, 1);
@@ -500,10 +500,9 @@ struct UpdateBackwardFunctor
     {
       const UnsignedInteger iMax = indexSet_[index];
       const UnsignedInteger i = columnMaxToCurrent_[iMax];
-      const NumericalScalar Bi = B_(i, 0);
-      B_(i, 0) = 0.0;
-      bNP[i] = 0.0;
-      const Matrix ei(A_ * B_);
+      const NumericalScalar Bi = bNP(i,0);
+      bNP(i,0) = 0.0;
+      const Matrix ei(A_ * bNP);
       memcpy(&aiNP[0], &A_(0, i), sizeof(NumericalScalar)*p);
       memcpy(&eiNP[0], &ei(0, 0), sizeof(NumericalScalar)*p);
       const NumericalPoint fi(eiNP - (ei(i,0)/A_(i, i)) * aiNP);
@@ -517,8 +516,7 @@ struct UpdateBackwardFunctor
         criterion_ = newCriterion;
         bestIndex_ = iMax;
       }
-      B_(i, 0) = Bi;
-      bNP[i] = Bi;
+      bNP(i,0) = Bi;
     }
   } // operator
 
