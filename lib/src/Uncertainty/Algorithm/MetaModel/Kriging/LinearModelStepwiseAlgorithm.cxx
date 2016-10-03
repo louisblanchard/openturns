@@ -575,7 +575,7 @@ void LinearModelStepwiseAlgorithm::run()
   {
     buildCurrentMatrixFromIndices(startIndices_);
     for (UnsignedInteger i = 0; i < startIndices_.getSize(); ++i)
-      columnMaxToCurrent[minimalIndices_[i]] = i;
+      columnMaxToCurrent[startIndices_[i]] = i;
   }
 
   UnsignedInteger iterations = 1;
@@ -648,9 +648,10 @@ void LinearModelStepwiseAlgorithm::run()
         memcpy(&newX(0, pos), &currentX_(0, pos+1), sizeof(NumericalScalar)*size*(currentX_.getNbColumns() - pos - 1));
       currentX_ = newX;
       // Update columnMaxToCurrent
+      const UnsignedInteger indexBpos = columnMaxToCurrent[indexB];
       for (Indices::iterator it = columnMaxToCurrent.begin(); it != columnMaxToCurrent.end(); ++it)
       {
-        if (*it > indexB && *it != maxX_.getNbColumns())
+        if (*it > indexBpos && *it != maxX_.getNbColumns())
           --(*it);
       }
       columnMaxToCurrent[indexB] = maxX_.getNbColumns();
