@@ -24,13 +24,13 @@ factor.scope_debug <- function(factor, scope)
 	    facs <- factor[, -where, drop = FALSE]
 	    nmdrop <- nmfac[-where]
 	} else nmdrop <- colnames(factor)
-	if(ncol(facs) > 1) {
-            ## check no interactions will be left without margins.
-	    keep <- rep.int(TRUE, ncol(facs))
-	    f <- crossprod(facs > 0)
-	    for(i in seq(keep)) keep[i] <- max(f[i, - i]) != f[i, i]
-	    nmdrop <- nmdrop[keep]
-	}
+	#if(ncol(facs) > 1) {
+        #    ## check no interactions will be left without margins.
+	#    keep <- rep.int(TRUE, ncol(facs))
+	#    f <- crossprod(facs > 0)
+	#    for(i in seq(keep)) keep[i] <- max(f[i, - i]) != f[i, i]
+	#    nmdrop <- nmdrop[keep]
+	#}
     } else nmdrop <- character()
 
     if(!length(add)) nmadd <- character()
@@ -374,9 +374,9 @@ lm_forward_BIC <- step_debug( model_min , scope=list(lower=model_min , upper=mod
 
 ## Backward
 #AIC
-lm_backward_AIC <- step2( model_max , scope=list(lower=model_min , upper=model_max) , direction="backward" , k=2)
+lm_backward_AIC <- step_debug( model_max , scope=list(lower=model_min , upper=model_max) , direction="backward" , k=2)
 #BIC
-lm_backward_BIC <- step2( model_max , scope=list(upper=model_max , lower=model_min) , direction="backward" , k=log(100))
+lm_backward_BIC <- step_debug( model_max , scope=list(upper=model_max , lower=model_min) , direction="backward" , k=log(100))
 
 ## Both
 #AIC
