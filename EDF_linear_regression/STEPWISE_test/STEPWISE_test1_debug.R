@@ -54,12 +54,12 @@ factor.scope_debug <- function(factor, scope)
 	    nmadd <- nmadd[-where]
 	    add <- add[, -where, drop = FALSE]
 	}
-	if(ncol(add) > 1) {             # check marginality:
-	    keep <- rep.int(TRUE, ncol(add))
-	    f <- crossprod(add > 0)
-	    for(i in seq(keep)) keep[-i] <- keep[-i] & (f[i, -i] < f[i, i])
-	    nmadd <- nmadd[keep]
-	}
+	#if(ncol(add) > 1) {             # check marginality:
+	#    keep <- rep.int(TRUE, ncol(add))
+	#    f <- crossprod(add > 0)
+	#    for(i in seq(keep)) keep[-i] <- keep[-i] & (f[i, -i] < f[i, i])
+	#    nmadd <- nmadd[keep]
+	#}
     }
     list(drop = nmdrop, add = nmadd)
 }
