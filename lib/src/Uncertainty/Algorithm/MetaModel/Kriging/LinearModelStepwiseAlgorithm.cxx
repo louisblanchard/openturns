@@ -470,7 +470,7 @@ struct UpdateBackwardFunctor
   const Matrix & X_;
   const Matrix & Y_;
   const Matrix & A_;
-  Matrix B_; // Not a reference because each thread needs its own copy, B is modified
+  const Matrix & B_;
   NumericalScalar criterion_;
   UnsignedInteger bestIndex_;
 
@@ -489,10 +489,6 @@ struct UpdateBackwardFunctor
   {
     const UnsignedInteger size(X_.getNbRows());
     const UnsignedInteger p(B_.getNbRows());
-    NumericalPoint yNP(size);
-    memcpy(&yNP[0], &Y_(0, 0), sizeof(NumericalScalar)*size);
-    Matrix bNP(p,1);
-    memcpy(&bNP(0, 0), &B_(0, 0), sizeof(NumericalScalar)*p);
     NumericalPoint aiNP(p);
     NumericalPoint eiNP(p);
     Matrix fiM(p, 1);
@@ -502,23 +498,22 @@ struct UpdateBackwardFunctor
     {
       const UnsignedInteger iMax = indexSet_[index];
       const UnsignedInteger i = columnMaxToCurrent_[iMax];
-      const NumericalScalar Bi = bNP(i,0);
-      bNP(i,0) = 0.0;
-      const Matrix ei(A_ * bNP);
+      Matrix Bi0(B_);
+      Bi0(i,0) = 0.0;
+      const Matrix ei(A_ * Bi0);
       memcpy(&aiNP[0], &A_(0, i), sizeof(NumericalScalar)*p);
       memcpy(&eiNP[0], &ei(0, 0), sizeof(NumericalScalar)*p);
-      const NumericalPoint fi(eiNP - (ei(i,0)/A_(i, i)) * aiNP);
+      const NumericalPoint fi(eiNP - (eiNP[i]/aiNP[i]) * aiNP);
       memcpy(&fiM(0, 0), &fi[0], sizeof(NumericalScalar)*p);
       const Matrix newResidual(Y_ - X_ * fiM);
       memcpy(&newResidualNP[0], &newResidual(0, 0), sizeof(NumericalScalar)*size);
       const NumericalScalar newCriterion(newResidualNP.normSquare());
-      LOGDEBUG(OSS() << "Squared residual norm when removing column " << iMax << "(" << description_[iMax] << ": " << newCriterion);
+      LOGDEBUG(OSS() << "Squared residual norm when removing column " << iMax << "(" << description_[iMax] << "): " << newCriterion);
       if (newCriterion < criterion_)
       {
         criterion_ = newCriterion;
         bestIndex_ = iMax;
       }
-      bNP(i,0) = Bi;
     }
   } // operator
 
