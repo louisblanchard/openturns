@@ -222,6 +222,17 @@ step_debug <- function(object, scope, scale = 0,
 	if(trace) {
 	    cat("\nStep:  AIC=", format(round(bAIC, 2)), "\n",
 		cut.string(deparse(formula(fit))), "\n\n", sep = "")
+
+            if(direction == "forward") { 
+                change_name<-strsplit(change,"+ ",fixed=TRUE)[[1]]
+                find_int <- match(change_name[2],attr(fit$terms, "term.labels"))
+                if(is.na(find_int)){
+                    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                    cat("      Warning :  ",change_name," is not in the model !!! \n")
+                    cat("list of elements in current model :",attr(fit$terms, "term.labels")," \n")
+                    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                }
+            }
             flush.console()
         }
         ## add a tolerance as dropping 0-df terms might increase AIC slightly
@@ -374,9 +385,9 @@ lm_forward_BIC <- step_debug( model_min , scope=list(lower=model_min , upper=mod
 
 ## Backward
 #AIC
-lm_backward_AIC <- step_debug( model_max , scope=list(lower=model_min , upper=model_max) , direction="backward" , k=2)
+lm_backward_AIC <- step2( model_max , scope=list(lower=model_min , upper=model_max) , direction="backward" , k=2)
 #BIC
-lm_backward_BIC <- step_debug( model_max , scope=list(upper=model_max , lower=model_min) , direction="backward" , k=log(100))
+lm_backward_BIC <- step2( model_max , scope=list(upper=model_max , lower=model_min) , direction="backward" , k=log(100))
 
 ## Both
 #AIC
