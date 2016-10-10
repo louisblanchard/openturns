@@ -144,7 +144,7 @@ private:
   NumericalScalar penalty_;
 
   /** The maximum number of iterations of the stepwise regression method */
-  NumericalScalar maximumIterationNumber_;
+  UnsignedInteger maximumIterationNumber_;
 
   /** The indices of minimal model */
   Indices minimalIndices_;
