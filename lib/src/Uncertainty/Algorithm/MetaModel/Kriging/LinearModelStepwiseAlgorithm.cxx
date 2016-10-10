@@ -22,6 +22,8 @@
 #include "openturns/NumericalMathFunction.hxx"
 #include "openturns/Exception.hxx"
 #include "openturns/Combinations.hxx"
+#include "openturns/ConstantBasisFactory.hxx"
+#include "openturns/LinearNumericalMathFunction.hxx"
 #include "openturns/SpecFunc.hxx"
 #include "openturns/Log.hxx"
 
@@ -38,11 +40,13 @@ LinearModelStepwiseAlgorithm::LinearModelStepwiseAlgorithm()
   , direction_(BOTH)
   , penalty_(-1.0)
   , maximumIterationNumber_(1000)
-  , condensedFormula_("1")
-  , formulas_(1, "1")
   , hasRun_(false)
 {
-  // Nothing to do
+  // Add intercept
+  const ConstantBasisFactory factory(inputSample_.getDimension());
+  const NumericalMathFunction one(factory.build()[0]);
+  formulas_.add(one);
+  condensedFormula_ =  one.__str__();
 }
 
 /* Parameters constructor */
@@ -57,11 +61,13 @@ LinearModelStepwiseAlgorithm::LinearModelStepwiseAlgorithm(const NumericalSample
   , direction_(static_cast<LinearModelStepwiseAlgorithm::Direction>(direction))
   , penalty_(penalty)
   , maximumIterationNumber_(maximumIterationNumber)
-  , condensedFormula_("1")
-  , formulas_(1, "1")
   , hasRun_(false)
 {
-  // Nothing to do
+  // Add intercept
+  const ConstantBasisFactory factory(inputSample_.getDimension());
+  const NumericalMathFunction one(factory.build()[0]);
+  formulas_.add(one);
+  condensedFormula_ =  one.__str__();
 }
 
 
@@ -167,24 +173,28 @@ String LinearModelStepwiseAlgorithm::getFormula() const
 }
 
 /* Add formulas */
-void LinearModelStepwiseAlgorithm::add(const Description & formulas)
+void LinearModelStepwiseAlgorithm::add(const Basis & formulas)
 {
-  for (Description::const_iterator it = formulas.begin(); it != formulas.end(); ++it)
-    add(*it);
-}
+  std::set<String> strFormulas;
+  for (UnsignedInteger i = 0; i < formulas_.getSize(); ++i)
+    strFormulas.insert(formulas_[i].__str__());
 
-void LinearModelStepwiseAlgorithm::add(const String & formula)
-{
-  for (Description::const_iterator it = formulas_.begin(); it != formulas_.end(); ++it)
+  for (UnsignedInteger i = 0; i < formulas.getSize(); ++i)
   {
-    if (*it == formula) return;
+    const NumericalMathFunction f(formulas[i]);
+    if (strFormulas.find(f.__str__()) == strFormulas.end())
+    {
+      formulas_.add(f);
+      condensedFormula_ += " + " + f.__str__();
+    }
   }
-  formulas_.add(formula);
-  condensedFormula_ += " + " + formula;
 }
 
 void LinearModelStepwiseAlgorithm::add(const NumericalSample & userColumns)
 {
+  if (userColumns.getSize() != inputSample_.getSize())
+    throw InvalidArgumentException(HERE) << "Error: the size of the added sample=" << userColumns.getSize() << " is different from the size of the input sample=" << inputSample_.getSize();
+
   userColumns_.stack(userColumns);
   const Description userFormulas(userColumns.getDescription());
   for (Description::const_iterator it = userFormulas.begin(); it != userFormulas.end(); ++it)
@@ -192,34 +202,40 @@ void LinearModelStepwiseAlgorithm::add(const NumericalSample & userColumns)
 }
 
 /* Remove formulas */
-void LinearModelStepwiseAlgorithm::remove(const Description & formulas)
+void LinearModelStepwiseAlgorithm::remove(const Basis & formulas)
 {
   std::set<String> deletedFormulas;
-  for (Description::const_iterator it = formulas.begin(); it != formulas.end(); ++it)
-    deletedFormulas.insert(*it);
+  for (UnsignedInteger i = 0; i < formulas.getSize(); ++i)
+    deletedFormulas.insert(formulas[i].__str__());
+
   const UnsignedInteger size = formulas_.getSize();
-  Description newFormulas(size - formulas.getSize());
-  for (Description::const_iterator it = formulas_.begin(); it != formulas_.end(); ++it)
+  Basis newFormulas(size < formulas.getSize() ? 0 : size - formulas.getSize());
+  for (UnsignedInteger i = 0; i < size; ++i)
   {
-    if (deletedFormulas.find(*it) != deletedFormulas.end())
-      newFormulas.add(*it);
+    const NumericalMathFunction f(formulas_[i]);
+    if (deletedFormulas.find(f.__str__()) == deletedFormulas.end())
+    {
+      newFormulas.add(formulas_[i]);
+    }
+    else
+    {
+      condensedFormula_ += " - " + formulas_[i].__str__();
+    }
   }
   formulas_ = newFormulas;
-  for (Description::const_iterator it = formulas.begin(); it != formulas.end(); ++it)
-    condensedFormula_ += " - " + *it;
 }
 
 void LinearModelStepwiseAlgorithm::remove(const Indices & columns)
 {
   for (Indices::const_iterator it = columns.begin(); it != columns.end(); ++it)
-    condensedFormula_ += " - " + formulas_[*it];
+    condensedFormula_ += " - " + formulas_[*it].__str__();
 
   const UnsignedInteger size = formulas_.getSize();
   Indices newFormulaIndices(size);
   newFormulaIndices.fill();
   for (Indices::const_iterator it = columns.begin(); it != columns.end(); ++it)
     newFormulaIndices[*it] = size;
-  Description newFormulas(size - columns.getSize());
+  Basis newFormulas(size < columns.getSize() ? 0 : size - columns.getSize());
   UnsignedInteger index = 0;
   for (UnsignedInteger i = 0; i < size; ++i)
   {
@@ -233,18 +249,22 @@ void LinearModelStepwiseAlgorithm::remove(const Indices & columns)
 }
 
 /* Get column indices of given formulas */
-Indices LinearModelStepwiseAlgorithm::getIndices(const Description & formulas) const
+
+Indices LinearModelStepwiseAlgorithm::getIndices(const Basis & formulas) const
 {
   Indices result;
   const UnsignedInteger size = formulas_.getSize();
-  for (Description::const_iterator it = formulas.begin(); it != formulas.end(); ++it)
+  Description formulasDescription(size);
+  for (UnsignedInteger k = 0; k < size; ++k)
+    formulasDescription[k] = formulas_[k].__str__();
+  for (UnsignedInteger i = 0; i < formulas.getSize(); ++i)
   {
-    const String formula = *it;
-    for (UnsignedInteger i = 0; i < size; ++i)
+    const String fStr(formulas[i].__str__());
+    for (UnsignedInteger k = 0; k < size; ++k)
     {
-      if (formula == formulas_[i])
+      if (fStr == formulasDescription[k])
       {
-        result.add(i);
+        result.add(k);
         break;
       }
     }
@@ -253,17 +273,19 @@ Indices LinearModelStepwiseAlgorithm::getIndices(const Description & formulas) c
 }
 
 /* Interactions between variables */
-Description LinearModelStepwiseAlgorithm::getInteractions(const UnsignedInteger degree, const Description & variables) const
+Basis LinearModelStepwiseAlgorithm::getInteractions(const UnsignedInteger degree, const Description & variables) const
 {
-  Description result(1, "1");
-  if (degree == 0) return result;
-
   const Description input(variables.isEmpty() ? inputSample_.getDescription() : variables);
-  result.add(input);
-  if (degree == 1) return result;
-
-  for (UnsignedInteger n = 2; n <= degree; ++n)
-    result.add(getPower(n, input));
+  Basis result;
+  const UnsignedInteger minDegreeOne(degree == 0 ? 0 : 1);
+  for (UnsignedInteger n = 0; n <= minDegreeOne; ++n)
+  {
+    Basis basis(getPower(n, input));
+    for (UnsignedInteger i = 0; i < basis.getSize(); ++i)
+      result.add(basis[i]);
+  }
+  if (degree <= 1)
+    return result;
 
   for (UnsignedInteger n = 2; n <= degree; ++n)
   {
@@ -275,7 +297,7 @@ Description LinearModelStepwiseAlgorithm::getInteractions(const UnsignedInteger 
       String accumulated(input[indices[0]]);
       for (UnsignedInteger i = 1; i < indices.getSize(); ++i)
         accumulated += "*" + input[indices[i]];
-      result.add(accumulated);
+      result.add(NumericalMathFunction(inputSample_.getDescription(), Description(1, accumulated)));
     }
   }
   return result;
@@ -290,16 +312,35 @@ void LinearModelStepwiseAlgorithm::removeInteractions(const UnsignedInteger degr
 }
 
 /* Power of variables */
-Description LinearModelStepwiseAlgorithm::getPower(const UnsignedInteger degree, const Description & variables) const
+Basis LinearModelStepwiseAlgorithm::getPower(const UnsignedInteger degree, const Description & variables) const
 {
-  if (degree == 0) return Description(1, "1");
+  const UnsignedInteger inputDimension(inputSample_.getDimension());
+  Basis result;
+  if (degree == 0)
+  {
+    const ConstantBasisFactory factory(inputDimension);
+    result.add(factory.build()[0]);
+    return result;
+  }
   const Description input(variables.isEmpty() ? inputSample_.getDescription() : variables);
-  if (degree == 1) return input;
+  if (degree == 1)
+  {
+    const NumericalPoint center(inputDimension, 0.0);
+    const NumericalPoint constant(1, 0.0);
+    Matrix linear(1, inputDimension);
+    for (UnsignedInteger i = 0; i < input.getSize(); ++i)
+    {
+      linear(0, i) = 1.0;
+      result.add(LinearNumericalMathFunction(center, constant, linear));
+      linear(0, i) = 0.0;
+    }
+    return result;
+  }
 
-  Description result;
   for (Description::const_iterator it = input.begin(); it != input.end(); ++it)
   {
-    result.add(OSS() << *it << "^" << degree);
+    const String formula(OSS() << *it << "^" << degree);
+    result.add(NumericalMathFunction(inputSample_.getDescription(), Description(1, formula)));
   }
   return result;
 }
@@ -367,7 +408,7 @@ void LinearModelStepwiseAlgorithm::setStartIndices(const Indices & startIndices)
 */
 struct UpdateForwardFunctor
 {
-  const Description & description_;
+  const Basis & basis_;
   const Indices & indexSet_;
   const Matrix & X_;
   const Matrix & Xmax_;
@@ -376,12 +417,12 @@ struct UpdateForwardFunctor
   NumericalScalar criterion_;
   UnsignedInteger bestIndex_;
 
-  UpdateForwardFunctor(const Description & description, const Indices & indexSet, const Matrix & X, const Matrix & Xmax, const Matrix & residual, const Matrix & M)
-    : description_(description), indexSet_(indexSet), X_(X), Xmax_(Xmax), residual_(residual), M_(M)
+  UpdateForwardFunctor(const Basis & basis, const Indices & indexSet, const Matrix & X, const Matrix & Xmax, const Matrix & residual, const Matrix & M)
+    : basis_(basis), indexSet_(indexSet), X_(X), Xmax_(Xmax), residual_(residual), M_(M)
     , criterion_(SpecFunc::MaxNumericalScalar), bestIndex_(Xmax.getNbColumns()) {}
 
   UpdateForwardFunctor(const UpdateForwardFunctor & other, TBB::Split)
-    : description_(other.description_), indexSet_(other.indexSet_), X_(other.X_), Xmax_(other.Xmax_), residual_(other.residual_), M_(other.M_)
+    : basis_(other.basis_), indexSet_(other.indexSet_), X_(other.X_), Xmax_(other.Xmax_), residual_(other.residual_), M_(other.M_)
     , criterion_(other.criterion_), bestIndex_(other.bestIndex_) {}
 
   void operator() (const TBB::BlockedRange<UnsignedInteger> & r)
@@ -407,7 +448,7 @@ struct UpdateForwardFunctor
       const NumericalScalar alpha = dot(xiNP, residualNP) / denominator;
       const NumericalPoint newResidual(residualNP - alpha * viNP);
       const NumericalScalar newCriterion(newResidual.normSquare());
-      LOGDEBUG(OSS() << "Squared residual norm when adding column " << i << "(" << description_[i] << "): " << newCriterion);
+      LOGDEBUG(OSS() << "Squared residual norm when adding column " << i << "(" << basis_[i] << "): " << newCriterion);
       if (newCriterion < criterion_)
       {
         criterion_ = newCriterion;
@@ -463,7 +504,7 @@ struct UpdateForwardFunctor
  */
 struct UpdateBackwardFunctor
 {
-  const Description & description_;
+  const Basis & basis_;
   const Indices & indexSet_;
   const Indices & columnMaxToCurrent_; // position of maxX_ columns in X_
   const Indices & columnCurrentToMax_; // position of X_ columns in maxX_
@@ -474,14 +515,14 @@ struct UpdateBackwardFunctor
   NumericalScalar criterion_;
   UnsignedInteger bestIndex_;
 
-  UpdateBackwardFunctor(const Description & description, const Indices & indexSet, const Indices & columnMaxToCurrent, const Indices & columnCurrentToMax,
+  UpdateBackwardFunctor(const Basis & basis, const Indices & indexSet, const Indices & columnMaxToCurrent, const Indices & columnCurrentToMax,
                         const Matrix & X, const Matrix & Y, const Matrix & A, const Matrix & B)
-    : description_(description), indexSet_(indexSet), columnMaxToCurrent_(columnMaxToCurrent), columnCurrentToMax_(columnCurrentToMax)
+    : basis_(basis), indexSet_(indexSet), columnMaxToCurrent_(columnMaxToCurrent), columnCurrentToMax_(columnCurrentToMax)
     , X_(X), Y_(Y), A_(A), B_(B)
     , criterion_(SpecFunc::MaxNumericalScalar), bestIndex_(A.getNbColumns()) {}
 
   UpdateBackwardFunctor(const UpdateBackwardFunctor & other, TBB::Split)
-    : description_(other.description_), indexSet_(other.indexSet_), columnMaxToCurrent_(other.columnMaxToCurrent_), columnCurrentToMax_(other.columnCurrentToMax_)
+    : basis_(other.basis_), indexSet_(other.indexSet_), columnMaxToCurrent_(other.columnMaxToCurrent_), columnCurrentToMax_(other.columnCurrentToMax_)
     , X_(other.X_), Y_(other.Y_), A_(other.A_), B_(other.B_)
     , criterion_(other.criterion_), bestIndex_(other.bestIndex_) {}
 
@@ -508,7 +549,7 @@ struct UpdateBackwardFunctor
       const Matrix newResidual(Y_ - X_ * fiM);
       memcpy(&newResidualNP[0], &newResidual(0, 0), sizeof(NumericalScalar)*size);
       const NumericalScalar newCriterion(newResidualNP.normSquare());
-      LOGDEBUG(OSS() << "Squared residual norm when removing column " << iMax << "(" << description_[iMax] << "): " << newCriterion);
+      LOGDEBUG(OSS() << "Squared residual norm when removing column " << iMax << "(" << basis_[iMax] << "): " << newCriterion);
       if (newCriterion < criterion_)
       {
         criterion_ = newCriterion;
@@ -540,8 +581,13 @@ void LinearModelStepwiseAlgorithm::run()
   LOGDEBUG(OSS() << "Running LinearModelStepwiseAlgorithm " << __str__());
   const UnsignedInteger size(inputSample_.getSize());
   Y_ = Matrix(size, 1, outputSample_.getImplementation()->getData());
-  NumericalMathFunction f(inputSample_.getDescription(), formulas_);
+  const NumericalMathFunction f(formulas_);
   NumericalSample fx(f(inputSample_));
+  if (userColumns_.getSize() != 0)
+  {
+    fx.stack(userColumns_);
+  }
+  LOGDEBUG(OSS() << "Total number of columns=" << fx.getDimension());
   Matrix Xt(fx.getDimension(), size, fx.getImplementation()->getData());
   maxX_ = Xt.transpose();
   Indices columnMaxToCurrent(maxX_.getNbColumns(), maxX_.getNbColumns());

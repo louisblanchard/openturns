@@ -27,6 +27,7 @@
 #include "openturns/NumericalSample.hxx"
 #include "openturns/Matrix.hxx"
 #include "openturns/Indices.hxx"
+#include "openturns/Basis.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
 
@@ -82,24 +83,23 @@ public:
   String getFormula() const;
 
   /** Add formulas */
-  void add(const Description & formulas);
-  void add(const String & formula);
+  void add(const Basis & formulas);
   void add(const NumericalSample & userColumns);
 
   /** Remove formulas/columns */
-  void remove(const Description & formulas);
+  void remove(const Basis & formulas);
   void remove(const Indices & indices);
 
   /** Get column indices of given formulas */
-  Indices getIndices(const Description & formulas) const;
+  Indices getIndices(const Basis & formulas) const;
 
   /** Interactions between variables*/
-  Description getInteractions(const UnsignedInteger degree, const Description & variables = Description()) const;
+  Basis getInteractions(const UnsignedInteger degree, const Description & variables = Description()) const;
   void addInteractions(const UnsignedInteger degree, const Description & variables = Description());
   void removeInteractions(const UnsignedInteger degree, const Description & variables = Description());
 
   /** Power of variables */
-  Description getPower(const UnsignedInteger degree, const Description & variables = Description()) const;
+  Basis getPower(const UnsignedInteger degree, const Description & variables = Description()) const;
   void addPower(const UnsignedInteger degree, const Description & variables = Description());
   void removePower(const UnsignedInteger degree, const Description & variables = Description());
 
@@ -156,7 +156,7 @@ private:
   String condensedFormula_;
 
   /** The monomials collection */
-  Description formulas_;
+  Basis formulas_;
 
   /** User-defined columns */
   NumericalSample userColumns_;
