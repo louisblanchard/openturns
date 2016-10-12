@@ -318,22 +318,14 @@ Basis LinearModelStepwiseAlgorithm::getPower(const UnsignedInteger degree, const
   Basis result;
   if (degree == 0)
   {
-    const ConstantBasisFactory factory(inputDimension);
-    result.add(factory.build()[0]);
+    result.add(NumericalMathFunction(inputSample_.getDescription(), Description(1, "1")));
     return result;
   }
   const Description input(variables.isEmpty() ? inputSample_.getDescription() : variables);
   if (degree == 1)
   {
-    const NumericalPoint center(inputDimension, 0.0);
-    const NumericalPoint constant(1, 0.0);
-    Matrix linear(1, inputDimension);
-    for (UnsignedInteger i = 0; i < input.getSize(); ++i)
-    {
-      linear(0, i) = 1.0;
-      result.add(LinearNumericalMathFunction(center, constant, linear));
-      linear(0, i) = 0.0;
-    }
+    for (Description::const_iterator it = input.begin(); it != input.end(); ++it)
+      result.add(NumericalMathFunction(inputSample_.getDescription(), Description(1, *it)));
     return result;
   }
 
