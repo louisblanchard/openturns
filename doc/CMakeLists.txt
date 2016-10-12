@@ -19,7 +19,7 @@ if ( PDFLATEX_COMPILER AND BIBTEX_COMPILER )
   endif ()
   add_latex_document ( OTLinearModel_Documentation.tex
     INPUTS GenericInformation.tex.in OTLinearModel_summary.tex Math_Notations.sty OTLinearModel_ArchitectureGuide.tex OTLinearModel_title.tex OTLinearModel_Documentation.sty OTLinearModel_UseCasesGuide.tex
-    SobolIndicesAlgorithm.png  SobolIndicesAlgorithmImplementation.png
+    LinearModelAlgorithm.png LinearModelStepwiseAlgorithm.png
 DEFAULT_PDF
     MANGLE_TARGET_NAMES
   ) 

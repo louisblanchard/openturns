@@ -459,6 +459,7 @@ if (BUILD_VALIDATION)
   add_subdirectory (validation)
 endif ()
 
+add_subdirectory (doc)
 
 include (CPack)
 
