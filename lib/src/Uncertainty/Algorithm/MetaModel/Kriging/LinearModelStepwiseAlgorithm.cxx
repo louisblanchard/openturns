@@ -45,29 +45,27 @@ LinearModelStepwiseAlgorithm::LinearModelStepwiseAlgorithm()
   // Add intercept
   const ConstantBasisFactory factory(inputSample_.getDimension());
   const NumericalMathFunction one(factory.build()[0]);
-  formulas_.add(one);
+  basis_.add(one);
   condensedFormula_ =  one.__str__();
 }
 
 /* Parameters constructor */
 LinearModelStepwiseAlgorithm::LinearModelStepwiseAlgorithm(const NumericalSample & inputSample,
+                                                           const Basis & basis,
                                                            const NumericalSample & outputSample,
                                                            const SignedInteger direction,
                                                            const NumericalScalar penalty,
                                                            const UnsignedInteger maximumIterationNumber)
   : PersistentObject()
   , inputSample_(inputSample)
+  , basis_(basis)
   , outputSample_(outputSample)
   , direction_(static_cast<LinearModelStepwiseAlgorithm::Direction>(direction))
   , penalty_(penalty)
   , maximumIterationNumber_(maximumIterationNumber)
   , hasRun_(false)
 {
-  // Add intercept
-  const ConstantBasisFactory factory(inputSample_.getDimension());
-  const NumericalMathFunction one(factory.build()[0]);
-  formulas_.add(one);
-  condensedFormula_ =  one.__str__();
+  condensedFormula_ =  basis_.__str__();
 }
 
 
@@ -87,7 +85,7 @@ String LinearModelStepwiseAlgorithm::__repr__() const
       << " penalty=" << penalty_
       << " maximumIterationNumber=" << maximumIterationNumber_
       << " condensedFormula=" << condensedFormula_
-      << " formulas=" << formulas_;
+      << " basis=" << basis_;
   return oss;
 }
 
@@ -100,7 +98,7 @@ String LinearModelStepwiseAlgorithm::__str__(const String & offset) const
       << " penalty=" << penalty_
       << " maximumIterationNumber=" << maximumIterationNumber_
       << " condensedFormula=" << condensedFormula_
-      << " formulas=" << formulas_;
+      << " basis=" << basis_;
   return oss;
 }
 
@@ -172,91 +170,14 @@ String LinearModelStepwiseAlgorithm::getFormula() const
   return condensedFormula_;
 }
 
-/* Add formulas */
-void LinearModelStepwiseAlgorithm::add(const Basis & formulas)
-{
-  std::set<String> strFormulas;
-  for (UnsignedInteger i = 0; i < formulas_.getSize(); ++i)
-    strFormulas.insert(formulas_[i].__str__());
-
-  for (UnsignedInteger i = 0; i < formulas.getSize(); ++i)
-  {
-    const NumericalMathFunction f(formulas[i]);
-    if (strFormulas.find(f.__str__()) == strFormulas.end())
-    {
-      formulas_.add(f);
-      condensedFormula_ += " + " + f.__str__();
-    }
-  }
-}
-
-void LinearModelStepwiseAlgorithm::add(const NumericalSample & userColumns)
-{
-  if (userColumns.getSize() != inputSample_.getSize())
-    throw InvalidArgumentException(HERE) << "Error: the size of the added sample=" << userColumns.getSize() << " is different from the size of the input sample=" << inputSample_.getSize();
-
-  userColumns_.stack(userColumns);
-  const Description userFormulas(userColumns.getDescription());
-  for (Description::const_iterator it = userFormulas.begin(); it != userFormulas.end(); ++it)
-    condensedFormula_ += " + " + *it;
-}
-
-/* Remove formulas */
-void LinearModelStepwiseAlgorithm::remove(const Basis & formulas)
-{
-  std::set<String> deletedFormulas;
-  for (UnsignedInteger i = 0; i < formulas.getSize(); ++i)
-    deletedFormulas.insert(formulas[i].__str__());
-
-  const UnsignedInteger size = formulas_.getSize();
-  Basis newFormulas(size < formulas.getSize() ? 0 : size - formulas.getSize());
-  for (UnsignedInteger i = 0; i < size; ++i)
-  {
-    const NumericalMathFunction f(formulas_[i]);
-    if (deletedFormulas.find(f.__str__()) == deletedFormulas.end())
-    {
-      newFormulas.add(formulas_[i]);
-    }
-    else
-    {
-      condensedFormula_ += " - " + formulas_[i].__str__();
-    }
-  }
-  formulas_ = newFormulas;
-}
-
-void LinearModelStepwiseAlgorithm::remove(const Indices & columns)
-{
-  for (Indices::const_iterator it = columns.begin(); it != columns.end(); ++it)
-    condensedFormula_ += " - " + formulas_[*it].__str__();
-
-  const UnsignedInteger size = formulas_.getSize();
-  Indices newFormulaIndices(size);
-  newFormulaIndices.fill();
-  for (Indices::const_iterator it = columns.begin(); it != columns.end(); ++it)
-    newFormulaIndices[*it] = size;
-  Basis newFormulas(size < columns.getSize() ? 0 : size - columns.getSize());
-  UnsignedInteger index = 0;
-  for (UnsignedInteger i = 0; i < size; ++i)
-  {
-    if (newFormulaIndices[i] != size)
-    {
-      newFormulas[index] = formulas_[i];
-      ++index;
-    }
-  }
-  formulas_ = newFormulas;
-}
-
 /* Get column indices of given formulas */
-
 Indices LinearModelStepwiseAlgorithm::getIndices(const Basis & formulas) const
 {
   Indices result;
-  const UnsignedInteger size = formulas_.getSize();
+  const UnsignedInteger size = basis_.getSize();
   Description formulasDescription(size);
   for (UnsignedInteger k = 0; k < size; ++k)
-    formulasDescription[k] = formulas_[k].__str__();
+    formulasDescription[k] = basis_[k].__str__();
   for (UnsignedInteger i = 0; i < formulas.getSize(); ++i)
   {
     const String fStr(formulas[i].__str__());
@@ -270,79 +191,6 @@ Indices LinearModelStepwiseAlgorithm::getIndices(const Basis & formulas) const
     }
   }
   return result;
-}
-
-/* Interactions between variables */
-Basis LinearModelStepwiseAlgorithm::getInteractions(const UnsignedInteger degree, const Description & variables) const
-{
-  const Description input(variables.isEmpty() ? inputSample_.getDescription() : variables);
-  Basis result;
-  const UnsignedInteger minDegreeOne(degree == 0 ? 0 : 1);
-  for (UnsignedInteger n = 0; n <= minDegreeOne; ++n)
-  {
-    Basis basis(getPower(n, input));
-    for (UnsignedInteger i = 0; i < basis.getSize(); ++i)
-      result.add(basis[i]);
-  }
-  if (degree <= 1)
-    return result;
-
-  for (UnsignedInteger n = 2; n <= degree; ++n)
-  {
-    Combinations c(n, input.getSize());
-    Combinations::IndicesCollection coll(c.generate());
-    for (Combinations::IndicesCollection::const_iterator it = coll.begin(); it != coll.end(); ++it)
-    {
-      const Indices indices(*it);
-      String accumulated(input[indices[0]]);
-      for (UnsignedInteger i = 1; i < indices.getSize(); ++i)
-        accumulated += "*" + input[indices[i]];
-      result.add(NumericalMathFunction(inputSample_.getDescription(), Description(1, accumulated)));
-    }
-  }
-  return result;
-}
-void LinearModelStepwiseAlgorithm::addInteractions(const UnsignedInteger degree, const Description & variables)
-{
-  add(getInteractions(degree, variables));
-}
-void LinearModelStepwiseAlgorithm::removeInteractions(const UnsignedInteger degree, const Description & variables)
-{
-  remove(getInteractions(degree, variables));
-}
-
-/* Power of variables */
-Basis LinearModelStepwiseAlgorithm::getPower(const UnsignedInteger degree, const Description & variables) const
-{
-  const UnsignedInteger inputDimension(inputSample_.getDimension());
-  Basis result;
-  if (degree == 0)
-  {
-    result.add(NumericalMathFunction(inputSample_.getDescription(), Description(1, "1")));
-    return result;
-  }
-  const Description input(variables.isEmpty() ? inputSample_.getDescription() : variables);
-  if (degree == 1)
-  {
-    for (Description::const_iterator it = input.begin(); it != input.end(); ++it)
-      result.add(NumericalMathFunction(inputSample_.getDescription(), Description(1, *it)));
-    return result;
-  }
-
-  for (Description::const_iterator it = input.begin(); it != input.end(); ++it)
-  {
-    const String formula(OSS() << *it << "^" << degree);
-    result.add(NumericalMathFunction(inputSample_.getDescription(), Description(1, formula)));
-  }
-  return result;
-}
-void LinearModelStepwiseAlgorithm::addPower(const UnsignedInteger degree, const Description & variables)
-{
-  add(getPower(degree, variables));
-}
-void LinearModelStepwiseAlgorithm::removePower(const UnsignedInteger degree, const Description & variables)
-{
-  remove(getPower(degree, variables));
 }
 
 /* Set indices of minimal model */
@@ -573,12 +421,8 @@ void LinearModelStepwiseAlgorithm::run()
   LOGDEBUG(OSS() << "Running LinearModelStepwiseAlgorithm " << __str__());
   const UnsignedInteger size(inputSample_.getSize());
   Y_ = Matrix(size, 1, outputSample_.getImplementation()->getData());
-  const NumericalMathFunction f(formulas_);
+  const NumericalMathFunction f(basis_);
   NumericalSample fx(f(inputSample_));
-  if (userColumns_.getSize() != 0)
-  {
-    fx.stack(userColumns_);
-  }
   LOGDEBUG(OSS() << "Total number of columns=" << fx.getDimension());
   Matrix Xt(fx.getDimension(), size, fx.getImplementation()->getData());
   maxX_ = Xt.transpose();
@@ -634,11 +478,11 @@ void LinearModelStepwiseAlgorithm::run()
         if (!currentIndices_.contains(i))
           indexSet.add(i);
       }
-      UpdateForwardFunctor updateFunctor(formulas_, indexSet, currentX_, maxX_, currentResidual_, M);
+      UpdateForwardFunctor updateFunctor(basis_, indexSet, currentX_, maxX_, currentResidual_, M);
       TBB::ParallelReduce(0, indexSet.getSize(), updateFunctor);
       indexF = updateFunctor.bestIndex_;
       LF = penalty_ * (currentX_.getNbColumns() + 1) + size * std::log(updateFunctor.criterion_ / size);
-      LOGDEBUG(OSS() << "Best candidate in forward direction is " << indexF << "(" << formulas_[indexF] << "), squared residual norm=" << updateFunctor.criterion_ << ", criterion=" << LF);
+      LOGDEBUG(OSS() << "Best candidate in forward direction is " << indexF << "(" << basis_[indexF] << "), squared residual norm=" << updateFunctor.criterion_ << ", criterion=" << LF);
     }
     NumericalScalar LB = SpecFunc::MaxNumericalScalar;
     UnsignedInteger indexB = maxX_.getNbColumns();
@@ -651,11 +495,11 @@ void LinearModelStepwiseAlgorithm::run()
         if (!minimalIndices_.contains(currentIndices_[i]))
           indexSet.add(currentIndices_[i]);
       }
-      UpdateBackwardFunctor updateFunctor(formulas_, indexSet, columnMaxToCurrent, currentIndices_, currentX_, Y_, currentGramInverse_, currentB_);
+      UpdateBackwardFunctor updateFunctor(basis_, indexSet, columnMaxToCurrent, currentIndices_, currentX_, Y_, currentGramInverse_, currentB_);
       TBB::ParallelReduce(0, indexSet.getSize(), updateFunctor);
       indexB = updateFunctor.bestIndex_;
       LB = penalty_ * (currentX_.getNbColumns() - 1) + size * std::log(updateFunctor.criterion_ / size);
-      LOGDEBUG(OSS() << "Best candidate in backward direction is " << indexB << "(" << formulas_[indexB] << "), squared residual norm=" << updateFunctor.criterion_ << ", criterion=" << LB);
+      LOGDEBUG(OSS() << "Best candidate in backward direction is " << indexB << "(" << basis_[indexB] << "), squared residual norm=" << updateFunctor.criterion_ << ", criterion=" << LB);
     }
     if (!(LF < Lstar || LB < Lstar))
       break;

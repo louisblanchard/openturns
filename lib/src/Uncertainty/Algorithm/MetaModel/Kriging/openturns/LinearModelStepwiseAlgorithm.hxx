@@ -51,6 +51,7 @@ public:
 
   /** Parameters constructor */
   LinearModelStepwiseAlgorithm(const NumericalSample & inputSample,
+                               const Basis & basis,
                                const NumericalSample & outputSample,
                                const SignedInteger direction = BOTH,
                                const NumericalScalar penalty = -1.0 /* < 0 means BIC, by convention */,
@@ -82,26 +83,8 @@ public:
   /** Condensed formula accessor */
   String getFormula() const;
 
-  /** Add formulas */
-  void add(const Basis & formulas);
-  void add(const NumericalSample & userColumns);
-
-  /** Remove formulas/columns */
-  void remove(const Basis & formulas);
-  void remove(const Indices & indices);
-
   /** Get column indices of given formulas */
   Indices getIndices(const Basis & formulas) const;
-
-  /** Interactions between variables*/
-  Basis getInteractions(const UnsignedInteger degree, const Description & variables = Description()) const;
-  void addInteractions(const UnsignedInteger degree, const Description & variables = Description());
-  void removeInteractions(const UnsignedInteger degree, const Description & variables = Description());
-
-  /** Power of variables */
-  Basis getPower(const UnsignedInteger degree, const Description & variables = Description()) const;
-  void addPower(const UnsignedInteger degree, const Description & variables = Description());
-  void removePower(const UnsignedInteger degree, const Description & variables = Description());
 
   /** Set indices of minimal model */
   void setMinimalIndices(const Indices & minimalIndices);
@@ -132,6 +115,9 @@ private:
   /** Input sample */
   NumericalSample inputSample_;
 
+  /** The monomials collection */
+  Basis basis_;
+
   /** Output sample */
   NumericalSample outputSample_;
 
@@ -154,12 +140,6 @@ private:
 
   /** The formula description */
   String condensedFormula_;
-
-  /** The monomials collection */
-  Basis formulas_;
-
-  /** User-defined columns */
-  NumericalSample userColumns_;
 
   /** The output data, stored as a matrix  */
   Matrix Y_;
