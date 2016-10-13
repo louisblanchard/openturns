@@ -50,10 +50,10 @@ The Forward selection algorithm (\ref{Forward_algo}) is the following :
 %\IncMargin{3em}
 \begin{algorithm}
 \label{Forward_algo}
-\KwData{ $S_0$, $S_{max}$,  \texttt{\color{black}{penalty\_}} = $\{2,\log(n)\}$ }
+\KwData{ $S_0$, $S_{max}$,  \texttt{\color{black}{penalty\_}} = $\{2,\log(n)\}$,  \texttt{\color{black}{maxIter\_}} }
 Initialization : $S^* = S_0$, $n_{iter} = 0 $\\
 We compute $J^* = \log L(\hat{\beta},\hat{\sigma}\mid Y)$  \\
-\While{ $n_{iter} <  M $  }{
+\While{ $n_{iter} <  \texttt{\color{black}{maxIter\_}} $  }{
  We compute $J^i = \log L(\hat{\beta}_{+i},\hat{\sigma}_{+i}\mid Y)$
 where $\boxed{\,i = \displaystyle\arg \max_{j \in S_{max} \backslash S^*}\,\log L(\hat{\beta}_{+j},\hat{\sigma}_{+j}\mid Y) \,}  $\\
 \uIf{$(J^i+$ \texttt{\color{black}{penalty\_}} $ > J^*) $ }{
@@ -101,10 +101,10 @@ The Backward selection algorithm (\ref{Backward_algo}) is the following :
 %\IncMargin{3em}
 \begin{algorithm}
 \label{Backward_algo}
-\KwData{ $S_0$, $S_{min}$,  \texttt{\color{black}{penalty\_}} = $\{2,\log(n)\}$ }
+\KwData{ $S_0$, $S_{min}$,  \texttt{\color{black}{penalty\_}} = $\{2,\log(n)\}$,  \texttt{\color{black}{maxIter\_}} }
 Initialization : $S^* = S_0$, $n_{iter} = 0 $\\
 We compute $J^* = \log L(\hat{\beta},\hat{\sigma}\mid Y)$  \\
-\While{ $n_{iter} <  M $  }{
+\While{ $n_{iter} <  \texttt{\color{black}{maxIter\_}} $  }{
  We compute $J^i = \log L(\hat{\beta}_{-i},\hat{\sigma}_{-i}\mid Y)$
 where $\boxed{\,i = \displaystyle\arg \max_{j \in S^*\backslash S_{min}}\,\log L(\hat{\beta}_{-j},\hat{\sigma}_{-j}\mid Y) \,}  $\\
 \uIf{$(J^i-$ \texttt{\color{black}{penalty\_}} $ > J^*) $ }{
@@ -138,10 +138,10 @@ The Bidirectional selection algorithm (\ref{Bidirectional_algo}) is the followin
 %\IncMargin{3em}
 \begin{algorithm}
 \label{Bidirectional_algo}
-\KwData{ $S_0$, $S_{min}$, $S_{max}$,  \texttt{\color{black}{penalty\_}} = $\{2,\log(n)\}$ }
+\KwData{ $S_0$, $S_{min}$, $S_{max}$,  \texttt{\color{black}{penalty\_}} = $\{2,\log(n)\}$,  \texttt{\color{black}{maxIter\_}} }
 Initialization : $S^* = S_0$, $n_{iter} = 0 $\\
 We compute $J^* = \log L(\hat{\beta},\hat{\sigma}\mid Y)$  \\
-\While{ $n_{iter} <  M $  }{
+\While{ $n_{iter} <  \texttt{\color{black}{maxIter\_}} $  }{
 
  We compute $J^i = \log L(\hat{\beta}_{+i},\hat{\sigma}_{+i}\mid Y)$
 where $\boxed{\,i = \displaystyle\arg \max_{j \in S_{max} \backslash S^*}\,\log L(\hat{\beta}_{+j},\hat{\sigma}_{+j}\mid Y) \,}  $\\
