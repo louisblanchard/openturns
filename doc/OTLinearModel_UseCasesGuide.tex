@@ -71,11 +71,9 @@ $n_{iter} = n_{iter} + 1$
 Using equation (\ref{maxLogLikelihood}), we have :
  \begin{equation}
 \arg   \displaystyle\max_{j \in S_{max} \backslash S^*}\,  \log L(\hat{\beta}_{+j},\hat{\sigma}_{+j}\mid Y) =
-\arg \displaystyle\max_{j \in S_{max} \backslash S^*}\, \|\,Y-H_{+j}\,Y\,\|^2_2  \,\,
+\arg \displaystyle\min_{j \in S_{max} \backslash S^*}\, \|\,Y-H_{+j}\,Y\,\|^2_2  \,\,
  \end{equation}
  Consequently to find the best variable to add we can consider the least square of the residual term $:Y-H_{+i}\,Y$.
-
-
 
 
 
@@ -122,7 +120,7 @@ $n_{iter} = n_{iter} + 1$
 Using equation (\ref{maxLogLikelihood}), we have :
  \begin{equation}
  \arg   \displaystyle\max_{j \in S^*\backslash S_{min}}\,  \log L(\hat{\beta}_{-j},\hat{\sigma}_{-j}\mid Y) =
-\arg \displaystyle\max_{j \in S^*\backslash S_{min}}\, \|\,Y-H_{-j}\,Y\,\|^2_2  \,\,
+\arg \displaystyle\min_{j \in S^*\backslash S_{min}}\, \|\,Y-H_{-j}\,Y\,\|^2_2  \,\,
  \end{equation}
  Consequently to find the best variable to delete we can consider the least square of the residual term $:Y-H_{-i}\,Y$.
 
@@ -170,9 +168,9 @@ $n_{iter} = n_{iter} + 1$
 Using equation (\ref{maxLogLikelihood}), we have :
  \begin{eqnarray}
  \arg   \displaystyle\max_{j \in S^*\backslash S_{min}}\,  \log L(\hat{\beta}_{-j},\hat{\sigma}_{-j}\mid Y) &=&
-\arg \displaystyle\max_{j \in S^*\backslash S_{min}}\, \|\,Y-H_{-j}\,Y\,\|^2_2  \\
+\arg \displaystyle\min_{j \in S^*\backslash S_{min}}\, \|\,Y-H_{-j}\,Y\,\|^2_2  \\
 \arg   \displaystyle\max_{j \in S_{max} \backslash S^*}\,  \log L(\hat{\beta}_{+j},\hat{\sigma}_{+j}\mid Y)  &=&
-\arg \displaystyle\max_{j \in S_{max} \backslash S^*}\, \|\,Y-H_{+j}\,Y\,\|^2_2
+\arg \displaystyle\min_{j \in S_{max} \backslash S^*}\, \|\,Y-H_{+j}\,Y\,\|^2_2
  \end{eqnarray}
  Consequently to find the best variable to add (resp. to delete), we can consider the least square of the residual term $:Y-H_{+i}\,Y$
  (resp.  $:Y-H_{-i}\,Y$).
