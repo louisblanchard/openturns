@@ -14,11 +14,20 @@ The stepwise regression method consists in choosing the best predictive variable
  according to a selected model criterion ( Akaike information criterion (AIC), Bayesian information criterion (BIC)).
 We define the sets of variables indices $ S_{min}\,\subseteq\, S_0\,\subseteq\, S_{max}$.
 Let us consider $S$ a set of variables indices and $\# S$ the cardinal of $S$, the (AIC) and (BIC) criteria are :
-
 \begin{itemize}
-\item (AIC) : $\log L(\hat{\beta},\hat{\sigma}\mid Y) + 2 \times \# S $
-\item (BIC) : $\log L(\hat{\beta},\hat{\sigma}\mid Y) + \log(n) \times \# S $ .
+\item (AIC) : $-2\,\log L(\hat{\beta},\hat{\sigma}\mid Y) + 2 \times \# S $
+\item (BIC) : $-2\,\log L(\hat{\beta},\hat{\sigma}\mid Y) + \log(n) \times \# S $ .
 \end{itemize}
+
+Using equation (\ref{maxLogLikelihood}) we get :
+$(AIC) \,:\,  n\, \log(\hat{\sigma}^2) + C_1 + 2 \times \# S $ and $(BIC) \,:\,  n\, \log(\hat{\sigma}^2) + C_1 +\log(n) \times \# S $,  
+where the constant $C_1$ is defined by $ C_1 = n \big(\log(2\pi)+1\big)$. However for model comparisons, only differences in AIC (or BIC) criterion are meaningful, consequently the constant $C_1$ can be ignored, 
+which conveniently allows us to take as in R \texttt{step} method : 
+ \begin{eqnarray}
+ AIC &:&  n\, \log(\hat{\sigma}^2) + 2 \times \# S  \\
+ BIC &:&  n\, \log(\hat{\sigma}^2) +\log(n) \times \# S   
+\end{eqnarray}
+
 There are three different algorithms: by using forward selection, backward selection, or both.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
