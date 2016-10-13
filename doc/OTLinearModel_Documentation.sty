@@ -14,7 +14,7 @@
 \RequirePackage{ifpdf}
 % For listings for python scripts
 \RequirePackage{listings}
-\lstset{
+\lstdefinestyle{pythonStyle}{
      language=python
    , tabsize=2
    , frame=single
@@ -35,6 +35,37 @@
      {è}{{\`e}}1
      {ê}{{\^e}}1
      { }{{~}}1
+}
+\lstdefinestyle{RStyle}{
+     language=R
+   , tabsize=2
+   , frame=single
+   , breaklines=true
+   , breakatwhitespace=true
+   , framexleftmargin=13mm
+   , xleftmargin=12mm
+   , frameround={tttt}
+   , captionpos = b
+   , keywordstyle=\color{blue}\bfseries
+   , commentstyle=\color{red}\textit
+   , stringstyle=\color{green}\ttfamily
+   , extendedchars=\true
+   , literate=%
+     {«}{{<<}}1
+     {»}{{>>}}1
+     {é}{{\'e}}1
+     {è}{{\`e}}1
+     {ê}{{\^e}}1
+     { }{{~}}1
+}
+\lstdefinestyle{output}{
+   , basicstyle=\footnotesize
+   , frame=trBL
+   , breaklines=true
+   , breakatwhitespace=true
+   , framexleftmargin=13mm
+   , xleftmargin=12mm
+   , frameround={tttt}
 }
 
 % For mathematics notations
