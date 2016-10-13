@@ -179,9 +179,14 @@ Using equation (\ref{maxLogLikelihood}), we have :
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Detailed implementation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Each selection method requires to find an index which minimizes some residual norm.
+In this section, we explain how computations can be performed very efficiently, by
+minimizing the number of operations.
+
 \subsection{Forward selection}
 
-The inverse Gram matrix of $X_{+i}$ of size $((p+1)\times(p+1))$  is partitionned into four blocks as follows:
+It can be shown that the inverse Gram matrix of $X_{+i}$ of size $((p+1)\times(p+1))$  can be represented by a block partition
 \begin{equation}
 \big(X^T_{+i} \,X_{+i}\big)^{-1} =
  \begin{bmatrix}
@@ -209,7 +214,7 @@ We don't need to compute $A_X$ the inverse Gram matrix of $X$ of size $(p\times 
 we use the Cholesky decomposition of $G_X$ the Gram matrix of $X$: $L_X  \,/\, L_X\,L_X^T\,=\,G_X$.
 
 \begin{enumerate}
-\item The vector $\hat{Y}=H_X\,Y=X\big(G_X\big)^{-1}\,X^T\,Y $ of size $(n)$ does not depend on $x_i$ the column to add.
+\item The vector $\hat{Y}=H_X\,Y=X\big(G_X\big)^{-1}\,X^T\,Y $ of size $(n)$ does not depend on the column $x_i$ to add.
 The computation of this vector is described as follows :
 \begin{enumerate}
 \item First we compute the vector of size $(p)$ : $B_X=X^T\,Y$.
@@ -217,7 +222,7 @@ The computation of this vector is described as follows :
  solving $L_X^T\,z_1=z_2$ for $z_1$ by backward substitution.
 \item Finally we compute the vector $\hat{Y}=X\,z_1$.
 \end{enumerate}
-\item The vector $\,H_X\,x_i\,=X\,\big(G_X\big)^{-1}\,X^T\,x_i$ of size $(n)$ depends on $x_i$ the column to add.
+\item The vector $\,H_X\,x_i\,=X\,\big(G_X\big)^{-1}\,X^T\,x_i$ of size $(n)$ depends on the column $x_i$ to add.
 The computation of this vector is described as follows :
 \begin{enumerate}
 \item First we compute the vector of size $(p)$ : $ k_i=X^T\,x_i$.
