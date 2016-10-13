@@ -8,12 +8,59 @@
 %
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Linear regression models}
+
+Let us consider the general linear regression model:
+\begin{equation}
+\boxed{
+Y \,=\, X \,\beta\, +\, \epsilon }
+\end{equation}
+
+Where $X$ is the design matrix of explanatory variables of size $(n \times p)$,
+$Y$ is the vector of response values of size $(n)$,
+$\beta$ is a vector of unknown parameters to be estimated of size $(p)$,
+and $\epsilon $ is the error vector of size $(n)$; $\epsilon$ is assumed to follow the standard Normal distribution.\\
+
+
+We define $G_X$ the Gram matrix of $X$ of size $(p\times p)$, $A_X$ its inverse,
+and $H_X$ the projection matrix of size $(n\times n)$ by:
+\begin{equation}
+G_X \hat{=}X^T X  \quad,\quad  A_X \hat{=}(X^T X)^{-1}  \quad,\quad
+H_X \hat{=} X_{}\,\big(X^T_{} \,X_{}\big)^{-1} \,X^T_{}  =  X_{}\,A_X \,X^T_{}
+ \end{equation}
+
+We define the \emph{Log likelihood} function by:
+\begin{equation}
+\log L(\beta,\sigma\mid Y)= -\frac{n}{2}\big(\log(2\pi)+ \log(\sigma^2)\big)- \frac{1}{\sigma^2}\big(Y-X\beta\big)^T\,\big(Y-X\beta\big)
+\end{equation}
+
+The solution which maximizes the \emph{Log likelihood} function is:
+\begin{equation}
+\label{beta_sigma_opt}
+  \hat{\beta} \,=\, \big(X^T_{} \,X_{}\big)^{-1} \,X^T \, Y
+\quad,\quad
+\hat{\sigma}^2 = \frac{1}{n}\big(Y-X \,\hat{\beta}\big)^T\,\big(Y-X \,\hat{\beta}\big)
+\end{equation}
+Using equation (\ref{beta_sigma_opt}), the maximum \emph{Log likelihood} turns into:
+\begin{equation}
+\label{maxLogLikelihood}
+\log L(\hat{\beta},\hat{\sigma}\mid Y)=-\frac{n}{2}\big(\log(2\pi)+ \log(\hat{\sigma}^2)+1\big)
+\quad \text{where} \quad
+\hat{\sigma}^2 = \frac{1}{n}\big(Y-H_X\,Y\big)^T\,\big(Y-H_X\,Y \big)=\frac{1}{n}\|\,Y-H_X\,Y\,\|^2_2
+\end{equation}
+
+The residuals are defined by
+\begin{equation}
+\hat{\epsilon} = Y - H_X Y
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Architecture guide}
 
-This document makes up the general specification design for the general linear model stepwise regression analysis
+This section makes up the general specification design for the general linear model stepwise regression analysis
 in OpenTURNS.
 
-\subsection{Linear regression models}
+\subsection{LinearModel}
 
 The \texttt{LinearModel} class is outdated and does not follow current best practices about metamodel classes.
 We will introduce \texttt{LinearModelAlgorithm} and \texttt{LinearModelResult} classes.
@@ -86,7 +133,6 @@ Moreover, this plot also contains isolines of function
 
 All these plots must display labels of some extremal points.  To this end, the following attributes
 and methods will be added to \texttt{Cloud} and \texttt{BarPlot}:
-to allow
 \begin{verbatim}
    /** Setter for labels */
    Description getLabels() const;
@@ -96,23 +142,3 @@ to allow
 \end{verbatim}
 The \texttt{labels} argument must have the same size as graph data, and only non-empty labels are
 printed.
-
-\texttt{LinearModelAlgorithm} derive from \texttt{MetaModelAlgorithm}, with standard pimpl idiom
-as prescribed by OpenTURNS coding rules.
-
-\begin{figure}[htb]
-  \begin{center}
-    \includegraphics[scale=0.5]{LinearModelAlgorithm.png}
-    \caption{LinearModelAlgorithm class}\label{fig:archi:LinearModelAlgorithm}
-  \end{center}
-\end{figure}
-
-\subsection{Step method}
-
-\texttt{LinearModelStepwiseAlgorithm} derive from \texttt{PersistentObject}
-\begin{figure}[htb]
-  \begin{center}
-    \includegraphics[scale=0.5]{LinearModelStepwiseAlgorithm.png}
-    \caption{LinearModelStepwiseAlgorithm class}\label{fig:archi:LinearModelStepwiseAlgorithm}
-  \end{center}
-\end{figure}

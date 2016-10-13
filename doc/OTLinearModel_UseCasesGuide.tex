@@ -4,89 +4,40 @@
 % with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
 % Texts.  A copy of the license is included in the section entitled "GNU
 % Free Documentation License".
-% Copyright 2015 EDF
+% Copyright 2016 EDF
 %
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Introduction}
-
-This section presents the main functionalities of the new general linear model stepwise regression classes in their context.\\
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{General linear model regression}
-
-Let us consider the general linear model : 
-\begin{equation}
-\boxed{
-Y \,=\, X \,\beta\, +\, \epsilon }
-\end{equation}
-
-
-Where $X=(x_1,x_2,\dots,x_p)$ is the design matrix of explanatory variables of size $(n \times p)$,
-$Y$ is the vector of response values of size $(n)$, 
-$\beta $ is a vector of unknown parameters to be estimated of size $(p)$, 
-and $\epsilon $ is the error vector of size $(n)$. $\epsilon$ follows the standard Normal distribution.\\
-
-
-We defined $G_X$ the Gram matrix of $X$ of size $(p\times p)$, $A_X$ the inverse Gram matrix of $X$ of size $(p\times p)$, 
-and $H_X$ the projection matrix of size $(n\times n)$ by :
-\begin{equation}
-G_X \hat{=}X^T X  \quad,\quad  A_X \hat{=}(X^T X)^{-1}  \quad,\quad 
-H_X \hat{=} X_{}\,\big(X^T_{} \,X_{}\big)^{-1} \,X^T_{}  =  X_{}\,A_X \,X^T_{}
- \end{equation}
-
-We defined the {\it Log likelihood} function by : 
-\begin{equation}
-\log L(\beta,\sigma\mid Y)= -\frac{n}{2}\big(\log(2\pi)+ \log(\sigma^2)\big)- \frac{1}{\sigma^2}\big(Y-X\beta\big)^T\,\big(Y-X\beta\big)
-\end{equation}
-
-The solution who maximize the {\it Log likelihood} function is :
-\begin{equation}
-\label{beta_sigma_opt}
-  \hat{\beta} \,=\, \big(X^T_{} \,X_{}\big)^{-1} \,X^T \, Y
-\quad,\quad 
-\hat{\sigma}^2 = \frac{1}{n}\big(Y-X \,\hat{\beta}\big)^T\,\big(Y-X \,\hat{\beta}\big)
-\end{equation}
-Using equation (\ref{beta_sigma_opt}), the maximum {\it Log likelihood} turns into :
-\begin{equation}
-\label{maxLogLikelihood}
-\log L(\hat{\beta},\hat{\sigma}\mid Y)=-\frac{n}{2}\big(\log(2\pi)+ \log(\hat{\sigma}^2)+1\big)
-\quad \text{where} \quad
-\hat{\sigma}^2 = \frac{1}{n}\big(Y-H_X\,Y\big)^T\,\big(Y-H_X\,Y \big)=\frac{1}{n}\|\,Y-H_X\,Y\,\|^2_2
-\end{equation}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Stepwise regression methods}
 
 The stepwise regression method consists in choosing the best predictive variables by an automatic procedure
  according to a selected model criterion ( Akaike information criterion (AIC), Bayesian information criterion (BIC)).
-We defined the sets of variables indices $ S_{min}\,\subseteq\, S_0\,\subseteq\, S_{max}$. 
-Let us consider $S$ a set of variables indices and $\# S$ the cardinal of $S$, the (AIC) and (BIC) criteria are :  
+We define the sets of variables indices $ S_{min}\,\subseteq\, S_0\,\subseteq\, S_{max}$.
+Let us consider $S$ a set of variables indices and $\# S$ the cardinal of $S$, the (AIC) and (BIC) criteria are :
 
 \begin{itemize}
-\item (AIC) : $\log L(\hat{\beta},\hat{\sigma}\mid Y) + 2 \times \# S $  
+\item (AIC) : $\log L(\hat{\beta},\hat{\sigma}\mid Y) + 2 \times \# S $
 \item (BIC) : $\log L(\hat{\beta},\hat{\sigma}\mid Y) + \log(n) \times \# S $ .
 \end{itemize}
-The main approches are : 
+There are three different algorithms: by using forward selection, backward selection, or both.
 
-\newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Forward selection}
-This method starts with initial variables in the model (defined by the set of indices $S_0$), testing the addition of each variable 
+This method starts with initial variables in the model (defined by the set of indices $S_0$), testing the addition of each variable
 using a chosen model comparison criterion, adding the variable (if any) that improves the model the most, and repeating this process until none improves the model.
-We defined $X_{+i}$ the $(n \times (p+1))$ matrix composed by $X$ matrix and $x_i$ column : $X_{+i} = (X \,,\,x_i)$.
-We defined $\hat{\beta}_{+i}$ the vector of size $(p+1)$ and the scalar $\hat{\sigma}_{+i}^2$ by:  
+We define $X_{+i}$ the $(n \times (p+1))$ matrix composed by $X$ matrix and $x_i$ column : $X_{+i} = (X \,,\,x_i)$.
+We define $\hat{\beta}_{+i}$ the vector of size $(p+1)$ and the scalar $\hat{\sigma}_{+i}^2$ by:
  \begin{equation}
   \hat{\beta}_{+i} \,=\, \big(X^T_{+i} \,X_{+i}\big)^{-1} \,X^T_{+i} \, Y
-\quad,\quad 
+\quad,\quad
 \hat{\sigma}_{+i}^2 = \frac{1}{n}\big(Y-X_{+i} \,\hat{\beta}_{+i}\big)^T\,\big(Y-X_{+i} \,\hat{\beta}_{+i}\big)
 \end{equation}
-We defined $H_{+i} $ the $(n\times n)$ projection matrix by :
+We define $H_{+i} $ the $(n\times n)$ projection matrix by :
  \begin{equation}
 \label{H+}
-H_{+i}\, \,\hat{=} \, X_{+i}\,\big(X^T_{+i} \,X_{+i}\big)^{-1} \,X^T_{+i}  
+H_{+i}\, \,\hat{=} \, X_{+i}\,\big(X^T_{+i} \,X_{+i}\big)^{-1} \,X^T_{+i}
  \end{equation}
-The Forward selection algorithm (\ref{Forward_algo}) is the following : 
+The Forward selection algorithm (\ref{Forward_algo}) is the following :
 %\IncMargin{3em}
 \begin{algorithm}
 \label{Forward_algo}
@@ -94,11 +45,11 @@ The Forward selection algorithm (\ref{Forward_algo}) is the following :
 Initialization : $S^* = S_0$, $n_{iter} = 0 $\\
 We compute $J^* = \log L(\hat{\beta},\hat{\sigma}\mid Y)$  \\
 \While{ $n_{iter} <  M $  }{
- We compute $J^i = \log L(\hat{\beta}_{+i},\hat{\sigma}_{+i}\mid Y)$  
+ We compute $J^i = \log L(\hat{\beta}_{+i},\hat{\sigma}_{+i}\mid Y)$
 where $\boxed{\,i = \displaystyle\arg \max_{j \in S_{max} \backslash S^*}\,\log L(\hat{\beta}_{+j},\hat{\sigma}_{+j}\mid Y) \,}  $\\
 \uIf{$(J^i+$ \texttt{\color{black}{penalty\_}} $ > J^*) $ }{
 $S^* =S^* \, \cup\,  i $\\
- $J^* = J^i$ 
+ $J^* = J^i$
 }
 \Else{
 Quit
@@ -108,12 +59,12 @@ $n_{iter} = n_{iter} + 1$
 \caption{Forward selection algorithm }
 \end{algorithm}
 
-Using equation (\ref{maxLogLikelihood}), we have : 
+Using equation (\ref{maxLogLikelihood}), we have :
  \begin{equation}
-\arg   \displaystyle\max_{j \in S_{max} \backslash S^*}\,  \log L(\hat{\beta}_{+j},\hat{\sigma}_{+j}\mid Y) = 
+\arg   \displaystyle\max_{j \in S_{max} \backslash S^*}\,  \log L(\hat{\beta}_{+j},\hat{\sigma}_{+j}\mid Y) =
 \arg \displaystyle\max_{j \in S_{max} \backslash S^*}\, \|\,Y-H_{+j}\,Y\,\|^2_2  \,\,
  \end{equation}
- Consequently to find the best variable to add we can consider the least square of the residual term $:Y-H_{+i}\,Y$. 
+ Consequently to find the best variable to add we can consider the least square of the residual term $:Y-H_{+i}\,Y$.
 
 
 
@@ -122,22 +73,22 @@ Using equation (\ref{maxLogLikelihood}), we have :
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Backward selection}
-This method starts with all candidate variables 
+This method starts with all candidate variables
 (defined by the set of indices $S_{max}$), testing the deletion of each variable using a chosen model comparison criterion,
  deleting the variable (if any) that improves the model the most by being deleted, and repeating this process until no further improvement is possible.
-We defined $X_{-i}$ the $(n \times (p-1))$ matrix composed by $X$ matrix without the $x_i$ column.
-We defined $\hat{\beta}_{-i}$ the vector of size $(p-1)$ and the scalar $\hat{\sigma}_{-i}^2$ by:  
+We define $X_{-i}$ the $(n \times (p-1))$ matrix composed by $X$ matrix without the $x_i$ column.
+We define $\hat{\beta}_{-i}$ the vector of size $(p-1)$ and the scalar $\hat{\sigma}_{-i}^2$ by:
  \begin{equation}
   \hat{\beta}_{-i} \,=\, \big(X^T_{-i} \,X_{-i}\big)^{-1} \,X^T_{-i} \, Y
-\quad,\quad 
+\quad,\quad
 \hat{\sigma}_{-i}^2 = \frac{1}{n}\big(Y-X_{-i} \,\hat{\beta}_{-i}\big)^T\,\big(Y-X_{-i} \,\hat{\beta}_{-i}\big)
 \end{equation}
-We defined $H_{-i}$ the $(n\times n)$ projection matrix by :
+We define $H_{-i}$ the $(n\times n)$ projection matrix by :
  \begin{equation}
 \label{H-}
 H_{-i}\, \,\hat{=}\, X_{-i}\,\big(X^T_{-i} \,X_{-i}\big)^{-1} \,X^T_{-i}
  \end{equation}
-The Backward selection algorithm (\ref{Backward_algo}) is the following : 
+The Backward selection algorithm (\ref{Backward_algo}) is the following :
 %\IncMargin{3em}
 \begin{algorithm}
 \label{Backward_algo}
@@ -145,11 +96,11 @@ The Backward selection algorithm (\ref{Backward_algo}) is the following :
 Initialization : $S^* = S_0$, $n_{iter} = 0 $\\
 We compute $J^* = \log L(\hat{\beta},\hat{\sigma}\mid Y)$  \\
 \While{ $n_{iter} <  M $  }{
- We compute $J^i = \log L(\hat{\beta}_{-i},\hat{\sigma}_{-i}\mid Y)$  
+ We compute $J^i = \log L(\hat{\beta}_{-i},\hat{\sigma}_{-i}\mid Y)$
 where $\boxed{\,i = \displaystyle\arg \max_{j \in S^*\backslash S_{min}}\,\log L(\hat{\beta}_{-j},\hat{\sigma}_{-j}\mid Y) \,}  $\\
 \uIf{$(J^i-$ \texttt{\color{black}{penalty\_}} $ > J^*) $ }{
 $S^* =S^* \, \backslash\,  i $\\
- $J^* = J^i$ 
+ $J^* = J^i$
 }
 \Else{
 Quit
@@ -159,22 +110,22 @@ $n_{iter} = n_{iter} + 1$
 \caption{Backward selection algorithm }
 \end{algorithm}
 
-Using equation (\ref{maxLogLikelihood}), we have : 
+Using equation (\ref{maxLogLikelihood}), we have :
  \begin{equation}
- \arg   \displaystyle\max_{j \in S^*\backslash S_{min}}\,  \log L(\hat{\beta}_{-j},\hat{\sigma}_{-j}\mid Y) = 
+ \arg   \displaystyle\max_{j \in S^*\backslash S_{min}}\,  \log L(\hat{\beta}_{-j},\hat{\sigma}_{-j}\mid Y) =
 \arg \displaystyle\max_{j \in S^*\backslash S_{min}}\, \|\,Y-H_{-j}\,Y\,\|^2_2  \,\,
  \end{equation}
- Consequently to find the best variable to delete we can consider the least square of the residual term $:Y-H_{-i}\,Y$. 
+ Consequently to find the best variable to delete we can consider the least square of the residual term $:Y-H_{-i}\,Y$.
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Bidirectional selection}
 
 This method is a combination of the Forward and Backward selection. At each step, this method tests
-the addition (Forward selection) and the deletion (Backward selection) of each variable using a chosen model comparison criterion, 
-select the method that improves the model the most, and repeat this process. 
+the addition (Forward selection) and the deletion (Backward selection) of each variable using a chosen model comparison criterion,
+select the method that improves the model the most, and repeat this process.
 
-The Bidirectional selection algorithm (\ref{Bidirectional_algo}) is the following : 
+The Bidirectional selection algorithm (\ref{Bidirectional_algo}) is the following :
 %\IncMargin{3em}
 \begin{algorithm}
 \label{Bidirectional_algo}
@@ -183,20 +134,20 @@ Initialization : $S^* = S_0$, $n_{iter} = 0 $\\
 We compute $J^* = \log L(\hat{\beta},\hat{\sigma}\mid Y)$  \\
 \While{ $n_{iter} <  M $  }{
 
- We compute $J^i = \log L(\hat{\beta}_{+i},\hat{\sigma}_{+i}\mid Y)$  
+ We compute $J^i = \log L(\hat{\beta}_{+i},\hat{\sigma}_{+i}\mid Y)$
 where $\boxed{\,i = \displaystyle\arg \max_{j \in S_{max} \backslash S^*}\,\log L(\hat{\beta}_{+j},\hat{\sigma}_{+j}\mid Y) \,}  $\\
 
- We compute $J^{i'} = \log L(\hat{\beta}_{-i},\hat{\sigma}_{-i}\mid Y)$  
+ We compute $J^{i'} = \log L(\hat{\beta}_{-i},\hat{\sigma}_{-i}\mid Y)$
 where $\boxed{\,i' = \displaystyle\arg \max_{j \in S^*\backslash S_{min}}\,\log L(\hat{\beta}_{-j},\hat{\sigma}_{-j}\mid Y) \,}  $\\
 
 \uIf{$(J^i+$ \texttt{\color{black}{penalty\_}} $ > J^*) $ {\bf or} $(J^{i'}-$ \texttt{\color{black}{penalty\_}} $> J^*)$}{
 \uIf{$(J^i+$ \texttt{\color{black}{penalty\_}} $) >(J^{i'}-$\texttt{\color{black}{penalty\_}} $)$  }{
 	$S^* =S^* \,\cup \,  i $\\
-	 $J^* = J^{i}$  
+	$J^* = J^{i}$
 }
 \Else{
 $S^* =S^* \,\backslash \,  i' $ \\
- $J^* = J^{i'}$  
+ $J^* = J^{i'}$
 }
 }
 \Else{
@@ -207,30 +158,30 @@ $n_{iter} = n_{iter} + 1$
 \caption{Bidirectional selection algorithm }
 \end{algorithm}
 
-Using equation (\ref{maxLogLikelihood}), we have : 
+Using equation (\ref{maxLogLikelihood}), we have :
  \begin{eqnarray}
- \arg   \displaystyle\max_{j \in S^*\backslash S_{min}}\,  \log L(\hat{\beta}_{-j},\hat{\sigma}_{-j}\mid Y) &=& 
+ \arg   \displaystyle\max_{j \in S^*\backslash S_{min}}\,  \log L(\hat{\beta}_{-j},\hat{\sigma}_{-j}\mid Y) &=&
 \arg \displaystyle\max_{j \in S^*\backslash S_{min}}\, \|\,Y-H_{-j}\,Y\,\|^2_2  \\
-\arg   \displaystyle\max_{j \in S_{max} \backslash S^*}\,  \log L(\hat{\beta}_{+j},\hat{\sigma}_{+j}\mid Y)  &=& 
+\arg   \displaystyle\max_{j \in S_{max} \backslash S^*}\,  \log L(\hat{\beta}_{+j},\hat{\sigma}_{+j}\mid Y)  &=&
 \arg \displaystyle\max_{j \in S_{max} \backslash S^*}\, \|\,Y-H_{+j}\,Y\,\|^2_2
  \end{eqnarray}
  Consequently to find the best variable to add (resp. to delete), we can consider the least square of the residual term $:Y-H_{+i}\,Y$
- (resp.  $:Y-H_{-i}\,Y$). 
+ (resp.  $:Y-H_{-i}\,Y$).
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Details implementation}
+\section{Detailed implementation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Forward selection}
 
 The inverse Gram matrix of $X_{+i}$ of size $((p+1)\times(p+1))$  is partitionned into four blocks as follows:
 \begin{equation}
-\big(X^T_{+i} \,X_{+i}\big)^{-1} =  
+\big(X^T_{+i} \,X_{+i}\big)^{-1} =
  \begin{bmatrix}
 A_X + D_X\,D_X^T/C_X  & -D_X/C_X \\
 D_X^T/C_X & 1/C_X
 \end{bmatrix}
- \quad,\quad D_X = A_X\, X^T\,x_i 
+ \quad,\quad D_X = A_X\, X^T\,x_i
  \quad,\quad C_X = x_i^T x_i -x_i^T \,X\,A \, X^T\, x_i
  \end{equation}
 Then the projection matrix $H_{+i}$ defined by equation (\ref{H+}) turns into :
@@ -238,7 +189,7 @@ Then the projection matrix $H_{+i}$ defined by equation (\ref{H+}) turns into :
 H_{+i} & = &X\,A_X \, X^T + \frac{1}{C_X} \big(\,X\,A_X \, X^T\,x_i\,x_i^T\,X\,A_X \, X^T \,-\,X\,A_X \, X^T\,x_i\,x_i^T \,-\,x_i\,x_i^T \, X\,A_X \, X^T\,+\,x_i\,x_i^T \,\big)
 \end{eqnarray}
 
-We get the residual term : 
+We get the residual term :
  \begin{eqnarray}
 Y-H_{+i}\,Y  & = & Y-X\,A_X \, X^T\,Y -\frac{(x_i^T\,X\,A_X \, X^T\,Y-x_i^T\,Y)}{C_X}\, \big(\,X\,A_X \, X^T\,x_i\, \,-\,x_i\,\big)\\
  & = & Y - H_X\,Y -\frac{x_i^T\,(Y\,-\,H_X\,Y)}{x_i^T\,(H_X\,x_i\, \,-\,x_i)}\, \big(\,H_X\,x_i\, \,-\,x_i\,\big)\\
@@ -246,21 +197,21 @@ Y-H_{+i}\,Y  & = & Y-X\,A_X \, X^T\,Y -\frac{(x_i^T\,X\,A_X \, X^T\,Y-x_i^T\,Y)}
  & = & Y - \hat{Y} -\frac{x_i^T\,(Y\,-\,\hat{Y})}{x_i^T\,(H_X\,x_i\, \,-\,x_i)}\, \big(\,H_X\,x_i\, \,-\,x_i\,\big)
 \end{eqnarray}
 
-Note that in practice $n >> p$ and consequently we don't want to compute $H_X$ the projection matrix of size $(n\times n)$. 
-We don't need to compute $A_X$ the inverse Gram matrix of $X$ of size $(p\times p)$ because we have to solve linear system, consequently   
+Note that in practice $n >> p$ and consequently we don't want to compute $H_X$ the projection matrix of size $(n\times n)$.
+We don't need to compute $A_X$ the inverse Gram matrix of $X$ of size $(p\times p)$ because we have to solve linear system, consequently
 we use the Cholesky decomposition of $G_X$ the Gram matrix of $X$: $L_X  \,/\, L_X\,L_X^T\,=\,G_X$.
 
 \begin{enumerate}
-\item The vector $\hat{Y}=H_X\,Y=X\big(G_X\big)^{-1}\,X^T\,Y $ of size $(n)$ does not depend on $x_i$ the column to add. 
-The computation of this vector is described as follows : 
+\item The vector $\hat{Y}=H_X\,Y=X\big(G_X\big)^{-1}\,X^T\,Y $ of size $(n)$ does not depend on $x_i$ the column to add.
+The computation of this vector is described as follows :
 \begin{enumerate}
 \item First we compute the vector of size $(p)$ : $B_X=X^T\,Y$.
-\item Then we solve the linear system $G_X \,z_1= B_X$ by first solving $L_X\,z_2= B_X$ for $z_2$ by forward substitution, and finally 
+\item Then we solve the linear system $G_X \,z_1= B_X$ by first solving $L_X\,z_2= B_X$ for $z_2$ by forward substitution, and finally
  solving $L_X^T\,z_1=z_2$ for $z_1$ by backward substitution.
 \item Finally we compute the vector $\hat{Y}=X\,z_1$.
 \end{enumerate}
-\item The vector $\,H_X\,x_i\,=X\,\big(G_X\big)^{-1}\,X^T\,x_i$ of size $(n)$ depends on $x_i$ the column to add.  
-The computation of this vector is described as follows : 
+\item The vector $\,H_X\,x_i\,=X\,\big(G_X\big)^{-1}\,X^T\,x_i$ of size $(n)$ depends on $x_i$ the column to add.
+The computation of this vector is described as follows :
 \begin{enumerate}
 \item First we compute the vector of size $(p)$ : $ k_i=X^T\,x_i$.
 \item Then we solve the linear system $G_X \,z_1= k_i$ by solving $L_X\,z_2= k_i$ for $z_2$ by forward substitution
@@ -278,13 +229,13 @@ The projection matrix $H_{-i}$ defined by equation (\ref{H-}) turns into :
  \begin{equation}
 \label{H2-}
 H_{-i}\, \,\hat{=}\, X_{-i}\,\big(X^T_{-i} \,X_{-i}\big)^{-1} \,X^T_{-i}
-= X_{-i}\,A_{-i,-i} \, X^T_{-i} \,-\,\frac {1}{A_{i,i}}\,\big(X_{-i}\, A_{-i,i}\big)\, \big(X_{-i}\, A_{-i,i}\big)^T 
+= X_{-i}\,A_{-i,-i} \, X^T_{-i} \,-\,\frac {1}{A_{i,i}}\,\big(X_{-i}\, A_{-i,i}\big)\, \big(X_{-i}\, A_{-i,i}\big)^T
  \end{equation}
 where $A_{-i,-i}$ represents the matrix $A$ without row $i$ and column $i$,
 $A_{-i,i}$ represents the column $i$ of the matrix $A$ without row $i$ and $A_{i,i}$ represents the diagonal term $i$ of the matrix $A$.\\
 
 In a numerical point of view, we want to use the matrix $A_X$ in the equation (\ref{H2-}) without creating the matrix $A_{-i }$.
-Then we define $X_{i=0}$ the matrix $X$ with the column $i$ equal to $0$, and $\forall B \in \mathbb{R}^p$ we note $\big[B\big]_{i=0}$ the row $i$ of $B$ equal to $0$. 
+Then we define $X_{i=0}$ the matrix $X$ with the column $i$ equal to $0$, and $\forall B \in \mathbb{R}^p$ we note $\big[B\big]_{i=0}$ the row $i$ of $B$ equal to $0$.
 We get : $\forall b \in \mathbb{R}^n\,,\, \forall c \in \mathbb{R}^p $
  \begin{equation}
 \label{notation0}
@@ -292,12 +243,12 @@ X_{i=0}^T\,b \,=\,\big[X^T\,b\big]_{i=0} \quad,\quad X_{i=0}\,c \,=\,X\,\big[c\b
  \end{equation}
 
 
- Using equation (\ref{notation0}), the projection matrix $H_{-i}$ defined by equation (\ref{H-}) turns into  :
+ Using equation (\ref{notation0}), the projection matrix $H_{-i}$ defined by equation (\ref{H-}) turns into:
  \begin{eqnarray}
 H_{-i}\, & = & X_{i=0}\,A_X\,X_{i=0}^T \,-\,\frac {1}{A_{i,i}}\,  \big(X_{i=0}\,A_{,i}\big) \big(X_{i=0}\,A_{,i}\big)^T   \\
-& = & X_{i=0}\,A_X\,X_{i=0}^T \,-\,\frac {1}{A_{i,i}}\,  \big(X\,\big[A_{,i}\big]_{i=0}  \big) \big(X\,\big[A_{,i}\big]_{i=0} \big)^T 
+& = & X_{i=0}\,A_X\,X_{i=0}^T \,-\,\frac {1}{A_{i,i}}\,  \big(X\,\big[A_{,i}\big]_{i=0}  \big) \big(X\,\big[A_{,i}\big]_{i=0} \big)^T
 \end{eqnarray}
- Using equation (\ref{notation0}), we get the residual term : 
+ Using equation (\ref{notation0}), we get the residual term :
  \begin{eqnarray}
 Y-H_{-i}\,Y & = &Y- \,X_{i=0}\,A_X\,X_{i=0}^T\,Y \,+\,\frac {1}{A_{i,i}}\,  \big(X_{i=0}\,A_{,i}\,(A_{i,} X_{i=0}^T\,Y)\,\big)   \\
  & = & Y-\,X\,\big[\,A_X\,\big[X^T\,Y\big]_{i=0}\,\big]_{i=0} \,+\,\frac {1}{A_{i,i}}\,  \big( X\,\big[\,A_{,i}\,\big]_{i=0}\,\,(A_{i,} \,\big[X^T\,Y\big]_{i=0})\,\big)   \\
@@ -307,19 +258,19 @@ Y-H_{-i}\,Y & = &Y- \,X_{i=0}\,A_X\,X_{i=0}^T\,Y \,+\,\frac {1}{A_{i,i}}\,  \big
 \end{eqnarray}
 
 
-We don't need to compute $A_X$ the inverse Gram matrix of $X$ of size $(p\times p)$ because we have to solve linear system, consequently   
+We don't need to compute $A_X$ the inverse Gram matrix of $X$ of size $(p\times p)$ because we have to solve linear system, consequently
 we use the Cholesky decomposition of $G_X$ the Gram matrix of $X$: $L_X  \,/\, L_X\,L_X^T\,=\,G_X$.
 \begin{enumerate}
-\item The vector $\,A_X\,\big[X^T\,Y\big]_{i=0}=\big(G_X\big)^{-1}\,\big[X^T\,Y\big]_{i=0}$ of size $(p)$ depends on $x_i$ the column to delete.  
-The computation of this vector is described as follows : 
+\item The vector $\,A_X\,\big[X^T\,Y\big]_{i=0}=\big(G_X\big)^{-1}\,\big[X^T\,Y\big]_{i=0}$ of size $(p)$ depends on $x_i$ the column to delete.
+The computation of this vector is described as follows :
 \begin{enumerate}
 \item First we compute the vector of size $(p)$ : $B_X=X^T\,Y$.
 \item Then we solve the linear system $G_X \,d_i= \big[B_X\big]_{i=0}$ by solving $L_X\,z_2= \big[B_X\big]_{i=0}$ for $z_2$ by forward substitution
 \item Finally we solve the linear system $L_X^T\,d_i=z_2$ for $d_i$ by backward substitution.
 \end{enumerate}
-\item The vector $\,A_{,i}$ of size $(p)$ depends on $x_i$ the column to delete.  
+\item The vector $\,A_{,i}$ of size $(p)$ depends on $x_i$ the column to delete.
 We have $\,A_{,i}=A_X \, e_i=\big(G_X\big)^{-1}\,e_i$  where $e_i$ denotes the vector of size $(p)$ with a $1$ in the $i^{th}$ coordinates and $0$ elsewhere.
-The computation of this vector is described as follows : 
+The computation of this vector is described as follows :
 \begin{enumerate}
 \item First we solve the linear system $G_X \,a_i= e_i$ by solving $L_X\,z_2= e_i$ for $z_2$ by forward substitution
 \item Finally we solve the linear system $L_X^T\,a_i=z_2$ for $a_i$ by backward substitution.
@@ -335,13 +286,13 @@ The computation of this vector is described as follows :
 \KwData{ $S_{min}=$ \texttt{\color{blue}{minimalIndices}}, $S_0=$ \texttt{\color{blue}{startIndices}} , $S_{max}$  }
 \BlankLine
 Initialization : $S^* = S_0$ , $X = (x^k)_{k \in S^*}=\,$\texttt{\color{blue}{currentX\_}} , $Y=\,$\texttt{\color{blue}{Y\_}}  , $n_{iter} = 0 $ , $X_{max} =$ \texttt{\color{blue}{maxX\_}}  \\
-\BlankLine 
+\BlankLine
 \While{ $n_{iter} < $  \texttt{\color{blue}{maxiter\_}}  }{
-\BlankLine 
+\BlankLine
 We compute $J^* = \log L(\hat{\beta},\hat{\sigma}\mid Y)$ using  \texttt{\color{blue}{computeLogLikelihood()}}
 which compute the Cholesky decomposition of the Gram matrix $G_X=X^T\,X$ : $L_X  \,/\, L_X\,L_X^T\,=\,G_X$.\\
 Initialization : $J^i = -\infty$, $J^{i'} = -\infty$,  $ L_X=\,$\texttt{\color{blue}{currentCholeskyFactor\_}}, $B_X = X^T \,Y=\,$\texttt{\color{blue}{currentB\_}}\\
-\BlankLine 
+\BlankLine
 \If{$($ \texttt{\color{blue}{direction\_}}   $\in \big\{$ FORWARD,BOTH $\big\})$}{
 We compute the $(n)$ vector : $ Y-\hat{Y}= Y-X\,\big(L_X \, L_X^T\big)^{-1}\,X^T\,Y $ by solving two linear systems \\
 $ [\,F_i\,,\,i\,] =$  \texttt{\color{blue}{computeUpdateForward}}$(S_{max} \backslash S^*,X,X_{max},L_X,Y-\hat{Y}) $\\
@@ -356,7 +307,7 @@ $ J^{i} = -\frac{n}{2}\big(\log(2\pi)+ \log(\frac{1}{n}F_{{i}} )+1\big)$
 	$S^* =S^* \,\cup \,  i $
 }
 \Else{
-$S^* =S^* \,\backslash \,  i' $  
+$S^* =S^* \,\backslash \,  i' $
 }
 $X = (x^k)_{k \in S^*} $
 }
@@ -367,8 +318,8 @@ $n_{iter} = n_{iter} + 1$
 }
 We update $L_X=$\texttt{\color{blue}{currentCholeskyFactor\_}}, $B_X=$\texttt{\color{blue}{currentB\_}} using \texttt{\color{blue}{computeLogLikelihood()}} \\
 We compute the $(p)$ vector : $\hat{\beta}= \big(L_X \, L_X^T\big)^{-1}\,B_X $ by solving two linear systems \\
-We compute the $(n)$ vectors : $\hat{Y}=X\,\hat{\beta} \,, \,\hat{\varepsilon}=Y-\hat{Y}$ 
-and the scalar $\hat{\sigma}^2 = \frac{1}{n} \,\hat{\varepsilon}^T\,\hat{\varepsilon}$  \\ 
+We compute the $(n)$ vectors : $\hat{Y}=X\,\hat{\beta} \,, \,\hat{\varepsilon}=Y-\hat{Y}$
+and the scalar $\hat{\sigma}^2 = \frac{1}{n} \,\hat{\varepsilon}^T\,\hat{\varepsilon}$  \\
 We compute the scalar : $H_{i,i} = x_i^T\,\big(L_X \, L_X^T\big)^{-1}\,x_i$  by solving two linear systems \\
 We construct \texttt{LinearModelResult} with parameters : $(X,Y,\hat{\varepsilon})$.
 \caption{Stepwise method algorithm }
@@ -378,8 +329,8 @@ We construct \texttt{LinearModelResult} with parameters : $(X,Y,\hat{\varepsilon
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{\texttt{ComputeUpdateForward} algorithm}
 
- The function \texttt{ComputeUpdateForward} compute the least square of the residual term $(Y-H_{+i}\,Y)$ using equation (\ref{defH+Y}). 
- The \texttt{ComputeUpdateForward} algorithm (\ref{ComputeUpdateForward_algo}) is the following : 
+ The function \texttt{ComputeUpdateForward} compute the least square of the residual term $(Y-H_{+i}\,Y)$ using equation (\ref{defH+Y}).
+ The \texttt{ComputeUpdateForward} algorithm (\ref{ComputeUpdateForward_algo}) is the following :
 
 %\IncMargin{2em}
 \begin{algorithm}
@@ -407,7 +358,7 @@ $F_i\,=\, F_j$ and $i=j$
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{\texttt{ComputeUpdateBackward} algorithm}
 
-The function \texttt{ComputeUpdateBackward} compute the least square of the residual term  $(Y-H_{-i}\,Y)$ using equation (\ref{defH-Y}). 
+The function \texttt{ComputeUpdateBackward} compute the least square of the residual term  $(Y-H_{-i}\,Y)$ using equation (\ref{defH-Y}).
  The \texttt{ComputeUpdateBackward} algorithm (\ref{ComputeUpdateBackward_algo}) is the following :
 
 
@@ -425,7 +376,7 @@ Initialisation : $F_{i'} = -\infty$
 \BlankLine
 We compute the $(p)$ vector : $ d_{j} =\,\big(L_X \, L_X^T\big)^{-1}\,\big[B_X\big]_{j=0}$ by solving two linear systems\\
 We compute the $(p)$ vector : $ a_{j} =\,\big(L_X \, L_X^T\big)^{-1}\,e_{j}$ by solving two linear systems\\
-We compute the $(n)$ vector : $ Y- H_{-i}\,Y 
+We compute the $(n)$ vector : $ Y- H_{-i}\,Y
 \,=\,Y- \,X\,  \big(\,d_{j} \,-\,\frac {{(d_{j}})_j}{(a_{j})_j}\,a_{j}\,\big)\,\,  $\\
 We compute the scalar : $F_j \hat{=}\|\,Y-H_{-}\,Y\,\|^2_2 $\\
 \If{$F_j \, > \, F_{i'} $ }{
@@ -446,11 +397,11 @@ OpenTURNS requires :
 
 \requirements{
   \begin{description}
-  \item[$\bullet$]  : {\itshape inputSample}, 2-d sequence of float of dimension $(n\times p ) > (1,1)$.
+  \item[$\bullet$]: {\itshape inputSample}, 2-d sequence of float of dimension $(n\times p ) > (1,1)$.
   \item[type:] NumericalSample
-  \item[$\bullet$]  : {\itshape outputSample}, 2-d sequence of float of dimension $n>1$. 
+  \item[$\bullet$]: {\itshape outputSample}, 2-d sequence of float of dimension $n>1$.
   \item[type:] NumericalSample \\
-  \item[$\bullet$]  : {\itshape minimalIndices}, 1-d sequence of int Indices of minimal model
+  \item[$\bullet$]: {\itshape minimalIndices}, 1-d sequence of int Indices of minimal model
   \item[type:] Indices\\
  \item[$\bullet$] : {\itshape startIndices}, 1-d sequence of int Indices of starting model
  \item[type:] Indices \\
