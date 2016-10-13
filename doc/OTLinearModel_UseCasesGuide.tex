@@ -46,7 +46,8 @@ We define $H_{+i} $ the $(n\times n)$ projection matrix by :
 \label{H+}
 H_{+i}\, \,\hat{=} \, X_{+i}\,\big(X^T_{+i} \,X_{+i}\big)^{-1} \,X^T_{+i}
  \end{equation}
-The Forward selection algorithm (\ref{Forward_algo}) is the following :
+The Forward selection algorithm is listed on Algorithm~\ref{Forward_algo}.
+
 %\IncMargin{3em}
 \begin{algorithm}
 \label{Forward_algo}
@@ -68,16 +69,15 @@ $n_{iter} = n_{iter} + 1$
 \caption{Forward selection algorithm }
 \end{algorithm}
 
-Using equation (\ref{maxLogLikelihood}), we have :
+Note that using equation (\ref{maxLogLikelihood}), we have :
  \begin{equation}
 \arg   \displaystyle\max_{j \in S_{max} \backslash S^*}\,  \log L(\hat{\beta}_{+j},\hat{\sigma}_{+j}\mid Y) =
 \arg \displaystyle\min_{j \in S_{max} \backslash S^*}\, \|\,Y-H_{+j}\,Y\,\|^2_2  \,\,
  \end{equation}
- Consequently to find the best variable to add we can consider the least square of the residual term $:Y-H_{+i}\,Y$.
+Consequently to find the best variable to add we can consider the least square of the residual term $:Y-H_{+i}\,Y$.
 
 
 
-\newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Backward selection}
 This method starts with all candidate variables
@@ -95,7 +95,7 @@ We define $H_{-i}$ the $(n\times n)$ projection matrix by :
 \label{H-}
 H_{-i}\, \,\hat{=}\, X_{-i}\,\big(X^T_{-i} \,X_{-i}\big)^{-1} \,X^T_{-i}
  \end{equation}
-The Backward selection algorithm (\ref{Backward_algo}) is the following :
+The Backward selection algorithm is listed on Algorithm~\ref{Backward_algo}.
 %\IncMargin{3em}
 \begin{algorithm}
 \label{Backward_algo}
@@ -122,9 +122,8 @@ Using equation (\ref{maxLogLikelihood}), we have :
  \arg   \displaystyle\max_{j \in S^*\backslash S_{min}}\,  \log L(\hat{\beta}_{-j},\hat{\sigma}_{-j}\mid Y) =
 \arg \displaystyle\min_{j \in S^*\backslash S_{min}}\, \|\,Y-H_{-j}\,Y\,\|^2_2  \,\,
  \end{equation}
- Consequently to find the best variable to delete we can consider the least square of the residual term $:Y-H_{-i}\,Y$.
+Consequently to find the best variable to delete we can consider the least square of the residual term $:Y-H_{-i}\,Y$.
 
-\newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Bidirectional selection}
 
@@ -246,8 +245,8 @@ H_{-i}\, \,\hat{=}\, X_{-i}\,\big(X^T_{-i} \,X_{-i}\big)^{-1} \,X^T_{-i}
 where $A_{-i,-i}$ represents the matrix $A$ without row $i$ and column $i$,
 $A_{-i,i}$ represents the column $i$ of the matrix $A$ without row $i$ and $A_{i,i}$ represents the diagonal term $i$ of the matrix $A$.\\
 
-In a numerical point of view, we want to use the matrix $A_X$ in the equation (\ref{H2-}) without creating the matrix $A_{-i }$.
-Then we define $X_{i=0}$ the matrix $X$ with the column $i$ equal to $0$, and $\forall B \in \mathbb{R}^p$ we note $\big[B\big]_{i=0}$ the row $i$ of $B$ equal to $0$.
+In order to avoid matrix copies, we want to use the matrix $A_X$ in the equation (\ref{H2-}) without creating matrices $A_{-i }$.
+To this end, we define $X_{i=0}$ a matrix $X$ whose column $i$ contains only $0$, and $\forall B \in \mathbb{R}^p$ we note $\big[B\big]_{i=0}$ a copy of $B$ which has its $i$-th row equals to $0$.
 We get : $\forall b \in \mathbb{R}^n\,,\, \forall c \in \mathbb{R}^p $
  \begin{equation}
 \label{notation0}
@@ -398,50 +397,3 @@ $F_{i'}\,=\, F_j$ and ${i'}=j$
 \Return{ $F_{i'}$ and ${i'}$}
 \caption{\texttt{ComputeUpdateBackward}}
 \end{algorithm}
-
-
-
-User can refer to docstrings for more details.
-
-OpenTURNS requires :
-
-
-
-\requirements{
-  \begin{description}
-  \item[$\bullet$]: {\itshape inputSample}, 2-d sequence of float of dimension $(n\times p ) > (1,1)$.
-  \item[type:] NumericalSample
-  \item[$\bullet$]: {\itshape outputSample}, 2-d sequence of float of dimension $n>1$.
-  \item[type:] NumericalSample \\
-  \item[$\bullet$]: {\itshape minimalIndices}, 1-d sequence of int Indices of minimal model
-  \item[type:] Indices\\
- \item[$\bullet$] : {\itshape startIndices}, 1-d sequence of int Indices of starting model
- \item[type:] Indices \\
- \end{description}
-}
-{
-  \begin{description}
-  \item[$\bullet$] The linear model built from the samples $(inputSample,outputSample)$
-  \item[type:] linearModelResult
-  \end{description}
-}
-
-Python script for the UseCase :
-
-\begin{lstlisting}
-import openturns as ot
-
-ot.RandomGenerator.SetSeed(0)
-distribution = ot.Normal()
-Xsample = distribution.getSample(30)
-func = ot.NumericalMathFunction('x', '2*x+1')
-Ysample = func(Xsample) + ot.Normal().getSample(30)
-LMF = ot.LinearModelStepwiseFactory()
-LMF.add(LMF.getPolynomial(1))
-i_min = LMF.getIndices(["1"])
-linearModelResult = LMF.build(Xsample, Ysample, i_min)
-
-\end{lstlisting}
-
-
-
