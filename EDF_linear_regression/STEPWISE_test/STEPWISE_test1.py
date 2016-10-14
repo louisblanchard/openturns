@@ -23,12 +23,27 @@ penalty_AIC = 2.
 maxiteration = 1000
 
 # Build a model Y~(X1+X2+X3+X4)^3+I(Xi)^2+I(Xi)^3
+
+#---------------- Forward / Backward------------------- 
 #   X: input sample
+#   basis : Basis
 #   Y: output sample
-#   direction: +1 FORWARD, 0 BOTH, -1 BACKWARD
+#   i_min:  indices of minimal model
+#   direction: Boolean (True FORWARD, False BACKWARD)
 #   penalty: multiplier of number of degrees of freedom
 #   maxiteration: maximum number of iterations
-algo = ot.LinearModelStepwiseAlgorithm(X, Y, 0, penalty_BIC, maxiteration)
+
+#---------------- Both------------------- 
+#   X: input sample
+#   basis : Basis
+#   Y: output sample
+#   i_min : indices of minimal model
+#   i_0   : indices of start model
+#   penalty: multiplier of number of degrees of freedom
+#   maxiteration: maximum number of iterations
+
+# todo : define basis 
+
 # (X1+X2+X3+X4)^3
 algo.addInteractions(3)
 
@@ -38,43 +53,22 @@ algo.addPower(2)
 # I(Xi)^3
 algo.addPower(3)
 
+i_min = algo.getIndices(algo.getInteractions(0))
+
 # To add some user-defined columns, it is also possible to pass
 # a NumericalSample, for instance:
 #   expI = ot.NumericalSample(np.exp(X))
 #   expI.setDescription(["exp(x1)", "exp(x2)", "exp(x3)", "exp(x4)"])
 #   algo.add(expI)
 
-i_min = algo.getIndices(algo.getInteractions(0))
-algo.setMinimalIndices(i_min)
+for k in [penalty_AIC, penalty_BIC]:
+  ## Forward / Backward
+  for forward in [True, False]
+    algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, forward, k, maxiteration)
+    algo_result = algo.getResult()
+    algo_result.printANOVAtable()
+  ## Both
+  algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, i_0, k, maxiteration)
+  algo_result = algo.getResult()
+  algo_result.printANOVAtable()
 
-## Forward
-algo.setDirection(1)
-algo.setPenalty(penalty_AIC)
-lm_forward_AIC_result = algo.getResult()
-algo.setPenalty(penalty_BIC)
-lm_forward_BIC_result = algo.getResult()
-
-## Backward
-algo.setDirection(-1)
-algo.setPenalty(penalty_AIC)
-lm_backward_AIC_result = algo.getResult()
-algo.setPenalty(penalty_BIC)
-lm_backward_BIC_result = algo.getResult()
-
-## Both
-algo.setDirection(0)
-algo.setPenalty(penalty_AIC)
-i_0 = algo.getIndices(algo.getInteractions(1))
-algo.setStartIndices(i_0)
-lm_both_AIC_result = algo.getResult()
-algo.setPenalty(penalty_BIC)
-lm_both_BIC_result = algo.getResult()
-
-lm_forward_AIC_result.printANOVAtable()
-lm_forward_BIC_result.printANOVAtable()
-
-lm_backward_AIC_result.printANOVAtable()
-lm_backward_BIC_result.printANOVAtable()
-
-lm_both_AIC_result.printANOVAtable()
-lm_both_BIC_result.printANOVAtable()
