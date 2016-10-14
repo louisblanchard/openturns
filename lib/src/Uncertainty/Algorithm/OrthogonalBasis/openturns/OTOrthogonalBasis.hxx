@@ -35,6 +35,7 @@
 #include "openturns/LaguerreFactory.hxx"
 #include "openturns/LegendreFactory.hxx"
 #include "openturns/MeixnerFactory.hxx"
+#include "openturns/MonomialFactory.hxx"
 #include "openturns/OrthogonalBasis.hxx"
 #include "openturns/OrthogonalFunctionFactory.hxx"
 #include "openturns/OrthogonalProductPolynomialFactory.hxx"

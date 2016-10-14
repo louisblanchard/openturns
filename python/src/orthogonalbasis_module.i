@@ -38,6 +38,7 @@
 %include LegendreFactory.i
 %include HistogramPolynomialFactory.i
 %include MeixnerFactory.i
+%include MonomialFactory.i
 %include OrthogonalUniVariatePolynomialFamily.i
 %include OrthonormalizationAlgorithmImplementation.i
 %include OrthonormalizationAlgorithm.i
