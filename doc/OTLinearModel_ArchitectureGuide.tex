@@ -193,7 +193,7 @@ We compute $J^* = \log L(\hat{\beta},\hat{\sigma}\mid Y)$  \\
 \While{ $n_{iter} <  \texttt{\color{black}{maxIter\_}} $  }{
  We compute $J^i = \log L(\hat{\beta}_{+i},\hat{\sigma}_{+i}\mid Y)$
 where $\boxed{\,i = \displaystyle\arg \max_{j \in S_{max} \backslash S^*}\,\log L(\hat{\beta}_{+j},\hat{\sigma}_{+j}\mid Y) \,}  $\\
-\uIf{$(J^i+$ \texttt{\color{black}{penalty\_}} $ > J^*) $ }{
+\uIf{$(J^i+$ \texttt{\color{black}{penalty\_}} $ < J^*) $ }{
 $S^* =S^* \, \cup\,  i $\\
  $J^* = J^i$
 }
@@ -241,7 +241,7 @@ We compute $J^* = \log L(\hat{\beta},\hat{\sigma}\mid Y)$  \\
 \While{ $n_{iter} <  \texttt{\color{black}{maxIter\_}} $  }{
  We compute $J^i = \log L(\hat{\beta}_{-i},\hat{\sigma}_{-i}\mid Y)$
 where $\boxed{\,i = \displaystyle\arg \max_{j \in S^*\backslash S_{min}}\,\log L(\hat{\beta}_{-j},\hat{\sigma}_{-j}\mid Y) \,}  $\\
-\uIf{$(J^i-$ \texttt{\color{black}{penalty\_}} $ > J^*) $ }{
+\uIf{$(J^i-$ \texttt{\color{black}{penalty\_}} $ < J^*) $ }{
 $S^* =S^* \, \backslash\,  i $\\
  $J^* = J^i$
 }
@@ -282,8 +282,8 @@ where $\boxed{\,i = \displaystyle\arg \max_{j \in S_{max} \backslash S^*}\,\log 
  We compute $J^{i'} = \log L(\hat{\beta}_{-i},\hat{\sigma}_{-i}\mid Y)$
 where $\boxed{\,i' = \displaystyle\arg \max_{j \in S^*\backslash S_{min}}\,\log L(\hat{\beta}_{-j},\hat{\sigma}_{-j}\mid Y) \,}  $\\
 
-\uIf{$(J^i+$ \texttt{\color{black}{penalty\_}} $ > J^*) $ {\bf or} $(J^{i'}-$ \texttt{\color{black}{penalty\_}} $> J^*)$}{
-\uIf{$(J^i+$ \texttt{\color{black}{penalty\_}} $) >(J^{i'}-$\texttt{\color{black}{penalty\_}} $)$  }{
+\uIf{$(J^i+$ \texttt{\color{black}{penalty\_}} $ < J^*) $ {\bf or} $(J^{i'}-$ \texttt{\color{black}{penalty\_}} $< J^*)$}{
+\uIf{$(J^i+$ \texttt{\color{black}{penalty\_}} $) <(J^{i'}-$\texttt{\color{black}{penalty\_}} $)$  }{
 	$S^* =S^* \,\cup \,  i $\\
 	$J^* = J^{i}$
 }
@@ -445,19 +445,19 @@ Initialization: $S^* = S_0$ , $X = (x^k)_{k \in S^*}=\,$\texttt{\color{blue}{cur
 \BlankLine
 We compute $J^* = \log L(\hat{\beta},\hat{\sigma}\mid Y)$ using  \texttt{\color{blue}{computeLogLikelihood()}}
 which compute the Cholesky decomposition of the Gram matrix $G_X=X^T\,X$ : $L_X  \,/\, L_X\,L_X^T\,=\,G_X$.\\
-Initialization: $J^i = -\infty$, $J^{i'} = -\infty$,  $ L_X=\,$\texttt{\color{blue}{currentCholeskyFactor\_}}, $B_X = X^T \,Y=\,$\texttt{\color{blue}{currentB\_}}\\
+Initialization: $J^i = +\infty$, $J^{i'} = +\infty$,  $ L_X=\,$\texttt{\color{blue}{currentCholeskyFactor\_}}, $B_X = X^T \,Y=\,$\texttt{\color{blue}{currentB\_}}\\
 \BlankLine
 \If{$($ \texttt{\color{blue}{direction\_}}   $\in \big\{$ FORWARD,BOTH $\big\})$}{
 We compute the $(n)$ vector: $ Y-\hat{Y}= Y-X\,\big(L_X \, L_X^T\big)^{-1}\,X^T\,Y $ by solving two linear systems \\
 $ [\,F_i\,,\,i\,] =$  \texttt{\color{blue}{computeUpdateForward}}$(S_{max} \backslash S^*,X,X_{max},L_X,Y-\hat{Y}) $\\
-$ J^{i} = -\frac{n}{2}\big(\log(2\pi)+ \log(\frac{1}{n}F_{{i}} )+1\big)$
+$ J^{i} = n\, \log(\frac{1}{n}F_{{i}})$
 }
 \If{$($ \texttt{\color{blue}{direction\_}}   $\in \big\{$ BACKWARD,BOTH $\big\})$}{
 	$ [\,F_{i'}\,,\,{i'}\,] =$ \texttt{\color{blue}{computeUpdateBackward}}$(S^*\backslash S_{min},X,Y,L_X,B_X) $\\
-	$ J^{i'} = -\frac{n}{2}\big(\log(2\pi)+ \log(\frac{1}{n}F_{{i'}} )+1\big)$
+	$ J^{i'} = n\, \log(\frac{1}{n}F_{{i'}})$
 }
-\uIf{$(J^i+$ \texttt{\color{blue}{penalty\_}} $ > J^*) $ {\bf or} $(J^{i'}-$ \texttt{\color{blue}{penalty\_}} $> J^*)$}{
-\uIf{$(J^i+$ \texttt{\color{blue}{penalty\_}} $) >(J^{i'}-$\texttt{\color{blue}{penalty\_}} $)$  }{
+\uIf{$(J^i+$ \texttt{\color{blue}{penalty\_}} $ < J^*) $ {\bf or} $(J^{i'}-$ \texttt{\color{blue}{penalty\_}} $< J^*)$}{
+\uIf{$(J^i+$ \texttt{\color{blue}{penalty\_}} $) <(J^{i'}-$\texttt{\color{blue}{penalty\_}} $)$  }{
 	$S^* =S^* \,\cup \,  i $
 }
 \Else{
@@ -494,14 +494,14 @@ We construct \texttt{LinearModelResult} with parameters: $(X,Y,\hat{\varepsilon}
 \Input{$(n \times p)$ matrix: \texttt{\color{blue}{X\_}} $\, =X\,$, $(n \times m)$ matrix: \texttt{\color{blue}{Xmax\_}}$\,= X_{max}\,$  }
 \Input{$(n\times p)$ matrix: \texttt{\color{blue}{L\_}}$\,=L_X\,$, $(n)$ vector: \texttt{\color{blue}{epsilon\_}} $\,=Y-\hat{Y}\,$   }
 \BlankLine
-Initialisation: $F_i = -\infty$
+Initialisation: $F_i = +\infty$
 \BlankLine
 \For{($j \in S_{max} \backslash S^* $)}{
 \BlankLine
 We compute the $(n)$ vector: $d_{j}-x_j = X\,\big(L_X \, L_X^T\big)^{-1}\, X^T\,x_j -x_j $ by solving two linear systems \\
 We compute the $(n)$ vector: $ Y-H_{+j}\,Y = Y-\hat{Y} -\frac{x_j^T\,(Y -\hat{Y})}{x_j^T\,(d_{j}-x_j )} \big(d_{j}-x_j \big)\,\, $\\
 We compute the scalar: $F_j \hat{=}\|\,Y-H_{+j}\,Y\,\|^2_2 $\\
-\If{$F_j \, > \, F_i $ }{
+\If{$F_j \, < \, F_i $ }{
 $F_i\,=\, F_j$ and $i=j$
 }
 }
@@ -524,7 +524,7 @@ The function \texttt{ComputeUpdateBackward} compute the least square of the resi
 \Input{$(n \times p)$ matrix: \texttt{\color{blue}{X\_}} $\, =X\, $,  $(n)$ vector: \texttt{\color{blue}{Y\_}} $=Y\,$ }
 \Input{$(p \times p)$ matrix: \texttt{\color{blue}{L\_}}  $\, =L_X\, $,$(p)$ vector: \texttt{\color{blue}{B\_}}$\, =B_X\,$  }
 \BlankLine
-Initialisation: $F_{i'} = -\infty$
+Initialisation: $F_{i'} = +\infty$
 \BlankLine
 \For{($j \in  S^*\backslash S_{min}$)}{
 \BlankLine
@@ -533,7 +533,7 @@ We compute the $(p)$ vector: $ a_{j} =\,\big(L_X \, L_X^T\big)^{-1}\,e_{j}$ by s
 We compute the $(n)$ vector: $ Y- H_{-i}\,Y
 \,=\,Y- \,X\,  \big(\,d_{j} \,-\,\frac {{(d_{j}})_j}{(a_{j})_j}\,a_{j}\,\big)\,\,  $\\
 We compute the scalar: $F_j \hat{=}\|\,Y-H_{-}\,Y\,\|^2_2 $\\
-\If{$F_j \, > \, F_{i'} $ }{
+\If{$F_j \, < \, F_{i'} $ }{
 $F_{i'}\,=\, F_j$ and ${i'}=j$
 }
 }
