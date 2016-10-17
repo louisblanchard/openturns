@@ -555,6 +555,7 @@ void LinearModelStepwiseAlgorithm::run()
   NumericalPoint residual(size);
   memcpy(&residual[0], &currentResidual_(0, 0), sizeof(NumericalScalar)*size);
   // result_ = LinearModelResult(inputSample_, outputSample_, LinearModel(regression), residual, residual);
+  // result_.setFormula(getFormula())
   hasRun_ = true;
 }
 

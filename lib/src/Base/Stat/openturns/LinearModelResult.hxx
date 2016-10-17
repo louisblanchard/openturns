@@ -24,7 +24,6 @@
 #include "openturns/MetaModelResult.hxx"
 #include "openturns/LinearModel.hxx"
 #include "openturns/NumericalSample.hxx"
-#include "openturns/Graph.hxx"
 
 
 BEGIN_NAMESPACE_OPENTURNS
@@ -66,53 +65,17 @@ public:
   /** Linear model accessor */
   LinearModel getLinearModel() const;
 
-  /** Number of degrees of freedom */
-  UnsignedInteger getDegreesOfFreedom() const;
+  /** Condensed formula accessor */
+  String getFormula() const;
 
-  /** Adjusted R-squared test */
-  TestResult getAdjustedRSquared() const;
-
-  /** R-squared test */
-  TestResult getRSquared() const;
-
-  /** Fisher test */
-  TestResult getFisherTest() const;
-
-  /** Kolmogorov-Smirnov normality test */
-  TestResult getKolmogorovSmirnovTest() const;
-
-  /** Anderson-Darling normality test */
-  TestResult getAndersonDarlingTest() const;
-
-  /** Chi-Squared normality test */
-  TestResult getChiSquaredTest() const;
+  /** set Condensed formula */ 
+  void setFormula(const String formula);
 
   /** Method save() stores the object through the StorageManager */
   void save(Advocate & adv) const;
 
   /** Method load() reloads the object from the StorageManager */
   void load(Advocate & adv);
-
-  /** Method that returns the ANOVA table (ANalyse Of VAriance) */
-  void printANOVAtable() const;
-
-  /** [1] Draw a plot of residuals versus fitted values  */
-  Graph drawResidualsVsFitted() const;
-
-  /** [2] a Scale-Location plot of sqrt(| residuals |) versus fitted values */
-  Graph drawScaleLocation() const;
-
-  /** [3] a Normal quantiles-quantiles plot of standardized residuals */
-  Graph drawQQplot() const;
-
-  /** [4] a plot of Cook's distances versus row labels */
-  Graph drawCookDistance() const;
-
-  /** [5] a plot of residuals versus leverages that adds bands corresponding to Cook's distances of 0.5 and 1. */
-  Graph drawResidualsVsLeverages() const;
-
-  /** [6] a plot of Cook's distances versus leverage/(1-leverage) */
-  Graph drawCookVsLeverages() const;
 
 private:
 
@@ -124,6 +87,12 @@ private:
 
   /** linear model */
   LinearModel linearModel_;
+
+  /** Cook's distances */
+  NumericalSample CookDistances_;
+
+  /** The formula description */
+  String condensedFormula_;
 
 
 } ; /* class LinearModelResult */

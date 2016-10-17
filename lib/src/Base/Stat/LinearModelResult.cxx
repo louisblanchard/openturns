@@ -86,90 +86,15 @@ NumericalSample LinearModelResult::getOutputSample() const
   return outputSample_;
 }
 
-
-/* Number of degrees of freedom */
-UnsignedInteger LinearModelResult::getDegreesOfFreedom() const
+/* Formula accessor */
+String LinearModelResult::getFormula() const
 {
-  throw NotYetImplementedException(HERE);
+  return condensedFormula_;
 }
 
-/* Adjusted R-squared test */
-TestResult LinearModelResult::getAdjustedRSquared() const
+void LinearModelResult::setFormula(const String formula)
 {
-  throw NotYetImplementedException(HERE);
-}
-
-/* R-squared test */
-TestResult LinearModelResult::getRSquared() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-/* Fisher test */
-TestResult LinearModelResult::getFisherTest() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-/* Kolmogorov-Smirnov normality test */
-TestResult LinearModelResult::getKolmogorovSmirnovTest() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-/* Anderson-Darling normality test */
-TestResult LinearModelResult::getAndersonDarlingTest() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-/* Chi-Squared normality test */
-TestResult LinearModelResult::getChiSquaredTest() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-/* Method that returns the ANOVA table (ANalyse Of VAriance) */
-void LinearModelResult::printANOVAtable() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-
-/* [1] Draw a plot of residuals versus fitted values */
-Graph LinearModelResult::drawResidualsVsFitted() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-/* [2] a Scale-Location plot of sqrt(| residuals |) versus fitted values */
-Graph LinearModelResult::drawScaleLocation() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-/* [3] a Normal quantiles-quantiles plot of standardized residuals */
-Graph LinearModelResult::drawQQplot() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-/* [4] a plot of Cook's distances versus row labels */
-Graph LinearModelResult::drawCookDistance() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-/* [5] a plot of residuals versus leverages that adds bands corresponding to Cook's distances of 0.5 and 1. */
-Graph LinearModelResult::drawResidualsVsLeverages() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-/* [6] a plot of Cook's distances versus leverage/(1-leverage) */
-Graph LinearModelResult::drawCookVsLeverages() const
-{
-  throw NotYetImplementedException(HERE);
+  condensedFormula_ = formula;
 }
 
 /* Method save() stores the object through the StorageManager */
