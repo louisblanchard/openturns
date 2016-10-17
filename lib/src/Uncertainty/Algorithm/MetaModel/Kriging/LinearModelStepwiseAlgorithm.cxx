@@ -37,7 +37,7 @@ CLASSNAMEINIT(LinearModelStepwiseAlgorithm);
 /* Default constructor */
 LinearModelStepwiseAlgorithm::LinearModelStepwiseAlgorithm()
   : PersistentObject()
-  , direction_(BOTH)
+  , direction_(FORWARD)
   , penalty_(-1.0)
   , maximumIterationNumber_(1000)
   , hasRun_(false)
@@ -49,18 +49,20 @@ LinearModelStepwiseAlgorithm::LinearModelStepwiseAlgorithm()
   condensedFormula_ =  one.__str__();
 }
 
-/* Parameters constructor */
+/* Parameters constructor FORWARD and BACKWARD */
 LinearModelStepwiseAlgorithm::LinearModelStepwiseAlgorithm(const NumericalSample & inputSample,
                                                            const Basis & basis,
                                                            const NumericalSample & outputSample,
-                                                           const SignedInteger direction,
+                                                           const Indices & minimalIndices,
+                                                           const Bool isForward,
                                                            const NumericalScalar penalty,
                                                            const UnsignedInteger maximumIterationNumber)
   : PersistentObject()
   , inputSample_(inputSample)
   , basis_(basis)
   , outputSample_(outputSample)
-  , direction_(static_cast<LinearModelStepwiseAlgorithm::Direction>(direction))
+  , minimalIndices_(minimalIndices)
+  , direction_(isForward ? FORWARD : BACKWARD)
   , penalty_(penalty)
   , maximumIterationNumber_(maximumIterationNumber)
   , hasRun_(false)
@@ -68,6 +70,27 @@ LinearModelStepwiseAlgorithm::LinearModelStepwiseAlgorithm(const NumericalSample
   condensedFormula_ =  basis_.__str__();
 }
 
+/* Parameters constructor BOTH */
+LinearModelStepwiseAlgorithm::LinearModelStepwiseAlgorithm(const NumericalSample & inputSample,
+                                                           const Basis & basis,
+                                                           const NumericalSample & outputSample,
+                                                           const Indices & minimalIndices,
+                                                           const Indices & startIndices,
+                                                           const NumericalScalar penalty,
+                                                           const UnsignedInteger maximumIterationNumber)
+  : PersistentObject()
+  , inputSample_(inputSample)
+  , basis_(basis)
+  , outputSample_(outputSample)
+  , minimalIndices_(minimalIndices)
+  , startIndices_(startIndices)
+  , penalty_(penalty)
+  , maximumIterationNumber_(maximumIterationNumber)
+  , hasRun_(false)
+  , direction_(BOTH)
+{
+  condensedFormula_ =  basis_.__str__();
+}
 
 /* Virtual constructor */
 LinearModelStepwiseAlgorithm * LinearModelStepwiseAlgorithm::clone() const
@@ -119,49 +142,16 @@ LinearModelStepwiseAlgorithm::Direction LinearModelStepwiseAlgorithm::getDirecti
   return direction_;
 }
 
-/* Set direction of the stepwise regression method */
-void LinearModelStepwiseAlgorithm::setDirection(const SignedInteger direction)
-{
-  switch(direction)
-  {
-    case -1:
-      direction_ = BACKWARD;
-      break;
-    case 0:
-      direction_ = BOTH;
-      break;
-    case 1:
-      direction_ = FORWARD;
-      break;
-    default:
-      throw InvalidArgumentException(HERE) << "Invalid direction argument: " << direction;
-  }
-  hasRun_ = false;
-}
-
-
 /* Penalty accessors */
 NumericalScalar LinearModelStepwiseAlgorithm::getPenalty() const
 {
   return penalty_;
 }
 
-void LinearModelStepwiseAlgorithm::setPenalty(const NumericalScalar penalty)
-{
-  penalty_ = penalty;
-  hasRun_ = false;
-}
-
 /* Maximum number of iterations accessors */
 UnsignedInteger LinearModelStepwiseAlgorithm::getMaximumIterationNumber() const
 {
   return maximumIterationNumber_;
-}
-
-void LinearModelStepwiseAlgorithm::setMaximumIterationNumber(const UnsignedInteger maximumIterationNumber)
-{
-  maximumIterationNumber_ = maximumIterationNumber;
-  hasRun_ = false;
 }
 
 /* Formula accessor */
@@ -191,20 +181,6 @@ Indices LinearModelStepwiseAlgorithm::getIndices(const Basis & formulas) const
     }
   }
   return result;
-}
-
-/* Set indices of minimal model */
-void LinearModelStepwiseAlgorithm::setMinimalIndices(const Indices & minimalIndices)
-{
-  minimalIndices_ = minimalIndices;
-  hasRun_ = false;
-}
-
-/* Set indices of start model */
-void LinearModelStepwiseAlgorithm::setStartIndices(const Indices & startIndices)
-{
-  startIndices_ = startIndices;
-  hasRun_ = false;
 }
 
 

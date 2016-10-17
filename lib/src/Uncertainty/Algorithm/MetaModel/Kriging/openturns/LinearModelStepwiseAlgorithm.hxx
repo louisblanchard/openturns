@@ -49,11 +49,21 @@ public:
   /** Default constructor */
   LinearModelStepwiseAlgorithm();
 
-  /** Parameters constructor */
+  /** Parameters constructor FORWARD and BACKWARD */
   LinearModelStepwiseAlgorithm(const NumericalSample & inputSample,
                                const Basis & basis,
                                const NumericalSample & outputSample,
-                               const SignedInteger direction = BOTH,
+                               const Indices & minimalIndices,
+                               const Bool isForward = true,
+                               const NumericalScalar penalty = -1.0 /* < 0 means BIC, by convention */,
+                               const UnsignedInteger maximumIterationNumber = 1000);
+
+  /** Parameters constructor BOTH */
+  LinearModelStepwiseAlgorithm(const NumericalSample & inputSample,
+                               const Basis & basis,
+                               const NumericalSample & outputSample,
+                               const Indices & minimalIndices,
+                               const Indices & startIndices,
                                const NumericalScalar penalty = -1.0 /* < 0 means BIC, by convention */,
                                const UnsignedInteger maximumIterationNumber = 1000);
 
@@ -70,27 +80,18 @@ public:
 
   /** Direction accessors */
   Direction getDirection() const;
-  void setDirection(const SignedInteger direction);
 
   /** Penalty accessors */
   NumericalScalar getPenalty() const;
-  void setPenalty(const NumericalScalar penalty);
 
   /** Maximum number of iterations accessors */
   UnsignedInteger getMaximumIterationNumber() const;
-  void setMaximumIterationNumber(const UnsignedInteger maximumIterationNumber);
 
   /** Condensed formula accessor */
   String getFormula() const;
 
   /** Get column indices of given formulas */
   Indices getIndices(const Basis & formulas) const;
-
-  /** Set indices of minimal model */
-  void setMinimalIndices(const Indices & minimalIndices);
-
-  /** Set indices of start model */
-  void setStartIndices(const Indices & startIndices);
 
   /** Perform regression */
   void run();

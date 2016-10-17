@@ -18,11 +18,37 @@ myLinearModel = ot.NumericalMathFunction(['x1', 'x2', 'x3', 'x4'], ['y'],
 Y = myLinearModel(X) + R
 print(Y)
 
-penalty_BIC = log(X.getSize())
-penalty_AIC = 2.
-maxiteration = 1000
-
+################################################################################################
 # Build a model Y~(X1+X2+X3+X4)^3+I(Xi)^2+I(Xi)^3
+dim = X.getDimension()
+enumerateFunction = ot.EnumerateFunction(dim)
+factory = ot.OrthogonalProductPolynomialFactory([ot.MonomialFactory()]*dim, enumerateFunction)
+
+# Build 'interactions' as a list of list [a1,a2,a3,a4], and we will generate tensorized
+# polynomials x1^a1*x2^a2*x3^a3*x4^a4.
+
+# Y ~ (X1+X2+X3+X4)^4
+interactions = [x for x in ot.Tuples([2]*dim).generate()]
+# remove [1,1,1,1]:  Y ~ (X1+X2+X3+X4)^3
+interactions.pop(interactions.index([1]*dim))
+for i in xrange(dim):
+  indices = [0]*dim
+  indices[i] = 2
+  # Y ~ I(Xi)^2
+  interactions.append(indices[:])
+  # Y ~ I(Xi)^3
+  indices[i] = 3
+  interactions.append(indices[:])
+
+basis = ot.Basis([factory.build(enumerateFunction.inverse(indices)) for indices in interactions])
+################################################################################################
+
+i_min = interactions.index([0,0,0,0])
+i_0 = []
+for i in xrange(dim):
+  indices = [0]*dim
+  indices[i] = 1
+  i_0.append(interactions.index(indices))
 
 #---------------- Forward / Backward------------------- 
 #   X: input sample
@@ -42,33 +68,18 @@ maxiteration = 1000
 #   penalty: multiplier of number of degrees of freedom
 #   maxiteration: maximum number of iterations
 
-# todo : define basis 
-
-# (X1+X2+X3+X4)^3
-algo.addInteractions(3)
-
-# I(Xi)^2
-algo.addPower(2)
-
-# I(Xi)^3
-algo.addPower(3)
-
-i_min = algo.getIndices(algo.getInteractions(0))
-
-# To add some user-defined columns, it is also possible to pass
-# a NumericalSample, for instance:
-#   expI = ot.NumericalSample(np.exp(X))
-#   expI.setDescription(["exp(x1)", "exp(x2)", "exp(x3)", "exp(x4)"])
-#   algo.add(expI)
+penalty_BIC = log(X.getSize())
+penalty_AIC = 2.
+maxiteration = 1000
 
 for k in [penalty_AIC, penalty_BIC]:
   ## Forward / Backward
-  for forward in [True, False]
+  for forward in [True, False]:
     algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, forward, k, maxiteration)
-    algo_result = algo.getResult()
-    algo_result.printANOVAtable()
+    algo_result = ot.LinearModelAnalysis(algo.getResult())
+    algo_result.print()
   ## Both
   algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, i_0, k, maxiteration)
-  algo_result = algo.getResult()
-  algo_result.printANOVAtable()
+  algo_result = ot.LinearModelAnalysis(algo.getResult())
+  algo_result.print()
 

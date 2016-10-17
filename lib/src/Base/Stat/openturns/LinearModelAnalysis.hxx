@@ -88,7 +88,7 @@ public:
   void load(Advocate & adv);
 
   /** Method that returns the ANOVA table (ANalyse Of VAriance) */
-  void printANOVAtable() const;
+  void print() const;
 
   /** [1] Draw a plot of residuals versus fitted values  */
   Graph drawResidualsVsFitted() const;

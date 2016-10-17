@@ -107,7 +107,7 @@ TestResult LinearModelAnalysis::getNormalityTestResultChiSquared() const
 }
 
 /* Method that returns the ANOVA table (ANalyse Of VAriance) */
-void LinearModelAnalysis::printANOVAtable() const
+void LinearModelAnalysis::print() const
 {
   throw NotYetImplementedException(HERE);
 }
