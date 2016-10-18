@@ -20,6 +20,7 @@
  */
 #include "openturns/LinearModelAnalysis.hxx"
 #include "openturns/PersistentObjectFactory.hxx"
+#include "openturns/NormalityTest.hxx"
 #include "openturns/OSS.hxx"
 
 
@@ -54,7 +55,9 @@ LinearModelAnalysis * LinearModelAnalysis::clone() const
 /* String converter */
 String LinearModelAnalysis::__repr__() const
 {
-  return OSS(true) << "class=" << getClassName();
+  return OSS(true)
+         << "class=" << getClassName()
+         << "linearModelResult=" << linearModelResult_;
 }
 
 
@@ -104,12 +107,28 @@ NumericalSample LinearModelAnalysis::getCoefficientsEstimates() const
 
 NumericalSample LinearModelAnalysis::getCoefficientsStandardErrors() const
 {
-  throw NotYetImplementedException(HERE);
+  const NumericalScalar sigma2(getResiduals().computeRawMoment(2)[0]);
+  const NumericalPoint diagonalGramInverse(linearModelResult_.getDiagonalGramInverse());
+  const UnsignedInteger n = diagonalGramInverse.getSize();
+  NumericalSample standardErrors(n, 1);
+  for (UnsignedInteger i = 0; i < standardErrors.getSize(); ++i)
+  {
+    standardErrors(i, 0) = std::sqrt(sigma2 * diagonalGramInverse[i]);
+  }
+  return standardErrors;
+
 }
 
 NumericalSample LinearModelAnalysis::getCoefficientsTScores() const
 {
-  throw NotYetImplementedException(HERE);
+  const NumericalSample estimates(getCoefficientsEstimates());
+  const NumericalSample standardErrors(getCoefficientsStandardErrors());
+  NumericalSample tScores(estimates.getSize(), 1);
+  for (UnsignedInteger i = 0; i < tScores.getSize(); ++i)
+  {
+    tScores(i, 0) = estimates(i, 0) / standardErrors(i, 0);
+  }
+  return tScores;
 }
 
 NumericalSample LinearModelAnalysis::getCoefficientsPValues() const
@@ -120,19 +139,21 @@ NumericalSample LinearModelAnalysis::getCoefficientsPValues() const
 /* Leverages */
 NumericalPoint LinearModelAnalysis::getLeverages() const
 {
-  throw NotYetImplementedException(HERE);
+  return linearModelResult_.getLeverages();
 }
 
 /* Cook's distances */
 NumericalPoint LinearModelAnalysis::getCookDistances() const
 {
-  throw NotYetImplementedException(HERE);
+  return linearModelResult_.getCookDistances();
 }
 
 /* Number of degrees of freedom */
 UnsignedInteger LinearModelAnalysis::getDegreesOfFreedom() const
 {
-  throw NotYetImplementedException(HERE);
+  const UnsignedInteger n = linearModelResult_.getLeverages().getSize();
+  const UnsignedInteger pPlusOne = linearModelResult_.getCoefficientsNames().getSize();
+  return n - pPlusOne;
 }
 
 /* R-squared test */
@@ -167,7 +188,7 @@ TestResult LinearModelAnalysis::getNormalityTestResultKolmogorovSmirnov() const
 /* Anderson-Darling normality test */
 TestResult LinearModelAnalysis::getNormalityTestResultAndersonDarling() const
 {
-  throw NotYetImplementedException(HERE);
+  return NormalityTest::AndersonDarlingNormal(linearModelResult_.getSampleResiduals());
 }
 
 /* Chi-Squared normality test */
@@ -179,7 +200,8 @@ TestResult LinearModelAnalysis::getNormalityTestResultChiSquared() const
 /* [1] Draw a plot of residuals versus fitted values */
 Graph LinearModelAnalysis::drawResidualsVsFitted() const
 {
-  throw NotYetImplementedException(HERE);
+  const NumericalSample residuals(linearModelResult_.getStandardizedResiduals());
+  const NumericalSample fitted(linearModelResult_.getStandardizedResiduals());
 }
 
 /* [2] a Scale-Location plot of sqrt(| residuals |) versus fitted values */

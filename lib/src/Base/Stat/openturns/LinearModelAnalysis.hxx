@@ -44,7 +44,6 @@ class OT_API LinearModelAnalysis :
 
 public:
 
-
   /** Default constructor */
   LinearModelAnalysis();
 

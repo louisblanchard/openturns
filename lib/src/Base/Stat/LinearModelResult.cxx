@@ -47,7 +47,7 @@ LinearModelResult::LinearModelResult(const NumericalSample & inputSample,
                                      const String & formula,
                                      const Description & coefficientsNames,
                                      const NumericalSample & sampleResiduals,
-                                     const NumericalPoint & diagonalA,
+                                     const NumericalPoint & diagonalGramInverse,
                                      const NumericalPoint & leverages,
                                      const NumericalPoint & cookDistances)
   : MetaModelResult(NumericalMathFunction(inputSample, outputSample), NumericalMathFunction(), NumericalPoint(1, 0.0), NumericalPoint(1, 0.0))
@@ -58,13 +58,16 @@ LinearModelResult::LinearModelResult(const NumericalSample & inputSample,
   , linearModel_(linearModel)
   , condensedFormula_(formula)
   , coefficientsNames_(coefficientsNames)
-  , diagonalA_(diagonalA)
+  , sampleResiduals_(sampleResiduals)
+  , diagonalGramInverse_(diagonalGramInverse)
   , leverages_(leverages)
   , cookDistances_(cookDistances)
 {
   const UnsignedInteger size = inputSample.getSize();
   if (size != outputSample.getSize())
     throw InvalidArgumentException(HERE) << "In LinearModelResult::LinearModelResult, input & output sample have different size. input sample size = " << size << ", output sample size = " << outputSample.getSize();
+  // Compute standardized residuals
+  computeStandardizedResiduals();
 }
 
 /* Virtual constructor */
@@ -101,6 +104,14 @@ NumericalSample LinearModelResult::getOutputSample() const
   return outputSample_;
 }
 
+/* Fitted sample accessor */
+NumericalSample LinearModelResult::getFittedSample() const
+{
+  const NumericalMathFunction f(basis_);
+  const NumericalMathFunction g(getMetaModel(), f);
+  return g(inputSample_);
+}
+
 /* Formula accessor */
 String LinearModelResult::getFormula() const
 {
@@ -127,9 +138,27 @@ NumericalPoint LinearModelResult::getLeverages() const
   return leverages_;
 }
 
+NumericalPoint LinearModelResult::getDiagonalGramInverse() const
+{
+  return diagonalGramInverse_;
+}
+
 NumericalPoint LinearModelResult::getCookDistances() const
 {
   return cookDistances_;
+}
+
+void LinearModelResult::computeStandardizedResiduals()
+{
+  NumericalPoint sigma2(sampleResiduals_.computeRawMoment(2));
+  const UnsignedInteger n = sampleResiduals_.getSize();
+  const UnsignedInteger pPlusOne = basis_.getSize();
+  const NumericalScalar factor = n * sigma2[0] / (n - pPlusOne);
+  standardizedResiduals_ = NumericalSample(n, 1);
+  for(UnsignedInteger i = 0; i < n; ++i)
+  {
+    standardizedResiduals_(i, 0) = sampleResiduals_(i, 0) / std::sqrt(factor * diagonalGramInverse_[i]);
+  }
 }
 
 /* Method save() stores the object through the StorageManager */

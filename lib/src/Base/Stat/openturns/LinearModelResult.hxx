@@ -56,7 +56,7 @@ public:
                     const String & formula,
                     const Description & coefficientsNames,
                     const NumericalSample & sampleResiduals,
-                    const NumericalPoint & diagonalA,
+                    const NumericalPoint & diagonalGramInverse,
                     const NumericalPoint & leverages,
                     const NumericalPoint & cookDistances);
 
@@ -69,6 +69,7 @@ public:
   /** Sample accessors */
   NumericalSample getInputSample() const;
   NumericalSample getOutputSample() const;
+  NumericalSample getFittedSample() const;
 
   /** Linear model accessor */
   LinearModel getLinearModel() const;
@@ -88,6 +89,9 @@ public:
   /** Leverages accessor */
   NumericalPoint getLeverages() const;
 
+  /** Diagonal Gram inverse accessor */
+  NumericalPoint getDiagonalGramInverse() const;
+
   /** Cook distance accessor */
   NumericalPoint getCookDistances() const;
 
@@ -98,6 +102,9 @@ public:
   void load(Advocate & adv);
 
 private:
+
+  /** Compute standardized residuals */
+  void computeStandardizedResiduals();
 
   /** input data */
   NumericalSample inputSample_;
@@ -127,7 +134,7 @@ private:
   NumericalSample standardizedResiduals_;
 
   /** Diagonal of (Xt X)^{-1} */
-  NumericalPoint diagonalA_;
+  NumericalPoint diagonalGramInverse_;
 
   /** Leverages */
   NumericalPoint leverages_;
