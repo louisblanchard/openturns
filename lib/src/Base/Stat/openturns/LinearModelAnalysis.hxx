@@ -57,20 +57,40 @@ public:
   /** String converter */
   String __repr__() const;
 
+  /** Method that returns the ANOVA table (ANalyse Of VAriance) */
+  String __str__() const;
+
   /** Linear model accessor */
   LinearModelResult getLinearModelResult() const;
+
+  /** Accessors to data from ANOVA table */
+  String getFormula() const; 
+  Description getCoefficientsNames() const;
+  NumericalSample getResiduals() const;
+  NumericalSample getStandardizedResiduals() const;
+  NumericalSample getCoefficientsEstimates() const;
+  NumericalSample getCoefficientsStandardErrors() const;
+  NumericalSample getCoefficientsTScores() const;
+  NumericalSample getCoefficientsPValues() const;
+
+  /**  leverages */
+  NumericalPoint getLeverages() const;
+
+  /**  Cook's distances */
+  NumericalPoint getCookDistances() const;
 
   /** Number of degrees of freedom */
   UnsignedInteger getDegreesOfFreedom() const;
 
-  /** Adjusted R-squared test */
-  TestResult getAdjustedRSquared() const;
+  /** R-squared */
+  NumericalScalar getRSquared() const;
 
-  /** R-squared test */
-  TestResult getRSquared() const;
+  /** Adjusted R-squared */
+  NumericalScalar getAdjustedRSquared() const;
 
   /** Fisher test */
-  TestResult getFisherTest() const;
+  NumericalScalar getFisherScore() const;
+  NumericalScalar getFisherPValue() const;
 
   /** Kolmogorov-Smirnov normality test */
   TestResult getNormalityTestResultKolmogorovSmirnov() const;
@@ -86,9 +106,6 @@ public:
 
   /** Method load() reloads the object from the StorageManager */
   void load(Advocate & adv);
-
-  /** Method that returns the ANOVA table (ANalyse Of VAriance) */
-  void print() const;
 
   /** [1] Draw a plot of residuals versus fitted values  */
   Graph drawResidualsVsFitted() const;
@@ -107,24 +124,6 @@ public:
 
   /** [6] a plot of Cook's distances versus leverage/(1-leverage) */
   Graph drawCookVsLeverages() const;
-
-  /** data from ANOVA table (ANalyse Of VAriance)  */
-  String getFormula() const; 
-  Description getCoefficientsName() const;
-  NumericalSample getResiduals() const;
-  NumericalSample getStandardizedResiduals() const;
-  NumericalSample getCoefficientsEstimate() const;
-  NumericalSample getCoefficientsStdError() const;
-  NumericalSample getCoefficientsTscore() const;
-  NumericalSample getCoefficientsPvalue() const;
-  NumericalSample getFisherPvalue() const;
-
-  /**  leverages */
-  NumericalSample getLeverages() const;
-
-  /**  Cook's distances */
-  NumericalSample getCookDistances() const;
-
 
 private:
 

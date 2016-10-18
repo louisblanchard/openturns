@@ -58,10 +58,75 @@ String LinearModelAnalysis::__repr__() const
 }
 
 
+/* Method that returns the ANOVA table (ANalyse Of VAriance) */
+String LinearModelAnalysis::__str__() const
+{
+  throw NotYetImplementedException(HERE);
+}
+
+
 /* Linear model accessor */
 LinearModelResult LinearModelAnalysis::getLinearModelResult() const
 {
   return linearModelResult_;
+}
+
+String LinearModelAnalysis::getFormula() const
+{
+  return linearModelResult_.getFormula();
+}
+
+Description LinearModelAnalysis::getCoefficientsNames() const
+{
+  return linearModelResult_.getCoefficientsNames();
+}
+
+NumericalSample LinearModelAnalysis::getResiduals() const
+{
+  return linearModelResult_.getSampleResiduals();
+}
+
+NumericalSample LinearModelAnalysis::getStandardizedResiduals() const
+{
+  return linearModelResult_.getStandardizedResiduals();
+}
+
+NumericalSample LinearModelAnalysis::getCoefficientsEstimates() const
+{
+  LinearModel model = linearModelResult_.getLinearModel();
+  NumericalPoint regression(model.getRegression());
+  NumericalSample result(regression.getDimension(), 1);
+  for (UnsignedInteger i = 0; i < regression.getDimension(); ++i)
+  {
+    result(i, 0) = regression[i];
+  }
+}
+
+NumericalSample LinearModelAnalysis::getCoefficientsStandardErrors() const
+{
+  throw NotYetImplementedException(HERE);
+}
+
+NumericalSample LinearModelAnalysis::getCoefficientsTScores() const
+{
+  throw NotYetImplementedException(HERE);
+}
+
+NumericalSample LinearModelAnalysis::getCoefficientsPValues() const
+{
+  throw NotYetImplementedException(HERE);
+}
+
+/* Leverages */
+NumericalPoint LinearModelAnalysis::getLeverages() const
+{
+  throw NotYetImplementedException(HERE);
+}
+
+/* Cook's distances */
+NumericalPoint LinearModelAnalysis::getCookDistances() const
+{
+  throw NotYetImplementedException(HERE);
 }
 
 /* Number of degrees of freedom */
@@ -70,20 +135,25 @@ UnsignedInteger LinearModelAnalysis::getDegreesOfFreedom() const
   throw NotYetImplementedException(HERE);
 }
 
-/* Adjusted R-squared test */
-TestResult LinearModelAnalysis::getAdjustedRSquared() const
+/* R-squared test */
+NumericalScalar LinearModelAnalysis::getRSquared() const
 {
   throw NotYetImplementedException(HERE);
 }
 
-/* R-squared test */
-TestResult LinearModelAnalysis::getRSquared() const
+/* Adjusted R-squared test */
+NumericalScalar LinearModelAnalysis::getAdjustedRSquared() const
 {
   throw NotYetImplementedException(HERE);
 }
 
 /* Fisher test */
-TestResult LinearModelAnalysis::getFisherTest() const
+NumericalScalar LinearModelAnalysis::getFisherScore() const
+{
+  throw NotYetImplementedException(HERE);
+}
+
+NumericalScalar LinearModelAnalysis::getFisherPValue() const
 {
   throw NotYetImplementedException(HERE);
 }
@@ -105,13 +175,6 @@ TestResult LinearModelAnalysis::getNormalityTestResultChiSquared() const
 {
   throw NotYetImplementedException(HERE);
 }
-
-/* Method that returns the ANOVA table (ANalyse Of VAriance) */
-void LinearModelAnalysis::print() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
 
 /* [1] Draw a plot of residuals versus fitted values */
 Graph LinearModelAnalysis::drawResidualsVsFitted() const
@@ -145,63 +208,6 @@ Graph LinearModelAnalysis::drawResidualsVsLeverages() const
 
 /* [6] a plot of Cook's distances versus leverage/(1-leverage) */
 Graph LinearModelAnalysis::drawCookVsLeverages() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-String LinearModelAnalysis::getFormula() const
-{
-  return getLinearModelResult().getFormula();
-}
-
-Description LinearModelAnalysis::getCoefficientsName() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-NumericalSample LinearModelAnalysis::getResiduals() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-NumericalSample LinearModelAnalysis::getStandardizedResiduals() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-NumericalSample LinearModelAnalysis::getCoefficientsEstimate() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-NumericalSample LinearModelAnalysis::getCoefficientsStdError() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-NumericalSample LinearModelAnalysis::getCoefficientsTscore() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-NumericalSample LinearModelAnalysis::getCoefficientsPvalue() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-NumericalSample LinearModelAnalysis::getFisherPvalue() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-  /**  leverages */
-NumericalSample LinearModelAnalysis::getLeverages() const
-{
-  throw NotYetImplementedException(HERE);
-}
-
-  /**  Cook's distances */
-NumericalSample LinearModelAnalysis::getCookDistances() const
 {
   throw NotYetImplementedException(HERE);
 }

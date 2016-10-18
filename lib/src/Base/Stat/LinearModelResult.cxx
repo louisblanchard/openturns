@@ -20,6 +20,8 @@
  */
 #include "openturns/LinearModelResult.hxx"
 #include "openturns/PersistentObjectFactory.hxx"
+#include "openturns/NumericalMathFunction.hxx"
+#include "openturns/LinearModel.hxx"
 #include "openturns/OSS.hxx"
 
 
@@ -38,14 +40,27 @@ LinearModelResult::LinearModelResult()
 
 /* Parameter constructor */
 LinearModelResult::LinearModelResult(const NumericalSample & inputSample,
-    const NumericalSample & outputSample,
-    const LinearModel & linearModel,
-    const NumericalPoint & residuals,
-    const NumericalPoint & relativeErrors)
-  : MetaModelResult(NumericalMathFunction(inputSample, outputSample), NumericalMathFunction(), residuals, relativeErrors)
+                                     const Basis & basis,
+                                     const Matrix & design,
+                                     const NumericalSample & outputSample,
+                                     const LinearModel & linearModel,
+                                     const String & formula,
+                                     const Description & coefficientsNames,
+                                     const NumericalSample & sampleResiduals,
+                                     const NumericalPoint & diagonalA,
+                                     const NumericalPoint & leverages,
+                                     const NumericalPoint & cookDistances)
+  : MetaModelResult(NumericalMathFunction(inputSample, outputSample), NumericalMathFunction(), NumericalPoint(1, 0.0), NumericalPoint(1, 0.0))
   , inputSample_(inputSample)
+  , basis_(basis)
+  , design_(design)
   , outputSample_(outputSample)
   , linearModel_(linearModel)
+  , condensedFormula_(formula)
+  , coefficientsNames_(coefficientsNames)
+  , diagonalA_(diagonalA)
+  , leverages_(leverages)
+  , cookDistances_(cookDistances)
 {
   const UnsignedInteger size = inputSample.getSize();
   if (size != outputSample.getSize())
@@ -92,28 +107,62 @@ String LinearModelResult::getFormula() const
   return condensedFormula_;
 }
 
-void LinearModelResult::setFormula(const String formula)
+Description LinearModelResult::getCoefficientsNames() const
 {
-  condensedFormula_ = formula;
+  return coefficientsNames_;
+}
+
+NumericalSample LinearModelResult::getSampleResiduals() const
+{
+  return sampleResiduals_;
+}
+
+NumericalSample LinearModelResult::getStandardizedResiduals() const
+{
+  return standardizedResiduals_;
+}
+
+NumericalPoint LinearModelResult::getLeverages() const
+{
+  return leverages_;
+}
+
+NumericalPoint LinearModelResult::getCookDistances() const
+{
+  return cookDistances_;
 }
 
 /* Method save() stores the object through the StorageManager */
 void LinearModelResult::save(Advocate & adv) const
 {
-  PersistentObject::save(adv);
+  MetaModelResult::save(adv);
   adv.saveAttribute( "inputSample_", inputSample_ );
+  adv.saveAttribute( "basis_", basis_ );
+  adv.saveAttribute( "design_", design_ );
   adv.saveAttribute( "outputSample_", outputSample_ );
   adv.saveAttribute( "linearModel_", linearModel_ );
+  adv.saveAttribute( "condensedFormula_", condensedFormula_ );
+  adv.saveAttribute( "coefficientsNames_", coefficientsNames_ );
+  adv.saveAttribute( "standardizedResiduals_", standardizedResiduals_ );
+  adv.saveAttribute( "leverages_", leverages_ );
+  adv.saveAttribute( "cookDistances_", cookDistances_ );
 }
 
 
 /* Method load() reloads the object from the StorageManager */
 void LinearModelResult::load(Advocate & adv)
 {
-  PersistentObject::load(adv);
+  MetaModelResult::load(adv);
   adv.loadAttribute( "inputSample_", inputSample_ );
+  adv.loadAttribute( "basis_", basis_ );
+  adv.loadAttribute( "design_", design_ );
   adv.loadAttribute( "outputSample_", outputSample_ );
   adv.loadAttribute( "linearModel_", linearModel_ );
+  adv.loadAttribute( "condensedFormula_", condensedFormula_ );
+  adv.loadAttribute( "coefficientsNames_", coefficientsNames_ );
+  adv.loadAttribute( "standardizedResiduals_", standardizedResiduals_ );
+  adv.loadAttribute( "leverages_", leverages_ );
+  adv.loadAttribute( "cookDistances_", cookDistances_ );
 }
 
 

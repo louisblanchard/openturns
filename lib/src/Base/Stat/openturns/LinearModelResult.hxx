@@ -24,6 +24,7 @@
 #include "openturns/MetaModelResult.hxx"
 #include "openturns/LinearModel.hxx"
 #include "openturns/NumericalSample.hxx"
+#include "openturns/DesignProxy.hxx"
 
 
 BEGIN_NAMESPACE_OPENTURNS
@@ -45,12 +46,19 @@ public:
   /** Default constructor */
   LinearModelResult();
 
+  /* We cannot use a DesignProxy here since it is not persistent */
   /** Parameter constructor */
   LinearModelResult(const NumericalSample & inputSample,
+                    const Basis & basis,
+                    const Matrix & design,
                     const NumericalSample & outputSample,
                     const LinearModel & model,
-                    const NumericalPoint & residuals,
-                    const NumericalPoint & relativeErrors);
+                    const String & formula,
+                    const Description & coefficientsNames,
+                    const NumericalSample & sampleResiduals,
+                    const NumericalPoint & diagonalA,
+                    const NumericalPoint & leverages,
+                    const NumericalPoint & cookDistances);
 
   /** Virtual constructor */
   LinearModelResult * clone() const;
@@ -68,8 +76,20 @@ public:
   /** Condensed formula accessor */
   String getFormula() const;
 
-  /** set Condensed formula */ 
-  void setFormula(const String formula);
+  /** Coefficients names accessor */
+  Description getCoefficientsNames() const;
+
+  /** Residuals accessor */
+  NumericalSample getSampleResiduals() const;
+
+  /** Standardized residuals accessor */
+  NumericalSample getStandardizedResiduals() const;
+
+  /** Leverages accessor */
+  NumericalPoint getLeverages() const;
+
+  /** Cook distance accessor */
+  NumericalPoint getCookDistances() const;
 
   /** Method save() stores the object through the StorageManager */
   void save(Advocate & adv) const;
@@ -82,17 +102,38 @@ private:
   /** input data */
   NumericalSample inputSample_;
 
+  /** basis */
+  Basis basis_;
+
+  /** input data */
+  Matrix design_;
+
   /** output data */
   NumericalSample outputSample_;
 
   /** linear model */
   LinearModel linearModel_;
 
-  /** Cook's distances */
-  NumericalSample CookDistances_;
-
   /** The formula description */
   String condensedFormula_;
+
+  /** Coefficients names */
+  Description coefficientsNames_;
+
+  /** Whole residuals */
+  NumericalSample sampleResiduals_;
+
+  /** Standardized residuals */
+  NumericalSample standardizedResiduals_;
+
+  /** Diagonal of (Xt X)^{-1} */
+  NumericalPoint diagonalA_;
+
+  /** Leverages */
+  NumericalPoint leverages_;
+
+  /** Cook's distances */
+  NumericalPoint cookDistances_;
 
 
 } ; /* class LinearModelResult */
