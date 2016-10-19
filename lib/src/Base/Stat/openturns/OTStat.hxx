@@ -36,6 +36,7 @@
 #include "openturns/HistoryStrategyImplementation.hxx"
 #include "openturns/Last.hxx"
 #include "openturns/LinearModelAlgorithm.hxx"
+#include "openturns/LinearModelAnalysis.hxx"
 #include "openturns/LinearModelFactory.hxx"
 #include "openturns/LinearModel.hxx"
 #include "openturns/LowDiscrepancySequence.hxx"
