@@ -90,18 +90,6 @@ int main(int argc, char *argv[])
     myGraph.add(myCloud2);
     myGraph.draw("Graph_Cloud_b_OT", 640, 480);
 
-    // Create the third cloud
-    sample2.split(15);
-    Cloud myCloud3(sample3, "green", "circle", "Third Cloud");
-    Description labels(sample3.getSize());
-    labels[6] = "6";
-    labels[10] = "10";
-    labels[20] = "20";
-    myCloud3.setLabels(labels);
-
-    // Add it to the graph and draw everything
-    myGraph.add(myCloud3);
-    myGraph.draw("Graph_Cloud_c_OT", 640, 480);
   }
   catch (TestFailed & ex)
   {

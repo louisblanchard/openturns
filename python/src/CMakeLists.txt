@@ -676,6 +676,7 @@ ot_add_python_module(metamodel metamodel_module.i
 		      GeneralizedLinearModelResult.i GeneralizedLinearModelResult_doc.i.in
 		      GeneralizedLinearModelAlgorithm.i GeneralizedLinearModelAlgorithm_doc.i.in
                       LinearModelAlgorithm.i LinearModelAlgorithm_doc.i.in
+                      LinearModelAnalysis.i LinearModelAnalysis_doc.i.in
                       LinearModelResult.i LinearModelResult_doc.i.in
                       LinearModelStepwiseAlgorithm.i LinearModelStepwiseAlgorithm_doc.i.in
                       LinearTaylor.i LinearTaylor_doc.i.in

@@ -22,6 +22,10 @@
 #include "openturns/PersistentObjectFactory.hxx"
 #include "openturns/NormalityTest.hxx"
 #include "openturns/OSS.hxx"
+#include "openturns/ResourceMap.hxx"
+#include "openturns/Cloud.hxx"
+#include "openturns/Curve.hxx"
+#include "openturns/Text.hxx"
 
 
 BEGIN_NAMESPACE_OPENTURNS
@@ -34,7 +38,7 @@ static const Factory<LinearModelAnalysis> Factory_LinearModelAnalysis;
 LinearModelAnalysis::LinearModelAnalysis()
   : PersistentObject()
 {
-  // Nothing to do
+  InitializeResourceMap();
 }
 
 /* Parameter constructor */
@@ -42,12 +46,13 @@ LinearModelAnalysis::LinearModelAnalysis(const LinearModelResult & linearModelRe
   : PersistentObject()
   , linearModelResult_(linearModelResult)
 {
-  // Nothing to do
+  InitializeResourceMap();
 }
 
 /* Virtual constructor */
 LinearModelAnalysis * LinearModelAnalysis::clone() const
 {
+  InitializeResourceMap();
   return new LinearModelAnalysis(*this);
 }
 
@@ -96,24 +101,23 @@ NumericalSample LinearModelAnalysis::getStandardizedResiduals() const
 
 NumericalSample LinearModelAnalysis::getCoefficientsEstimates() const
 {
-  LinearModel model = linearModelResult_.getLinearModel();
-  NumericalPoint regression(model.getRegression());
-  NumericalSample result(regression.getDimension(), 1);
-  for (UnsignedInteger i = 0; i < regression.getDimension(); ++i)
+  NumericalPoint beta(linearModelResult_.getTrendCoefficients());
+  NumericalSample result(beta.getDimension(), 1);
+  for (UnsignedInteger i = 0; i < beta.getDimension(); ++i)
   {
-    result(i, 0) = regression[i];
+    result(i, 0) = beta[i];
   }
 }
 
 NumericalSample LinearModelAnalysis::getCoefficientsStandardErrors() const
 {
   const NumericalScalar sigma2(getResiduals().computeRawMoment(2)[0]);
-  const NumericalPoint diagonalGramInverse(linearModelResult_.getDiagonalGramInverse());
-  const UnsignedInteger n = diagonalGramInverse.getSize();
+  const NumericalPoint leverages(linearModelResult_.getLeverages());
+  const UnsignedInteger n = leverages.getSize();
   NumericalSample standardErrors(n, 1);
   for (UnsignedInteger i = 0; i < standardErrors.getSize(); ++i)
   {
-    standardErrors(i, 0) = std::sqrt(sigma2 * diagonalGramInverse[i]);
+    standardErrors(i, 0) = std::sqrt(sigma2 * leverages[i]);
   }
   return standardErrors;
 
@@ -200,8 +204,46 @@ TestResult LinearModelAnalysis::getNormalityTestResultChiSquared() const
 /* [1] Draw a plot of residuals versus fitted values */
 Graph LinearModelAnalysis::drawResidualsVsFitted() const
 {
+  const NumericalSample inputData(linearModelResult_.getInputSample());
+  const NumericalMathFunction metamodel(linearModelResult_.getMetaModel());
+  const NumericalSample fitted(metamodel(inputData));
   const NumericalSample residuals(linearModelResult_.getStandardizedResiduals());
-  const NumericalSample fitted(linearModelResult_.getStandardizedResiduals());
+  const UnsignedInteger size(fitted.getSize());
+  NumericalSample dataFull(fitted);
+  dataFull.stack(residuals);
+  Graph graph("Residuals", "Fitted values", "Std. residuals", true, "topright");
+  Cloud cloud(dataFull, "black", "circle");
+  graph.add(cloud);
+  // Add point identifiers for worst residuals
+  UnsignedInteger identifiers(ResourceMap::GetAsUnsignedInteger("LinearModelAnalysis-Identifiers"));
+  if (identifiers > 0)
+  {
+    if (identifiers > size)
+      identifiers = size;
+    Description annotations(size);
+    NumericalSample dataWithIndex(size, 2);
+    for(UnsignedInteger i = 0; i < size; ++i)
+    {
+      dataWithIndex(i, 0) = std::abs(residuals(i, 0));
+      dataWithIndex(i, 1) = i;
+    }
+    const NumericalSample sortedData(dataWithIndex.sortAccordingToAComponent(0));
+    Indices positions(size);
+    for(UnsignedInteger i = 0; i < identifiers; ++i)
+    {
+      const UnsignedInteger index = sortedData(size - 1 - i, 1);
+      annotations[index] = (OSS() << index + 1);
+      if (residuals(index, 0) < 0.0)
+        positions[index] = 3;
+      else
+        positions[index] = 1;
+    }
+    Text text(dataFull, annotations, 1);
+    text.setColor("red");
+    text.setTextPositions(positions);
+    graph.add(text);
+  }
+  return graph;
 }
 
 /* [2] a Scale-Location plot of sqrt(| residuals |) versus fitted values */
@@ -249,5 +291,17 @@ void LinearModelAnalysis::load(Advocate & adv)
   adv.loadAttribute( "linearModelResult_", linearModelResult_ );
 }
 
+void LinearModelAnalysis::InitializeResourceMap()
+{
+  UnsignedInteger identifiers = 0;
+  try
+  {
+    identifiers = ResourceMap::GetAsUnsignedInteger("LinearModelAnalysis-Identifiers");
+  }
+  catch(InternalException)
+  {
+    ResourceMap::SetAsUnsignedInteger("LinearModelAnalysis-Identifiers", 3);
+  }
+}
 
 END_NAMESPACE_OPENTURNS

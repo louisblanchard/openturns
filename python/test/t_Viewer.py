@@ -62,12 +62,6 @@ try:
         secondSample[i] = ot.NumericalPoint(1, sample2D[i, 1])
     graph = ot.VisualTest.DrawClouds(
         sample2D, ot.Normal(ot.NumericalPoint(dimension, 2.0), ot.NumericalPoint(dimension, 3.0), R).getSample(size // 2))
-    cloud = graph.getDrawables()[0]
-    labels = ot.Description(size)
-    labels[10] = "10"
-    labels[12] = "12"
-    cloud.setLabels(labels)
-    graph.setDrawable(cloud, 0)
     # graph.draw('curve5.png')
     view = View(graph)
     # view.save('curve5.png')
@@ -224,7 +218,6 @@ try:
     view = View(graph)
     # view.save('curve12.png')
     view.show()
-
 
 except:
     traceback.print_exc()

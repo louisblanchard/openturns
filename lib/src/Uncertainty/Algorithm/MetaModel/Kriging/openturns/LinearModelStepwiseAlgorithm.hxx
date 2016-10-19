@@ -22,7 +22,6 @@
 #define OPENTURNS_LINEARMODELSTEPWISEFACTORY_HXX
 
 #include "openturns/PersistentObject.hxx"
-#include "openturns/Description.hxx"
 #include "openturns/LinearModelResult.hxx"
 #include "openturns/NumericalSample.hxx"
 #include "openturns/Matrix.hxx"
@@ -89,9 +88,6 @@ public:
 
   /** Condensed formula accessor */
   String getFormula() const;
-
-  /** Get column indices of given formulas */
-  Indices getIndices(const Basis & formulas) const;
 
   /** Perform regression */
   void run();

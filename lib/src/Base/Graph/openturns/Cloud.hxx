@@ -25,7 +25,6 @@
 #include "openturns/DrawableImplementation.hxx"
 #include "openturns/NumericalSample.hxx"
 #include "openturns/Collection.hxx"
-#include "openturns/Description.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
 
@@ -76,6 +75,7 @@ public:
   /** Clone method */
   virtual Cloud * clone() const;
 
+
   /** Method save() stores the object through the StorageManager */
   void save(Advocate & adv) const;
 
@@ -85,9 +85,6 @@ public:
 protected:
   /** Check for data validity */
   virtual void checkData(const NumericalSample & data) const;
-
-  /** Labels */
-  Description labels_;
 
 private:
 

@@ -52,7 +52,8 @@ public:
                     const Basis & basis,
                     const Matrix & design,
                     const NumericalSample & outputSample,
-                    const LinearModel & model,
+                    const NumericalMathFunction & metaModel,
+                    const NumericalPoint & trendCoefficients,
                     const String & formula,
                     const Description & coefficientsNames,
                     const NumericalSample & sampleResiduals,
@@ -71,8 +72,8 @@ public:
   NumericalSample getOutputSample() const;
   NumericalSample getFittedSample() const;
 
-  /** Linear model accessor */
-  LinearModel getLinearModel() const;
+  /** Condensed formula accessor */
+  NumericalPoint getTrendCoefficients() const;
 
   /** Condensed formula accessor */
   String getFormula() const;
@@ -118,8 +119,8 @@ private:
   /** output data */
   NumericalSample outputSample_;
 
-  /** linear model */
-  LinearModel linearModel_;
+  /** Intercept and trend coefficients */
+  NumericalPoint beta_;
 
   /** The formula description */
   String condensedFormula_;

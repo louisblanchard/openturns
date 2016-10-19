@@ -126,9 +126,11 @@ public:
 
 private:
 
+  /** This class is in a module, add ResourceMap keys in this function */
+  static void InitializeResourceMap();
+
   /** linear model result */
   LinearModelResult linearModelResult_;
-
 
 } ; /* class LinearModelAnalysis */
 

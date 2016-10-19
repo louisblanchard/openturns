@@ -160,30 +160,6 @@ String LinearModelStepwiseAlgorithm::getFormula() const
   return condensedFormula_;
 }
 
-/* Get column indices of given formulas */
-Indices LinearModelStepwiseAlgorithm::getIndices(const Basis & formulas) const
-{
-  Indices result;
-  const UnsignedInteger size = basis_.getSize();
-  Description formulasDescription(size);
-  for (UnsignedInteger k = 0; k < size; ++k)
-    formulasDescription[k] = basis_[k].__str__();
-  for (UnsignedInteger i = 0; i < formulas.getSize(); ++i)
-  {
-    const String fStr(formulas[i].__str__());
-    for (UnsignedInteger k = 0; k < size; ++k)
-    {
-      if (fStr == formulasDescription[k])
-      {
-        result.add(k);
-        break;
-      }
-    }
-  }
-  return result;
-}
-
-
 /*
   logLikelihood(\hat\beta, \hat\sigma | Y) = -(n/2) ( log(2\pi) + log(\hat\sigma^2) + 1)
   where
@@ -400,8 +376,10 @@ void LinearModelStepwiseAlgorithm::run()
   const NumericalMathFunction f(basis_);
   NumericalSample fx(f(inputSample_));
   LOGDEBUG(OSS() << "Total number of columns=" << fx.getDimension());
-  Matrix Xt(fx.getDimension(), size, fx.getImplementation()->getData());
-  maxX_ = Xt.transpose();
+  {  // Reduce scope of Xt
+    Matrix Xt(fx.getDimension(), size, fx.getImplementation()->getData());
+    maxX_ = Xt.transpose();
+  }
   Indices columnMaxToCurrent(maxX_.getNbColumns(), maxX_.getNbColumns());
 
   if (startIndices_.getSize() == 0)
@@ -526,12 +504,67 @@ void LinearModelStepwiseAlgorithm::run()
   const UnsignedInteger p(currentX_.getNbColumns());
   const NumericalScalar criterion(penalty_ * p + computeLogLikelihood());
   LOGDEBUG(OSS() << "Final indices are " << currentIndices_.__str__() << " and criterion is " << criterion);
+
   NumericalPoint regression(p);
   memcpy(&regression[0], &currentB_(0, 0), sizeof(NumericalScalar)*p);
-  NumericalPoint residual(size);
-  memcpy(&residual[0], &currentResidual_(0, 0), sizeof(NumericalScalar)*size);
-  // result_ = LinearModelResult(inputSample_, outputSample_, LinearModel(regression), residual, residual);
-  // result_.setFormula(getFormula())
+
+  Description coefficientsNames(p);
+  for (UnsignedInteger i = 0, k = 0; k < basis_.getSize(); ++k)
+  {
+    if (currentIndices_.contains(k))
+    {
+      coefficientsNames[i] = basis_[k].__str__();
+      ++i;
+    }
+  }
+  NumericalPoint diagonalGramInverse(p);
+  for (UnsignedInteger i = 0; i < p; ++i)
+  {
+    diagonalGramInverse[i] = currentGramInverse_(i, i);
+  }
+  NumericalSample residualSample(size, 1);
+  memcpy(&residualSample(0, 0), &currentResidual_(0, 0), sizeof(NumericalScalar)*size);
+
+  NumericalPoint leverages(size);
+  Matrix Xt(currentX_.transpose());
+  MatrixImplementation::iterator rowX(Xt.getImplementation()->begin());
+  for (UnsignedInteger i = 0; i < size; ++i)
+  {
+    Matrix Xi(1, p);
+    std::copy(rowX, rowX + p, Xi.getImplementation()->begin());
+    const Matrix AXi(currentGramInverse_.getImplementation()->genProd(*Xi.getImplementation(), false, true));
+    const Matrix XAXi(Xi * AXi);
+    leverages[i] = XAXi(0, 0);
+    rowX += p;
+  }
+
+  NumericalPoint sigma2(residualSample.computeRawMoment(2));
+  const NumericalScalar factor = size * sigma2[0] / (size - p);
+  NumericalSample standardizedResiduals(size, 1);
+  for(UnsignedInteger i = 0; i < size; ++i)
+  { 
+    standardizedResiduals(i, 0) = residualSample(i, 0) / std::sqrt(factor * (1.0 - leverages[i]));
+  }
+
+  NumericalPoint cookDistances(size);
+  for (UnsignedInteger i = 0; i < size; ++i)
+  {
+    cookDistances[i] = (1.0 / p) * standardizedResiduals(i, 0) * standardizedResiduals(i, 0) * (leverages[i] / (1.0 - leverages[i]));
+  }
+
+  Collection<NumericalMathFunction> currentFunctions;
+  for (UnsignedInteger k = 0; k < basis_.getSize(); ++k)
+  {
+    if (currentIndices_.contains(k))
+    {
+      currentFunctions.add(basis_[k]);
+    }
+  }
+  NumericalMathFunction metaModel(currentFunctions, regression);
+
+  result_ = LinearModelResult(inputSample_, Basis(currentFunctions), currentX_, outputSample_, metaModel,
+                              regression, condensedFormula_, coefficientsNames, residualSample,
+                              diagonalGramInverse, leverages, cookDistances);
   hasRun_ = true;
 }
 

@@ -29,7 +29,7 @@ factory = ot.OrthogonalProductPolynomialFactory([ot.MonomialFactory()]*dim, enum
 
 # Y ~ (X1+X2+X3+X4)^4
 interactions = [x for x in ot.Tuples([2]*dim).generate()]
-# remove [1,1,1,1]:  Y ~ (X1+X2+X3+X4)^3
+# Remove X1*X2*X3*X4 to obtain Y ~ (X1+X2+X3+X4)^3
 interactions.pop(interactions.index([1]*dim))
 for i in xrange(dim):
   indices = [0]*dim
@@ -43,8 +43,8 @@ for i in xrange(dim):
 basis = ot.Basis([factory.build(enumerateFunction.inverse(indices)) for indices in interactions])
 ################################################################################################
 
-i_min = interactions.index([0,0,0,0])
-i_0 = []
+i_min = [interactions.index([0,0,0,0])]
+i_0 = i_min[:]
 for i in xrange(dim):
   indices = [0]*dim
   indices[i] = 1
@@ -72,14 +72,28 @@ penalty_BIC = log(X.getSize())
 penalty_AIC = 2.
 maxiteration = 1000
 
-for k in [penalty_AIC, penalty_BIC]:
-  ## Forward / Backward
-  for forward in [True, False]:
-    algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, forward, k, maxiteration)
-    algo_result = ot.LinearModelAnalysis(algo.getResult())
-    algo_result.print()
-  ## Both
-  algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, i_0, k, maxiteration)
-  algo_result = ot.LinearModelAnalysis(algo.getResult())
-  algo_result.print()
+ot.Log.Show(ot.Log.ALL)
+
+algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, True, penalty_AIC, maxiteration)
+algo.run()
+algo_result = algo.getResult()
+analysis = ot.LinearModelAnalysis(algo_result)
+
+from openturns.viewer import View
+graph = analysis.drawResidualsVsFitted()
+graph.draw("xxx", 640, 480);
+
+v = View(graph)
+v.show()
+
+# for k in [penalty_AIC, penalty_BIC]:
+#   ## Forward / Backward
+#   for forward in [True, False]:
+#     algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, forward, k, maxiteration)
+#     algo_result = ot.LinearModelAnalysis(algo.getResult())
+#     algo_result.print()
+#   ## Both
+#   algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, i_0, k, maxiteration)
+#   algo_result = ot.LinearModelAnalysis(algo.getResult())
+#   algo_result.print()
 

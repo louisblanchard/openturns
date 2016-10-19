@@ -43,21 +43,22 @@ LinearModelResult::LinearModelResult(const NumericalSample & inputSample,
                                      const Basis & basis,
                                      const Matrix & design,
                                      const NumericalSample & outputSample,
-                                     const LinearModel & linearModel,
+                                     const NumericalMathFunction & metaModel,
+                                     const NumericalPoint & trendCoefficients,
                                      const String & formula,
                                      const Description & coefficientsNames,
                                      const NumericalSample & sampleResiduals,
                                      const NumericalPoint & diagonalGramInverse,
                                      const NumericalPoint & leverages,
                                      const NumericalPoint & cookDistances)
-  : MetaModelResult(NumericalMathFunction(inputSample, outputSample), NumericalMathFunction(), NumericalPoint(1, 0.0), NumericalPoint(1, 0.0))
+  : MetaModelResult(NumericalMathFunction(inputSample, outputSample), metaModel, NumericalPoint(1, 0.0), NumericalPoint(1, 0.0))
   , inputSample_(inputSample)
   , basis_(basis)
   , design_(design)
   , outputSample_(outputSample)
-  , linearModel_(linearModel)
   , condensedFormula_(formula)
   , coefficientsNames_(coefficientsNames)
+  , beta_(trendCoefficients)
   , sampleResiduals_(sampleResiduals)
   , diagonalGramInverse_(diagonalGramInverse)
   , leverages_(leverages)
@@ -84,13 +85,6 @@ String LinearModelResult::__repr__() const
 }
 
 
-/* Linear model accessor */
-LinearModel LinearModelResult::getLinearModel() const
-{
-  return linearModel_;
-}
-
-
 /* Input sample accessor */
 NumericalSample LinearModelResult::getInputSample() const
 {
@@ -107,9 +101,13 @@ NumericalSample LinearModelResult::getOutputSample() const
 /* Fitted sample accessor */
 NumericalSample LinearModelResult::getFittedSample() const
 {
-  const NumericalMathFunction f(basis_);
-  const NumericalMathFunction g(getMetaModel(), f);
-  return g(inputSample_);
+  return metaModel_(inputSample_);
+}
+
+/* Formula accessor */
+NumericalPoint LinearModelResult::getTrendCoefficients() const
+{
+  return beta_;
 }
 
 /* Formula accessor */
@@ -152,12 +150,12 @@ void LinearModelResult::computeStandardizedResiduals()
 {
   NumericalPoint sigma2(sampleResiduals_.computeRawMoment(2));
   const UnsignedInteger n = sampleResiduals_.getSize();
-  const UnsignedInteger pPlusOne = basis_.getSize();
+  const UnsignedInteger pPlusOne = beta_.getDimension();
   const NumericalScalar factor = n * sigma2[0] / (n - pPlusOne);
   standardizedResiduals_ = NumericalSample(n, 1);
   for(UnsignedInteger i = 0; i < n; ++i)
   {
-    standardizedResiduals_(i, 0) = sampleResiduals_(i, 0) / std::sqrt(factor * diagonalGramInverse_[i]);
+    standardizedResiduals_(i, 0) = sampleResiduals_(i, 0) / std::sqrt(factor * (1.0 - leverages_[i]));
   }
 }
 
@@ -169,7 +167,7 @@ void LinearModelResult::save(Advocate & adv) const
   adv.saveAttribute( "basis_", basis_ );
   adv.saveAttribute( "design_", design_ );
   adv.saveAttribute( "outputSample_", outputSample_ );
-  adv.saveAttribute( "linearModel_", linearModel_ );
+  adv.saveAttribute( "beta_", beta_ );
   adv.saveAttribute( "condensedFormula_", condensedFormula_ );
   adv.saveAttribute( "coefficientsNames_", coefficientsNames_ );
   adv.saveAttribute( "standardizedResiduals_", standardizedResiduals_ );
@@ -186,7 +184,7 @@ void LinearModelResult::load(Advocate & adv)
   adv.loadAttribute( "basis_", basis_ );
   adv.loadAttribute( "design_", design_ );
   adv.loadAttribute( "outputSample_", outputSample_ );
-  adv.loadAttribute( "linearModel_", linearModel_ );
+  adv.loadAttribute( "beta_", beta_ );
   adv.loadAttribute( "condensedFormula_", condensedFormula_ );
   adv.loadAttribute( "coefficientsNames_", coefficientsNames_ );
   adv.loadAttribute( "standardizedResiduals_", standardizedResiduals_ );

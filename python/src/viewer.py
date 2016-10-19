@@ -238,6 +238,8 @@ class View(object):
                 bar_kwargs['color'] = drawable.getColorCode()
             if ('color' not in step_kwargs_default) and ('c' not in step_kwargs_default):
                 step_kwargs['color'] = drawable.getColorCode()
+            if ('color' not in text_kwargs_default) and ('c' not in text_kwargs_default):
+                text_kwargs['color'] = drawable.getColorCode()
 
             # set marker
             pointStyleDict = {'square': 's', 'circle': 'o', 'triangleup': '2', 'plus': '+', 'times': '+', 'diamond': '+', 'triangledown':
@@ -318,9 +320,6 @@ class View(object):
             elif drawableKind == 'Cloud':
                 plot_kwargs['linestyle'] = 'None'
                 self._ax[0].plot(x, y, **plot_kwargs)
-                for i, label in enumerate(drawable.getLabels()):
-                    if len(label) == 0: continue
-                    self._ax[0].annotate(label, xy=(x[i][0], y[i][0]), xytext = (0, 0), textcoords = 'offset points')
 
             elif drawableKind == 'Curve':
                 self._ax[0].plot(x, y, **plot_kwargs)
