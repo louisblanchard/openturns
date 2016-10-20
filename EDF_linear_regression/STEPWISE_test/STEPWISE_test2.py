@@ -61,10 +61,10 @@ for k in [penalty_AIC, penalty_BIC]:
   for forward in [True, False]:
     algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, forward, k, maxiteration)
     algo_result = ot.LinearModelAnalysis(algo.getResult())
-    algo_result.print()
+    print(algo_result)
   ## Both
   algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, i_0, k, maxiteration)
   algo_result = ot.LinearModelAnalysis(algo.getResult())
-  algo_result.print()
+  print(algo_result)
 
 

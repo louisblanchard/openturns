@@ -83,7 +83,7 @@ from openturns.viewer import View
 
 for plot in ["drawResidualsVsFitted", "drawScaleLocation", "drawQQplot", "drawCookDistance", "drawResidualsVsLeverages", "drawCookVsLeverages"]:
      graph = getattr(analysis, plot)()
-     graph.draw("xxx", 640, 480);
+     graph.draw(plot, 640, 480);
      View(graph).show()
 
 
