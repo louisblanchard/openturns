@@ -26,7 +26,7 @@
 #include "openturns/Cloud.hxx"
 #include "openturns/Curve.hxx"
 #include "openturns/Text.hxx"
-
+#include "openturns/Normal.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
 
@@ -207,12 +207,12 @@ Graph LinearModelAnalysis::drawResidualsVsFitted() const
   const NumericalSample inputData(linearModelResult_.getInputSample());
   const NumericalMathFunction metamodel(linearModelResult_.getMetaModel());
   const NumericalSample fitted(metamodel(inputData));
-  const NumericalSample residuals(linearModelResult_.getStandardizedResiduals());
+  const NumericalSample residuals(getStandardizedResiduals());
   const UnsignedInteger size(fitted.getSize());
   NumericalSample dataFull(fitted);
   dataFull.stack(residuals);
-  Graph graph("Residuals", "Fitted values", "Std. residuals", true, "topright");
-  Cloud cloud(dataFull, "black", "circle");
+  Graph graph("Residuals vs Fitted", "Fitted values", "Std. residuals", true, "topright");
+  Cloud cloud(dataFull, "black", "fcircle");
   graph.add(cloud);
   // Add point identifiers for worst residuals
   UnsignedInteger identifiers(ResourceMap::GetAsUnsignedInteger("LinearModelAnalysis-Identifiers"));
@@ -243,37 +243,319 @@ Graph LinearModelAnalysis::drawResidualsVsFitted() const
     text.setTextPositions(positions);
     graph.add(text);
   }
+  // Adapt the margins
+  NumericalPoint boundingBox(graph.getBoundingBox());
+  NumericalScalar width = boundingBox[1] - boundingBox[0];
+  NumericalScalar height = boundingBox[3] - boundingBox[2];
+  boundingBox[0] -= 0.1 * width;
+  boundingBox[1] += 0.1 * width;
+  boundingBox[2] -= 0.1 * height;
+  boundingBox[3] += 0.1 * height;
+  graph.setBoundingBox(boundingBox);
   return graph;
 }
 
 /* [2] a Scale-Location plot of sqrt(| residuals |) versus fitted values */
 Graph LinearModelAnalysis::drawScaleLocation() const
 {
-  throw NotYetImplementedException(HERE);
+  const NumericalSample inputData(linearModelResult_.getInputSample());
+  const NumericalMathFunction metamodel(linearModelResult_.getMetaModel());
+  const NumericalSample fitted(metamodel(inputData));
+  const NumericalSample residuals(getStandardizedResiduals());
+  const UnsignedInteger size(fitted.getSize());
+  NumericalSample dataFull(fitted);
+  NumericalSample sqrtresiduals(size,1);
+  for(UnsignedInteger i = 0; i < size; ++i)
+  {
+    sqrtresiduals(i, 0) = std::sqrt(std::abs(residuals(i, 0)));
+  }
+  dataFull.stack(sqrtresiduals);
+  Graph graph("Scale-Location", "Fitted values", "|Std. residuals|^0.5", true, "topright");
+  Cloud cloud(dataFull, "black", "fcircle");
+  graph.add(cloud);
+  // Add point identifiers for worst sqrt(|residuals|)
+  UnsignedInteger identifiers(ResourceMap::GetAsUnsignedInteger("LinearModelAnalysis-Identifiers"));
+  if (identifiers > 0)
+  {
+    if (identifiers > size)
+      identifiers = size;
+    Description annotations(size);
+    NumericalSample dataWithIndex(size, 2);
+    for(UnsignedInteger i = 0; i < size; ++i)
+    {
+      dataWithIndex(i, 0) = sqrtresiduals(i, 0);
+      dataWithIndex(i, 1) = i;
+    }
+    const NumericalSample sortedData(dataWithIndex.sortAccordingToAComponent(0));
+    Indices positions(size);
+    for(UnsignedInteger i = 0; i < identifiers; ++i)
+    {
+      const UnsignedInteger index = sortedData(size - 1 - i, 1);
+      annotations[index] = (OSS() << index + 1);
+      if (sqrtresiduals(index, 0) < 0.0)
+        positions[index] = 3;
+      else
+        positions[index] = 1;
+    }
+    Text text(dataFull, annotations, 1);
+    text.setColor("red");
+    text.setTextPositions(positions);
+    graph.add(text);
+  }
+  // Adapt the margins
+  NumericalPoint boundingBox(graph.getBoundingBox());
+  NumericalScalar width = boundingBox[1] - boundingBox[0];
+  NumericalScalar height = boundingBox[3] - boundingBox[2];
+  boundingBox[0] -= 0.1 * width;
+  boundingBox[1] += 0.1 * width;
+  boundingBox[2] -= 0.1 * height;
+  boundingBox[3] += 0.1 * height;
+  graph.setBoundingBox(boundingBox);
+  return graph;
 }
 
 /* [3] a Normal quantiles-quantiles plot of standardized residuals */
 Graph LinearModelAnalysis::drawQQplot() const
 {
-  throw NotYetImplementedException(HERE);
+  const NumericalSample stdresiduals(getStandardizedResiduals());
+  const UnsignedInteger size(stdresiduals.getSize());
+  const Normal distribution(1); // Standart normal distribution 
+  const NumericalSample sortedSample(stdresiduals.sort(0));
+  NumericalSample dataFull(size, 2);
+  const NumericalScalar step = 1.0 / size;
+  for (UnsignedInteger i = 0; i < size; ++i)
+  {
+    dataFull[i][1] = sortedSample[i][0];
+    dataFull[i][0] = distribution.computeQuantile((i + 0.5) * step)[0];
+  }
+  Graph graph("Normal Q-Q", "Theoretical Quantiles", "Std. residuals", true, "topright");
+  Cloud cloud(dataFull, "black", "fcircle");
+  graph.add(cloud);
+  // Add point identifiers for worst standardized residuals
+  UnsignedInteger identifiers(ResourceMap::GetAsUnsignedInteger("LinearModelAnalysis-Identifiers"));
+  if (identifiers > 0)
+  {
+    if (identifiers > size)
+      identifiers = size;
+    Description annotations(size);
+    NumericalSample dataWithIndex1(size, 2);
+    NumericalSample dataWithIndex2(size, 2);
+    for(UnsignedInteger i = 0; i < size; ++i)
+    {
+      dataWithIndex1(i, 0) = std::abs(dataFull(i, 1));
+      dataWithIndex1(i, 1) = i;
+      dataWithIndex2(i, 0) = std::abs(stdresiduals(i, 0));
+      dataWithIndex2(i, 1) = i;
+
+    }
+    const NumericalSample sortedData1(dataWithIndex1.sortAccordingToAComponent(0));
+    const NumericalSample sortedData2(dataWithIndex2.sortAccordingToAComponent(0));
+    Indices positions(size);
+    for(UnsignedInteger i = 0; i < identifiers; ++i)
+    {
+      const UnsignedInteger index1 = sortedData1(size - 1 - i, 1);
+      const UnsignedInteger index2 = sortedData2(size - 1 - i, 1);
+      annotations[index1] = (OSS() << index2 + 1);
+      if (dataFull(index1, 1) < 0.0)
+        positions[index1] = 3;
+      else
+        positions[index1] = 1;
+    }
+    Text text(dataFull, annotations, 1);
+    text.setColor("red");
+    text.setTextPositions(positions);
+    graph.add(text);
+  }
+  // The bisectrice
+  NumericalSample diagonal(2, 2);
+  NumericalPoint point(2);
+  diagonal[0][0] = dataFull[0][0];
+  diagonal[0][1] = dataFull[0][0];
+  diagonal[1][0] = dataFull[size - 1][0];
+  diagonal[1][1] = dataFull[size - 1][0];
+  Curve bisectrice(diagonal);
+  bisectrice.setColor("red");
+  bisectrice.setLineStyle("dashed");
+  graph.add(bisectrice);
+  // Adapt the margins
+  NumericalPoint boundingBox(graph.getBoundingBox());
+  NumericalScalar width = boundingBox[1] - boundingBox[0];
+  NumericalScalar height = boundingBox[3] - boundingBox[2];
+  boundingBox[0] -= 0.1 * width;
+  boundingBox[1] += 0.1 * width;
+  boundingBox[2] -= 0.1 * height;
+  boundingBox[3] += 0.1 * height;
+  graph.setBoundingBox(boundingBox);
+  return graph;
 }
 
 /* [4] a plot of Cook's distances versus row labels */
 Graph LinearModelAnalysis::drawCookDistance() const
 {
-  throw NotYetImplementedException(HERE);
+  const NumericalPoint cookdistances(getCookDistances());
+  const UnsignedInteger size(cookdistances.getSize());
+  // Add point identifiers for worst Cook's distance
+  UnsignedInteger identifiers(ResourceMap::GetAsUnsignedInteger("LinearModelAnalysis-Identifiers"));
+  Description annotations(size);
+  if (identifiers > 0)
+  {
+    if (identifiers > size)
+      identifiers = size;
+    NumericalSample dataWithIndex(size, 2);
+    for(UnsignedInteger i = 0; i < size; ++i)
+    {
+      dataWithIndex(i, 0) = cookdistances[i];
+      dataWithIndex(i, 1) = i;
+    }
+    const NumericalSample sortedData(dataWithIndex.sortAccordingToAComponent(0));
+    for(UnsignedInteger i = 0; i < identifiers; ++i)
+    {
+      const UnsignedInteger index = sortedData(size - 1 - i, 1);
+      annotations[index] = (OSS() << index + 1);
+    }
+  }
+  Graph graph("Cook's distance", "Obs. number", "Cook's distance", true, "topright");
+  for (UnsignedInteger i = 0; i < size; ++i)
+  {
+    NumericalSample dataFull(2, 2);
+    dataFull(0, 0) = i;
+    dataFull(0, 1) = 0.0;
+    dataFull(1, 0) = i;
+    dataFull(1, 1) = cookdistances[i]; 
+    Curve curve(dataFull, "black", "solid", 2);
+    graph.add(curve);
+    if (annotations[i] != "")
+    { 
+      Description desc(2);
+      desc[1]=annotations[i];
+      Text text(dataFull, desc, 3);
+      text.setColor("red");
+      graph.add(text);
+    }
+  }
+  // Adapt the margins
+  NumericalPoint boundingBox(graph.getBoundingBox());
+  NumericalScalar width = boundingBox[1] - boundingBox[0];
+  NumericalScalar height = boundingBox[3] - boundingBox[2];
+  boundingBox[0] -= 0.1 * width;
+  boundingBox[1] += 0.1 * width;
+  boundingBox[2] -= 0.1 * height;
+  boundingBox[3] += 0.1 * height;
+  graph.setBoundingBox(boundingBox);
+  return graph;
 }
 
 /* [5] a plot of residuals versus leverages that adds bands corresponding to Cook's distances of 0.5 and 1. */
 Graph LinearModelAnalysis::drawResidualsVsLeverages() const
 {
-  throw NotYetImplementedException(HERE);
+  const NumericalPoint leverages(getLeverages());
+  const NumericalSample stdresiduals(getStandardizedResiduals());
+  const UnsignedInteger size(stdresiduals.getSize());
+  NumericalSample leveragesS(size, 1);
+  for (UnsignedInteger i = 0; i < size; ++i)
+  {
+   leveragesS(i, 0) = leverages[i];
+  }
+  NumericalSample dataFull(leveragesS);
+  dataFull.stack(stdresiduals);
+  Graph graph("Residuals vs Leverage", "Leverage", "Std. residuals", true, "topright");
+  Cloud cloud(dataFull, "black", "fcircle");
+  graph.add(cloud);
+  // Add point identifiers for worst standardized residuals
+  UnsignedInteger identifiers(ResourceMap::GetAsUnsignedInteger("LinearModelAnalysis-Identifiers"));
+  if (identifiers > 0)
+  {
+    if (identifiers > size)
+      identifiers = size;
+    Description annotations(size);
+    NumericalSample dataWithIndex(size, 2);
+    for(UnsignedInteger i = 0; i < size; ++i)
+    {
+      dataWithIndex(i, 0) = std::abs(stdresiduals(i, 0));
+      dataWithIndex(i, 1) = i;
+    }
+    const NumericalSample sortedData(dataWithIndex.sortAccordingToAComponent(0));
+    Indices positions(size);
+    for(UnsignedInteger i = 0; i < identifiers; ++i)
+    {
+      const UnsignedInteger index = sortedData(size - 1 - i, 1);
+      annotations[index] = (OSS() << index + 1);
+      if (stdresiduals(index, 0) < 0.0)
+        positions[index] = 3;
+      else
+        positions[index] = 1;
+    }
+    Text text(dataFull, annotations, 1);
+    text.setColor("red");
+    text.setTextPositions(positions);
+    graph.add(text);
+  }
+  // Adapt the margins
+  NumericalPoint boundingBox(graph.getBoundingBox());
+  NumericalScalar width = boundingBox[1] - boundingBox[0];
+  NumericalScalar height = boundingBox[3] - boundingBox[2];
+  boundingBox[0] -= 0.1 * width;
+  boundingBox[1] += 0.1 * width;
+  boundingBox[2] -= 0.1 * height;
+  boundingBox[3] += 0.1 * height;
+  graph.setBoundingBox(boundingBox);
+  return graph;
 }
 
 /* [6] a plot of Cook's distances versus leverage/(1-leverage) */
 Graph LinearModelAnalysis::drawCookVsLeverages() const
 {
-  throw NotYetImplementedException(HERE);
+  const NumericalPoint leverages(getLeverages());
+  const NumericalPoint cookdistances(getCookDistances());
+  const UnsignedInteger size(cookdistances.getSize());
+  NumericalSample dataFull(size, 2);
+  for (UnsignedInteger i = 0; i < size; ++i)
+  {
+   dataFull(i, 0) = leverages[i] / (1.0 - leverages[i]);
+   dataFull(i, 1) = cookdistances[i];
+  }
+  Graph graph("Cook's dist vs Leverage h[ii]/(1-h[ii])", "Leverage h[ii]/(1-h[ii])", "Cook's distance", true, "topright");
+  Cloud cloud(dataFull, "black", "fcircle");
+  graph.add(cloud);
+  // Add point identifiers for worst Cook's distance
+  UnsignedInteger identifiers(ResourceMap::GetAsUnsignedInteger("LinearModelAnalysis-Identifiers"));
+  if (identifiers > 0)
+  {
+    if (identifiers > size)
+      identifiers = size;
+    Description annotations(size);
+    NumericalSample dataWithIndex(size, 2);
+    for(UnsignedInteger i = 0; i < size; ++i)
+    {
+      dataWithIndex(i, 0) = std::abs(cookdistances[i]);
+      dataWithIndex(i, 1) = i;
+    }
+    const NumericalSample sortedData(dataWithIndex.sortAccordingToAComponent(0));
+    Indices positions(size);
+    for(UnsignedInteger i = 0; i < identifiers; ++i)
+    {
+      const UnsignedInteger index = sortedData(size - 1 - i, 1);
+      annotations[index] = (OSS() << index + 1);
+      if (cookdistances[index] < 0.0)
+        positions[index] = 3;
+      else
+        positions[index] = 1;
+    }
+    Text text(dataFull, annotations, 1);
+    text.setColor("red");
+    text.setTextPositions(positions);
+    graph.add(text);
+  }
+  // Adapt the margins
+  NumericalPoint boundingBox(graph.getBoundingBox());
+  NumericalScalar width = boundingBox[1] - boundingBox[0];
+  NumericalScalar height = boundingBox[3] - boundingBox[2];
+  boundingBox[0] -= 0.1 * width;
+  boundingBox[1] += 0.1 * width;
+  boundingBox[2] -= 0.1 * height;
+  boundingBox[3] += 0.1 * height;
+  graph.setBoundingBox(boundingBox);
+  return graph;
 }
 
 /* Method save() stores the object through the StorageManager */

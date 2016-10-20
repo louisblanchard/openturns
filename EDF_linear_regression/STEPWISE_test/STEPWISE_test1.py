@@ -78,13 +78,14 @@ algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, True, penalty_AIC, ma
 algo.run()
 algo_result = algo.getResult()
 analysis = ot.LinearModelAnalysis(algo_result)
-
+ 
 from openturns.viewer import View
-graph = analysis.drawResidualsVsFitted()
-graph.draw("xxx", 640, 480);
 
-v = View(graph)
-v.show()
+for plot in ["drawResidualsVsFitted", "drawScaleLocation", "drawQQplot", "drawCookDistance", "drawResidualsVsLeverages", "drawCookVsLeverages"]:
+     graph = getattr(analysis, plot)()
+     graph.draw("xxx", 640, 480);
+     View(graph).show()
+
 
 # for k in [penalty_AIC, penalty_BIC]:
 #   ## Forward / Backward
