@@ -411,10 +411,11 @@ void LinearModelStepwiseAlgorithm::run()
       columnMaxToCurrent[startIndices_[i]] = i;
   }
 
-  UnsignedInteger iterations = 1;
+  UnsignedInteger iterations = 0;
   NumericalScalar Lstar;
   while(iterations < maximumIterationNumber_)
   {
+    ++iterations;
     // Update A=(X^T*X)^{-1}, B = X^T*Y, residual = Y - X*A*X^T*Y
     Lstar = penalty_ * currentX_.getNbColumns() + computeLogLikelihood();
     LOGDEBUG(OSS() << "Iteration " << iterations << ", current criterion=" << Lstar);
@@ -498,7 +499,6 @@ void LinearModelStepwiseAlgorithm::run()
       currentIndices_ = newIndices;
     }
     LOGDEBUG(OSS() << "Index set is now " << currentIndices_.__str__());
-    ++iterations;
   }
   // Update A=(X^T*X)^{-1}, B = X^T*Y, residual = Y - X*A*X^T*Y
   const UnsignedInteger p(currentX_.getNbColumns());
