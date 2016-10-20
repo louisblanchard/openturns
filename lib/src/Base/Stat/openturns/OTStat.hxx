@@ -38,6 +38,7 @@
 #include "openturns/LinearModelAlgorithm.hxx"
 #include "openturns/LinearModelAnalysis.hxx"
 #include "openturns/LinearModelFactory.hxx"
+#include "openturns/LinearModelResult.hxx"
 #include "openturns/LinearModel.hxx"
 #include "openturns/LowDiscrepancySequence.hxx"
 #include "openturns/LowDiscrepancySequenceImplementation.hxx"
