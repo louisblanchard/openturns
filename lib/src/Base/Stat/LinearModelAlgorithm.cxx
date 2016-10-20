@@ -20,6 +20,7 @@
  */
 #include <fstream>
 #include "openturns/LinearModelAlgorithm.hxx"
+#include "openturns/LinearModelStepwiseAlgorithm.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
 
@@ -66,7 +67,19 @@ void LinearModelAlgorithm::run()
 {
   // Do not run again if already computed
   if (hasRun_) return;
-  throw NotYetImplementedException(HERE);
+  // TODO: DIRTY HACK, FIX BEFORE RELEASE
+  Collection<NumericalMathFunction> functions;
+  const Description inputDescription(inputSample_.getDescription());
+  functions.add(NumericalMathFunction(inputSample_.getDescription(), Description(1, "1")));
+  for(UnsignedInteger i = 0; i < inputSample_.getDimension(); ++i)
+  {
+    functions.add(NumericalMathFunction(inputSample_.getDescription(), Description(1, inputDescription[i])));
+  }
+  Basis basis(functions);
+  Indices indices(basis.getSize());
+  indices.fill();
+  LinearModelStepwiseAlgorithm step(inputSample_, basis, outputSample_, indices, true, 2.0, 0);
+  result_ = step.getResult();
   hasRun_ = true;
 }
 
