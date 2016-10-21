@@ -500,6 +500,29 @@ Graph LinearModelAnalysis::drawResidualsVsLeverages() const
   boundingBox[2] -= 0.1 * height;
   boundingBox[3] += 0.1 * height;
   graph.setBoundingBox(boundingBox);
+  // Add contour plot of Cook's distance
+  const UnsignedInteger pPlusOne = linearModelResult_.getCoefficientsNames().getSize();
+  const UnsignedInteger step = 100;
+  NumericalScalar ptx;  
+  NumericalSample diagonal1(2,2);
+  NumericalSample diagonal2(2,2);
+  for(UnsignedInteger i = 0; i < step-1; ++i)
+  {
+    ptx = boundingBox[0] + i*(boundingBox[1] - boundingBox[0])/step;
+    diagonal1[0][0] = ptx;
+    diagonal1[0][1] = std::sqrt(1.0*pPlusOne*(1.0-ptx)/ptx);
+    diagonal2[0][0] = ptx;
+    diagonal2[0][1] = std::sqrt(0.5*pPlusOne*(1.0-ptx)/ptx);
+    ptx = boundingBox[0] + (i+1)*(boundingBox[1] - boundingBox[0])/step;
+    diagonal1[1][0] = ptx;
+    diagonal1[1][1] = std::sqrt(1.0*pPlusOne*(1.0-ptx)/ptx);
+    diagonal2[1][0] = ptx;
+    diagonal2[1][1] = std::sqrt(0.5*pPlusOne*(1.0-ptx)/ptx);
+    Curve curve1(diagonal1, "red", "solid", 2);
+    graph.add(curve1);
+    Curve curve2(diagonal2, "blue", "solid", 2);
+    graph.add(curve2);
+  }
   return graph;
 }
 
