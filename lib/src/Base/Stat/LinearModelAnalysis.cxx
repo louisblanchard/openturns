@@ -367,17 +367,19 @@ Graph LinearModelAnalysis::drawQQplot() const
     text.setTextPositions(positions);
     graph.add(text);
   }
-  // The bisectrice
+  // add line to a normal QQ plot which passes through the first and third quartiles
   NumericalSample diagonal(2, 2);
   NumericalPoint point(2);
+  const UnsignedInteger id1Q = 0.25*size-0.5;
+  const UnsignedInteger id3Q = 0.75*size-0.5;
+  point[0] = (dataFull[id3Q][1]-dataFull[id1Q][1])/(dataFull[id3Q][0]-dataFull[id1Q][0]);
+  point[1] = dataFull[id3Q][1]-point[0]* dataFull[id3Q][0];  
   diagonal[0][0] = dataFull[0][0];
-  diagonal[0][1] = dataFull[0][0];
-  diagonal[1][0] = dataFull[size - 1][0];
-  diagonal[1][1] = dataFull[size - 1][0];
-  Curve bisectrice(diagonal);
-  bisectrice.setColor("red");
-  bisectrice.setLineStyle("dashed");
-  graph.add(bisectrice);
+  diagonal[0][1] = dataFull[0][0]*point[0]+point[1];
+  diagonal[1][0] = dataFull[size-1][0];
+  diagonal[1][1] = dataFull[size-1][0]*point[0]+point[1];
+  Curve curve(diagonal, "red", "dashed", 2);
+  graph.add(curve);
   // Adapt the margins
   NumericalPoint boundingBox(graph.getBoundingBox());
   NumericalScalar width = boundingBox[1] - boundingBox[0];
@@ -419,9 +421,9 @@ Graph LinearModelAnalysis::drawCookDistance() const
   for (UnsignedInteger i = 0; i < size; ++i)
   {
     NumericalSample dataFull(2, 2);
-    dataFull(0, 0) = i;
+    dataFull(0, 0) = i+1;
     dataFull(0, 1) = 0.0;
-    dataFull(1, 0) = i;
+    dataFull(1, 0) = i+1;
     dataFull(1, 1) = cookdistances[i]; 
     Curve curve(dataFull, "black", "solid", 2);
     graph.add(curve);
@@ -436,10 +438,7 @@ Graph LinearModelAnalysis::drawCookDistance() const
   }
   // Adapt the margins
   NumericalPoint boundingBox(graph.getBoundingBox());
-  NumericalScalar width = boundingBox[1] - boundingBox[0];
   NumericalScalar height = boundingBox[3] - boundingBox[2];
-  boundingBox[0] -= 0.1 * width;
-  boundingBox[1] += 0.1 * width;
   boundingBox[2] -= 0.1 * height;
   boundingBox[3] += 0.1 * height;
   graph.setBoundingBox(boundingBox);
