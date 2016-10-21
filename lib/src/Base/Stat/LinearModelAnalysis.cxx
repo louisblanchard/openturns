@@ -107,6 +107,7 @@ NumericalSample LinearModelAnalysis::getCoefficientsEstimates() const
   {
     result(i, 0) = beta[i];
   }
+  return result;
 }
 
 NumericalSample LinearModelAnalysis::getCoefficientsStandardErrors() const
@@ -207,11 +208,11 @@ Graph LinearModelAnalysis::drawResidualsVsFitted() const
   const NumericalSample inputData(linearModelResult_.getInputSample());
   const NumericalMathFunction metamodel(linearModelResult_.getMetaModel());
   const NumericalSample fitted(metamodel(inputData));
-  const NumericalSample residuals(getStandardizedResiduals());
+  const NumericalSample residuals(getResiduals());
   const UnsignedInteger size(fitted.getSize());
   NumericalSample dataFull(fitted);
   dataFull.stack(residuals);
-  Graph graph("Residuals vs Fitted", "Fitted values", "Std. residuals", true, "topright");
+  Graph graph("Residuals vs Fitted", "Fitted values", "Residuals", true, "topright");
   Cloud cloud(dataFull, "black", "fcircle");
   graph.add(cloud);
   // Add point identifiers for worst residuals
@@ -261,19 +262,19 @@ Graph LinearModelAnalysis::drawScaleLocation() const
   const NumericalSample inputData(linearModelResult_.getInputSample());
   const NumericalMathFunction metamodel(linearModelResult_.getMetaModel());
   const NumericalSample fitted(metamodel(inputData));
-  const NumericalSample residuals(getStandardizedResiduals());
+  const NumericalSample stdresiduals(getStandardizedResiduals());
   const UnsignedInteger size(fitted.getSize());
   NumericalSample dataFull(fitted);
-  NumericalSample sqrtresiduals(size,1);
+  NumericalSample sqrtstdresiduals(size,1);
   for(UnsignedInteger i = 0; i < size; ++i)
   {
-    sqrtresiduals(i, 0) = std::sqrt(std::abs(residuals(i, 0)));
+    sqrtstdresiduals(i, 0) = std::sqrt(std::abs(stdresiduals(i, 0)));
   }
-  dataFull.stack(sqrtresiduals);
+  dataFull.stack(sqrtstdresiduals);
   Graph graph("Scale-Location", "Fitted values", "|Std. residuals|^0.5", true, "topright");
   Cloud cloud(dataFull, "black", "fcircle");
   graph.add(cloud);
-  // Add point identifiers for worst sqrt(|residuals|)
+  // Add point identifiers for worst standardized residuals
   UnsignedInteger identifiers(ResourceMap::GetAsUnsignedInteger("LinearModelAnalysis-Identifiers"));
   if (identifiers > 0)
   {
@@ -283,7 +284,7 @@ Graph LinearModelAnalysis::drawScaleLocation() const
     NumericalSample dataWithIndex(size, 2);
     for(UnsignedInteger i = 0; i < size; ++i)
     {
-      dataWithIndex(i, 0) = sqrtresiduals(i, 0);
+      dataWithIndex(i, 0) = std::abs(stdresiduals(i, 0));
       dataWithIndex(i, 1) = i;
     }
     const NumericalSample sortedData(dataWithIndex.sortAccordingToAComponent(0));
@@ -292,7 +293,7 @@ Graph LinearModelAnalysis::drawScaleLocation() const
     {
       const UnsignedInteger index = sortedData(size - 1 - i, 1);
       annotations[index] = (OSS() << index + 1);
-      if (sqrtresiduals(index, 0) < 0.0)
+      if (stdresiduals(index, 0) < 0.0)
         positions[index] = 3;
       else
         positions[index] = 1;
@@ -448,6 +449,7 @@ Graph LinearModelAnalysis::drawCookDistance() const
 /* [5] a plot of residuals versus leverages that adds bands corresponding to Cook's distances of 0.5 and 1. */
 Graph LinearModelAnalysis::drawResidualsVsLeverages() const
 {
+  const NumericalPoint cookdistances(getCookDistances());
   const NumericalPoint leverages(getLeverages());
   const NumericalSample stdresiduals(getStandardizedResiduals());
   const UnsignedInteger size(stdresiduals.getSize());
@@ -461,7 +463,7 @@ Graph LinearModelAnalysis::drawResidualsVsLeverages() const
   Graph graph("Residuals vs Leverage", "Leverage", "Std. residuals", true, "topright");
   Cloud cloud(dataFull, "black", "fcircle");
   graph.add(cloud);
-  // Add point identifiers for worst standardized residuals
+  // Add point identifiers for worst Cook's distance
   UnsignedInteger identifiers(ResourceMap::GetAsUnsignedInteger("LinearModelAnalysis-Identifiers"));
   if (identifiers > 0)
   {
@@ -471,7 +473,7 @@ Graph LinearModelAnalysis::drawResidualsVsLeverages() const
     NumericalSample dataWithIndex(size, 2);
     for(UnsignedInteger i = 0; i < size; ++i)
     {
-      dataWithIndex(i, 0) = std::abs(stdresiduals(i, 0));
+      dataWithIndex(i, 0) = cookdistances[i];
       dataWithIndex(i, 1) = i;
     }
     const NumericalSample sortedData(dataWithIndex.sortAccordingToAComponent(0));
@@ -480,7 +482,7 @@ Graph LinearModelAnalysis::drawResidualsVsLeverages() const
     {
       const UnsignedInteger index = sortedData(size - 1 - i, 1);
       annotations[index] = (OSS() << index + 1);
-      if (stdresiduals(index, 0) < 0.0)
+      if (cookdistances[index] < 0.0)
         positions[index] = 3;
       else
         positions[index] = 1;
