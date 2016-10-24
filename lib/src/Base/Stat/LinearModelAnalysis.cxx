@@ -503,26 +503,48 @@ Graph LinearModelAnalysis::drawResidualsVsLeverages() const
   // Add contour plot of Cook's distance
   const UnsignedInteger pPlusOne = linearModelResult_.getCoefficientsNames().getSize();
   const UnsignedInteger step = 100;
+  NumericalPoint isovalues(2);
+  isovalues[0]=0.5;
+  isovalues[1]=1.0;
   NumericalScalar ptx;  
+  Description annotation(2);
   NumericalSample diagonal1(2,2);
   NumericalSample diagonal2(2,2);
-  for(UnsignedInteger i = 0; i < step-1; ++i)
+  width = boundingBox[1] - boundingBox[0];
+  for(UnsignedInteger k = 0; k < isovalues.getSize(); ++k)
   {
-    ptx = boundingBox[0] + i*(boundingBox[1] - boundingBox[0])/step;
-    diagonal1[0][0] = ptx;
-    diagonal1[0][1] = std::sqrt(1.0*pPlusOne*(1.0-ptx)/ptx);
-    diagonal2[0][0] = ptx;
-    diagonal2[0][1] = std::sqrt(0.5*pPlusOne*(1.0-ptx)/ptx);
-    ptx = boundingBox[0] + (i+1)*(boundingBox[1] - boundingBox[0])/step;
-    diagonal1[1][0] = ptx;
-    diagonal1[1][1] = std::sqrt(1.0*pPlusOne*(1.0-ptx)/ptx);
-    diagonal2[1][0] = ptx;
-    diagonal2[1][1] = std::sqrt(0.5*pPlusOne*(1.0-ptx)/ptx);
-    Curve curve1(diagonal1, "red", "solid", 2);
-    graph.add(curve1);
-    Curve curve2(diagonal2, "blue", "solid", 2);
-    graph.add(curve2);
+    for(UnsignedInteger i = 0; i < step-1; ++i)
+    {
+      ptx = boundingBox[0] + i*(width)/step;
+      diagonal1[0][0] = ptx;
+      diagonal2[0][0] = ptx;
+      diagonal1[0][1] =  std::sqrt(isovalues[k]*pPlusOne*(1.0-ptx)/ptx);
+      diagonal2[0][1] = -diagonal1[0][1];
+      ptx = boundingBox[0] + (i+1)*(width)/step;
+      diagonal1[1][0] = ptx;
+      diagonal2[1][0] = ptx;
+      diagonal1[1][1] =  std::sqrt(isovalues[k]*pPlusOne*(1.0-ptx)/ptx);
+      diagonal2[1][1] = -diagonal1[1][1];
+      Curve curve1(diagonal1, "red", "solid", 1);
+      Curve curve2(diagonal2, "red", "solid", 1);
+      graph.add(curve1);
+      graph.add(curve2);
+    }
+    annotation[0] = (OSS() << isovalues[k]);
+    Cloud cloud1(diagonal1, "red", "dot");
+    graph.add(cloud1);
+    Text text1(diagonal1, annotation, 3);
+    text1.setColor("red");
+    graph.add(text1);
+    Cloud cloud2(diagonal2, "red", "dot");
+    graph.add(cloud2);
+    Text text2(diagonal2, annotation, 3);
+    text2.setColor("red");
+    graph.add(text2);
   }
+  Curve curve1(diagonal1, "red", "solid", 1);
+  curve1.setLegend("Cook's distance");
+  graph.add(curve1);
   return graph;
 }
 
