@@ -506,7 +506,8 @@ void LinearModelStepwiseAlgorithm::run()
   LOGDEBUG(OSS() << "Final indices are " << currentIndices_.__str__() << " and criterion is " << criterion);
 
   NumericalPoint regression(p);
-  memcpy(&regression[0], &currentB_(0, 0), sizeof(NumericalScalar)*p);
+  const Matrix AB(currentGramInverse_ * currentB_);
+  memcpy(&regression[0], &AB(0, 0), sizeof(NumericalScalar)*p);
 
   Description coefficientsNames(p);
   for (UnsignedInteger i = 0, k = 0; k < basis_.getSize(); ++k)
