@@ -27,6 +27,10 @@
 #include "openturns/Curve.hxx"
 #include "openturns/Text.hxx"
 #include "openturns/Normal.hxx"
+#include "openturns/DistFunc.hxx"
+#include "openturns/LinearModelTest.hxx"
+#include "openturns/FittingTest.hxx"
+#include "openturns/HypothesisTest.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
 
@@ -113,15 +117,17 @@ NumericalSample LinearModelAnalysis::getCoefficientsEstimates() const
 NumericalSample LinearModelAnalysis::getCoefficientsStandardErrors() const
 {
   const NumericalScalar sigma2(getResiduals().computeRawMoment(2)[0]);
-  const NumericalPoint leverages(linearModelResult_.getLeverages());
-  const UnsignedInteger n = leverages.getSize();
-  NumericalSample standardErrors(n, 1);
+  const UnsignedInteger n = getResiduals().getSize();
+  const UnsignedInteger pPlusOne =  linearModelResult_.getCoefficientsNames().getSize();
+  const NumericalScalar factor = n * sigma2 / (n - pPlusOne);
+  const NumericalPoint diagGramInv(linearModelResult_.getDiagonalGramInverse());
+  const UnsignedInteger p = diagGramInv.getSize();
+  NumericalSample standardErrors(p, 1);
   for (UnsignedInteger i = 0; i < standardErrors.getSize(); ++i)
   {
-    standardErrors(i, 0) = std::sqrt(sigma2 * leverages[i]);
+    standardErrors(i, 0) = std::sqrt(factor * diagGramInv[i]);
   }
   return standardErrors;
-
 }
 
 NumericalSample LinearModelAnalysis::getCoefficientsTScores() const
@@ -138,7 +144,14 @@ NumericalSample LinearModelAnalysis::getCoefficientsTScores() const
 
 NumericalSample LinearModelAnalysis::getCoefficientsPValues() const
 {
-  throw NotYetImplementedException(HERE);
+  const NumericalSample tscores(getCoefficientsTScores());
+  const UnsignedInteger dof = getDegreesOfFreedom();
+  NumericalSample pValues(tscores.getSize(), 1);
+  for (UnsignedInteger i = 0; i < pValues.getSize(); ++i)
+  {
+    pValues(i, 0) = 2.*DistFunc::pStudent(dof,std::abs(tscores(i, 0)),true);
+  }
+  return pValues;
 }
 
 /* Leverages */
@@ -164,13 +177,21 @@ UnsignedInteger LinearModelAnalysis::getDegreesOfFreedom() const
 /* R-squared test */
 NumericalScalar LinearModelAnalysis::getRSquared() const
 {
-  throw NotYetImplementedException(HERE);
+  const NumericalSample sampleY(linearModelResult_.getOutputSample());
+  const NumericalSample residuals(getResiduals());
+  return LinearModelTest::LinearModelRSquared(sampleY,sampleY-residuals).getPValue();
 }
 
 /* Adjusted R-squared test */
 NumericalScalar LinearModelAnalysis::getAdjustedRSquared() const
 {
-  throw NotYetImplementedException(HERE);
+  const UnsignedInteger dof = getDegreesOfFreedom();
+  const UnsignedInteger n   = getResiduals().getSize();
+  const NumericalScalar R2  = getRSquared();
+  return 1. -(1.-R2)*(n-1)/dof;
+  //const NumericalSample sampleY(linearModelResult_.getOutputSample());
+  //const NumericalSample residuals(getResiduals());
+  //return LinearModelTest::LinearModelAdjustedRSquared(sampleY,sampleY-residuals).getPValue();
 }
 
 /* Fisher test */
@@ -181,25 +202,32 @@ NumericalScalar LinearModelAnalysis::getFisherScore() const
 
 NumericalScalar LinearModelAnalysis::getFisherPValue() const
 {
-  throw NotYetImplementedException(HERE);
+  const NumericalSample sampleY(linearModelResult_.getOutputSample());
+  const NumericalSample residuals(getResiduals());
+  return LinearModelTest::LinearModelFisher(sampleY,sampleY-residuals).getPValue();
 }
 
 /* Kolmogorov-Smirnov normality test */
 TestResult LinearModelAnalysis::getNormalityTestResultKolmogorovSmirnov() const
 {
-  throw NotYetImplementedException(HERE);
+  const NumericalSample sampleY(linearModelResult_.getOutputSample());
+  const NumericalSample residuals(getResiduals()); 
+  //return FittingTest::TwoSamplesKolmogorov(sampleY,sampleY-residuals);
+  return HypothesisTest::Smirnov(sampleY,sampleY-residuals);
 }
 
 /* Anderson-Darling normality test */
 TestResult LinearModelAnalysis::getNormalityTestResultAndersonDarling() const
 {
-  return NormalityTest::AndersonDarlingNormal(linearModelResult_.getSampleResiduals());
+  return NormalityTest::AndersonDarlingNormal(getResiduals());
 }
 
 /* Chi-Squared normality test */
 TestResult LinearModelAnalysis::getNormalityTestResultChiSquared() const
 {
-  throw NotYetImplementedException(HERE);
+  const NumericalSample sampleY(linearModelResult_.getOutputSample());
+  const NumericalSample residuals(getResiduals()); 
+  return HypothesisTest::ChiSquared(sampleY,sampleY-residuals);
 }
 
 /* [1] Draw a plot of residuals versus fitted values */
