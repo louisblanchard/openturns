@@ -32,6 +32,7 @@
 #include "openturns/FittingTest.hxx"
 #include "openturns/HypothesisTest.hxx"
 
+
 BEGIN_NAMESPACE_OPENTURNS
 
 CLASSNAMEINIT(LinearModelAnalysis);
@@ -73,7 +74,123 @@ String LinearModelAnalysis::__repr__() const
 /* Method that returns the ANOVA table (ANalyse Of VAriance) */
 String LinearModelAnalysis::__str__() const
 {
-  throw NotYetImplementedException(HERE);
+  const NumericalSample estimates(getCoefficientsEstimates());
+  const NumericalSample standardErrors(getCoefficientsStandardErrors());
+  const NumericalSample tscores(getCoefficientsTScores());
+  const NumericalSample pValues(getCoefficientsPValues());
+  const Description names(getCoefficientsNames());
+  const NumericalScalar sigma2(getResiduals().computeRawMoment(2)[0]);
+  const UnsignedInteger dof = getDegreesOfFreedom();
+  const UnsignedInteger n = getResiduals().getSize();
+  const String separ(" | ");
+  size_t twidth = 0; // column title max width
+  size_t lwidth = 0; // LHS number max width
+  size_t awidth = 0; 
+  String st;
+
+  OSS oss(true);
+  oss.setPrecision(5);
+  for (UnsignedInteger i = 0; i < names.getSize(); ++i)
+  { 
+    twidth = std::max( twidth, names[i].size() );
+    st = OSS() << estimates[i][0];
+    lwidth = std::max( lwidth, st.size() );
+    st = OSS() << standardErrors[i][0]; 
+    lwidth = std::max( lwidth, st.size() ); 
+    st = OSS() << tscores[i][0]; 
+    lwidth = std::max( lwidth, st.size() ); 
+    st = OSS() << pValues[i][0];
+    lwidth = std::max( lwidth, st.size() ); 
+  }
+  awidth = twidth+5*separ.size()+4*lwidth-1;
+  
+  oss << "\n Call:\n" << getFormula() ;
+  oss << "\n\n Coefficients:\n"  ;
+  oss <<  String( twidth , ' ' ) << separ; 
+  st = "Estimate";
+  oss << st << String( lwidth - st.size(),' ') << separ; 
+  st = "Std Error";
+  oss << st << String( lwidth - st.size(),' ') << separ; 
+  st = "t value";
+  oss << st << String( lwidth - st.size(),' ') << separ; 
+  st = "Pr(>|t|)";
+  oss << st << String( lwidth - st.size(),' ') << separ;
+  oss << "\n"<<  String( awidth , '-' )<<"\n";
+  for (UnsignedInteger i = 0; i < pValues.getSize(); ++i)
+  {
+    st = names[i];
+    oss << st << String( twidth - st.size(),' ') << separ; 
+    st = OSS() << estimates[i][0];
+    oss << st << String( lwidth - st.size(),' ') << separ; 
+    st = OSS() << standardErrors[i][0];
+    oss << st << String( lwidth - st.size(),' ') << separ; 
+    st = OSS() << tscores[i][0];
+    oss << st << String( lwidth - st.size(),' ') << separ; 
+    st = OSS() << pValues[i][0];
+    oss << st << String( lwidth - st.size(),' ') << separ;
+    oss << "\n";
+  }
+  oss << String( awidth , '-' )<<"\n";
+  oss << "\n Residual standard error: "<<  std::sqrt(sigma2*n/dof)  <<" on "<< dof <<" degrees of freedom ";
+  oss << "\n F-statistic: <<getFisherScore() <<  ," << " p-value: " <<  getFisherPValue();
+
+  //  R-squared & Adjusted R-squared tests
+  lwidth=0;
+  twidth=20;
+  const NumericalScalar test1(getRSquared());
+  const NumericalScalar test2(getAdjustedRSquared());
+  st = OSS() << test1;
+  lwidth = std::max( lwidth, st.size() );
+  st = OSS() << test2;
+  lwidth = std::max( lwidth, st.size() );
+  awidth = twidth+2*separ.size()+lwidth-1;
+  oss <<"\n"<< String( awidth , '-' )<<"\n";
+  st = "Multiple R-squared";
+  oss << st << String( twidth - st.size(),' ') << separ; 
+  st = OSS() << test1;
+  oss << st << String( lwidth - st.size(),' ') << separ; 
+  oss << "\n";
+  st = "Adjusted R-squared";
+  oss << st << String( twidth - st.size(),' ') << separ; 
+  st = OSS() << test2;
+  oss << st << String( lwidth - st.size(),' ') << separ; 
+  oss <<"\n"<< String( awidth , '-' )<<"\n";
+
+  // normality tests 
+  lwidth=0;
+  twidth=20;
+  const NumericalScalar normalitytest1(getNormalityTestResultAndersonDarling().getPValue());
+  const NumericalScalar normalitytest2(getNormalityTestResultChiSquared().getPValue());
+  const NumericalScalar normalitytest3(getNormalityTestResultKolmogorovSmirnov().getPValue());
+  st = OSS() << normalitytest1;
+  lwidth = std::max( lwidth, st.size() );
+  st = OSS() << normalitytest2;
+  lwidth = std::max( lwidth, st.size() );
+  st = OSS() << normalitytest3;
+  lwidth = std::max( lwidth, st.size() );
+  awidth = twidth+2*separ.size()+lwidth-1;
+  oss << "\n"<<  String( awidth , '-' )<<"\n";
+  st = "Normality test";
+  oss << st << String( twidth - st.size(),' ') << separ; 
+  st = "p-value";
+  oss << st << String( lwidth - st.size(),' ') << separ; 
+  oss << "\n"<<  String( awidth , '-' )<<"\n";
+  st = "Anderson-Darling";
+  oss << st << String( twidth - st.size(),' ') << separ; 
+  st = OSS() << normalitytest1;
+  oss << st << String( lwidth - st.size(),' ') << separ; 
+  oss << "\n";
+  st = "Chi-Squared";
+  oss << st << String( twidth - st.size(),' ') << separ; 
+  st = OSS() << normalitytest2;
+  oss << st << String( lwidth - st.size(),' ') << separ; 
+  oss << "\n";
+  st = "Kolmogorov-Smirnov";
+  oss << st << String( twidth - st.size(),' ') << separ; 
+  st = OSS() << normalitytest3;
+  oss << st << String( lwidth - st.size(),' ') << separ; 
+  oss << "\n"<<  String( awidth , '-' )<<"\n";
+  return oss;
 }
 
 
