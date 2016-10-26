@@ -125,7 +125,7 @@ NumericalSample LinearModelAnalysis::getCoefficientsStandardErrors() const
   NumericalSample standardErrors(p, 1);
   for (UnsignedInteger i = 0; i < standardErrors.getSize(); ++i)
   {
-    standardErrors(i, 0) = std::sqrt(factor * diagGramInv[i]);
+    standardErrors(i, 0) = std::sqrt(std::abs(factor * diagGramInv[i]));
   }
   return standardErrors;
 }
@@ -546,12 +546,12 @@ Graph LinearModelAnalysis::drawResidualsVsLeverages() const
       ptx = boundingBox[0] + i*(width)/step;
       diagonal1[0][0] = ptx;
       diagonal2[0][0] = ptx;
-      diagonal1[0][1] =  std::sqrt(isovalues[k]*pPlusOne*(1.0-ptx)/ptx);
+      diagonal1[0][1] =  std::sqrt(std::abs(isovalues[k]*pPlusOne*(1.0-ptx)/ptx));
       diagonal2[0][1] = -diagonal1[0][1];
       ptx = boundingBox[0] + (i+1)*(width)/step;
       diagonal1[1][0] = ptx;
       diagonal2[1][0] = ptx;
-      diagonal1[1][1] =  std::sqrt(isovalues[k]*pPlusOne*(1.0-ptx)/ptx);
+      diagonal1[1][1] =  std::sqrt(std::abs(isovalues[k]*pPlusOne*(1.0-ptx)/ptx));
       diagonal2[1][1] = -diagonal1[1][1];
       Curve curve1(diagonal1, "red", "solid", 1);
       Curve curve2(diagonal2, "red", "solid", 1);
