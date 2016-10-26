@@ -630,8 +630,6 @@ Graph LinearModelAnalysis::drawCookVsLeverages() const
   boundingBox[3] += 0.1 * height;
   graph.setBoundingBox(boundingBox);
   // Add contour plot 
-  const UnsignedInteger pPlusOne = linearModelResult_.getCoefficientsNames().getSize();
-  const UnsignedInteger step = 100;
   NumericalPoint isovalues(6);
   isovalues[0]=0.5;
   isovalues[1]=1.0;
@@ -639,45 +637,32 @@ Graph LinearModelAnalysis::drawCookVsLeverages() const
   isovalues[3]=2.0;
   isovalues[4]=2.5;
   isovalues[5]=3.0;
-  NumericalScalar ptx;  
+  NumericalPoint Pt(2);  
   Description annotation(2);
   NumericalSample diagonal(2,2);
+  diagonal[0][0] = 0.0;
+  diagonal[0][1] = 0.0;
   for(UnsignedInteger k = 0; k < isovalues.getSize(); ++k)
   {
-    NumericalScalar isovalueksquare=isovalues[k]*isovalues[k];  
-    bool stopdraw = false;
-    UnsignedInteger iter=0;
-    while ((iter < step-1)&(stopdraw==false)) 
-    {
-      ptx = iter*(boundingBox[1])/step;
-      diagonal[0][0] = ptx;
-      diagonal[0][1] = (ptx*isovalueksquare)/pPlusOne;
-      ptx = (iter+1)*(boundingBox[1])/step;
-      diagonal[1][0] = ptx;
-      diagonal[1][1] = (ptx*isovalueksquare)/pPlusOne;
-      if (diagonal[0][1] < boundingBox[3]){
-        Curve curve(diagonal, "red", "solid", 1);
-        graph.add(curve);
-      }
-      else {
-        annotation[0] = (OSS() << isovalues[k]);
-        Cloud cloud(diagonal, "red", "dot");
-        graph.add(cloud);
-        Text text(diagonal, annotation, 3);
-        text.setColor("red");
-        graph.add(text);
-        stopdraw=true;
-      }
-      iter+=1;
-    }
-    if(stopdraw==false){
-      annotation[0] = (OSS() << isovalues[k]);
-      Cloud cloud(diagonal, "red", "dot");
-      graph.add(cloud);
-      Text text(diagonal, annotation, 3);
-      text.setColor("red");
-      graph.add(text);
-    }
+    NumericalScalar coeff=isovalues[k]*isovalues[k];
+    Pt[0] = boundingBox[3]/coeff;
+    Pt[1] = boundingBox[1]*coeff;
+    if (Pt[1] < boundingBox[3]){
+      diagonal[1][0] = boundingBox[1];
+      diagonal[1][1] = Pt[1];
+    } 
+    if (Pt[0] < boundingBox[1]){
+      diagonal[1][0] = Pt[0];
+      diagonal[1][1] = boundingBox[3];
+    } 
+    Curve curve(diagonal, "red", "solid", 1);
+    graph.add(curve);
+    annotation[1] = (OSS() << isovalues[k]);
+    Cloud cloud(diagonal, "red", "dot");
+    graph.add(cloud);
+    Text text(diagonal, annotation, 3);
+    text.setColor("red");
+    graph.add(text);
   }
   return graph;
 }
