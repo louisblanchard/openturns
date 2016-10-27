@@ -26,6 +26,7 @@
 #include "openturns/LinearNumericalMathFunction.hxx"
 #include "openturns/SpecFunc.hxx"
 #include "openturns/Log.hxx"
+#include "openturns/MatrixImplementation.hxx"
 
 #include <cmath>
 
@@ -539,6 +540,33 @@ void LinearModelStepwiseAlgorithm::run()
     rowX += p;
   }
 
+  //
+  NumericalPoint leverages2(size);
+  Matrix Qt(currentQ_.transpose());
+  MatrixImplementation::iterator rowQ(Qt.getImplementation()->begin());
+  for (UnsignedInteger i = 0; i < size; ++i)
+  {
+    Matrix Qi(1, p);
+    std::copy(rowQ, rowQ + p, Qi.getImplementation()->begin());
+    const Matrix QiQi(Qi * Qi.transpose());
+    leverages2[i] = QiQi(0, 0);
+    rowQ += p;
+  } 
+
+  NumericalPoint diagonalGramInverse2(p);
+  MatrixImplementation::iterator rowR(currentInvRt_.getImplementation()->begin());
+  for (UnsignedInteger i = 0; i < p; ++i)
+  {
+    Matrix invRi(1, p);
+    std::copy(rowR, rowR + p, invRi.getImplementation()->begin());
+    const Matrix invRi2(invRi * invRi.transpose());
+    diagonalGramInverse2[i] = invRi2(0, 0);
+    rowR += p;
+  } 
+  std::cout << "TEST Hii " << leverages-leverages2 << std::endl;
+  std::cout << "TEST Aii " << diagonalGramInverse-diagonalGramInverse2 << std::endl;
+  //
+
   NumericalPoint sigma2(residualSample.computeRawMoment(2));
   const NumericalScalar factor = size * sigma2[0] / (size - p);
   NumericalSample standardizedResiduals(size, 1);
@@ -590,6 +618,16 @@ LinearModelResult LinearModelStepwiseAlgorithm::getResult()
 /* Compute the likelihood function */
 NumericalScalar LinearModelStepwiseAlgorithm::computeLogLikelihood()
 {
+  const UnsignedInteger n = currentX_.getNbRows();
+  const UnsignedInteger p = currentX_.getNbColumns();
+  currentQ_ = currentX_.computeQR(currentR_, n < p, true);
+  const MatrixImplementation b(*IdentityMatrix(p).getImplementation());
+  currentInvRt_ = currentR_.getImplementation()->solveLinearSystemTri(b, true, false, true);
+
+  // residual = Y - X*A*X^t*Y
+  const Matrix QtY = currentQ_.getImplementation()->genProd(*(Y_.getImplementation()), true, false);
+  const Matrix Yhat2(currentQ_ * QtY);
+
   CovarianceMatrix XtX(currentX_.computeGram(true));
   currentGramInverse_ = XtX.solveLinearSystem(IdentityMatrix(XtX.getNbRows()), false);
   // B = X^T * Y
@@ -606,6 +644,7 @@ NumericalScalar LinearModelStepwiseAlgorithm::computeLogLikelihood()
   const NumericalScalar normSquared = residualNP.normSquare();
   const NumericalScalar result = size * std::log(normSquared / size);
   LOGDEBUG(OSS() << "Residual squared norm=" << normSquared << ", loglikelihood=" << result);
+  std::cout << "TEST Yhat " << Yhat2-Yhat << std::endl;
   return result;
 }
 

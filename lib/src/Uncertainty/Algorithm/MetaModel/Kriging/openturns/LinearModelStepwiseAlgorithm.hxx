@@ -147,6 +147,11 @@ private:
   /** The current matrix */
   Matrix currentX_;
 
+  /** QR decomposition of the current matrix */
+  Matrix currentQ_;
+  Matrix currentR_;
+  Matrix currentInvRt_;
+
   /** The matrix inverse: A=(X^T X)^-1 */
   Matrix currentGramInverse_;
 
