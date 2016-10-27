@@ -132,7 +132,7 @@ String LinearModelAnalysis::__str__() const
   }
   oss << String( awidth , '-' )<<"\n";
   oss << "\n Residual standard error: "<<  std::sqrt(sigma2*n/dof)  <<" on "<< dof <<" degrees of freedom ";
-  oss << "\n F-statistic: <<getFisherScore() <<  ," << " p-value: " <<  getFisherPValue();
+  oss << "\n F-statistic: " << getFisherScore() << " , " << " p-value: " <<  getFisherPValue();
 
   //  R-squared & Adjusted R-squared tests
   lwidth=0;
