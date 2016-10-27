@@ -31,7 +31,7 @@
 #include "openturns/LinearModelTest.hxx"
 #include "openturns/FittingTest.hxx"
 #include "openturns/HypothesisTest.hxx"
-
+#include "openturns/FisherSnedecor.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
 
@@ -314,14 +314,29 @@ NumericalScalar LinearModelAnalysis::getAdjustedRSquared() const
 /* Fisher test */
 NumericalScalar LinearModelAnalysis::getFisherScore() const
 {
-  throw NotYetImplementedException(HERE);
+  // Degree of Freedom
+  const UnsignedInteger dof = getDegreesOfFreedom();
+  // Get residuals and output samples
+  const NumericalSample residuals(getResiduals());
+  const NumericalSample outputSample =(getLinearModelResult().getOutputSample());
+  const UnsignedInteger size = residuals.getSize();
+  // Get the number of parameter p
+  const UnsignedInteger p = getCoefficientsEstimates().getSize();
+  // Define RSS and SYY
+  const NumericalScalar RSS = residuals.computeRawMoment(2)[0] * size;
+  const NumericalScalar SYY = outputSample.computeCenteredMoment(2)[0] * size;
+  const NumericalScalar FStatistic = ((SYY - RSS) / (p - 1)) / (RSS / (size - p));
+  return FStatistic;
 }
 
 NumericalScalar LinearModelAnalysis::getFisherPValue() const
 {
-  const NumericalSample sampleY(linearModelResult_.getOutputSample());
-  const NumericalSample residuals(getResiduals());
-  return LinearModelTest::LinearModelFisher(sampleY,sampleY-residuals).getPValue();
+  // size and number of parameters
+  const UnsignedInteger size = getResiduals().getSize();
+  // Get the number of parameter p
+  const UnsignedInteger p = getCoefficientsEstimates().getSize();
+  const NumericalScalar FStatistic = getFisherScore();
+  return FisherSnedecor(p - 1, size - 1).computeComplementaryCDF(FStatistic);
 }
 
 /* Kolmogorov-Smirnov normality test */
