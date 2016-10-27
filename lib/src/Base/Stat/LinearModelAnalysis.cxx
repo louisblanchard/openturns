@@ -249,6 +249,7 @@ NumericalSample LinearModelAnalysis::getCoefficientsStandardErrors() const
 
 NumericalSample LinearModelAnalysis::getCoefficientsTScores() const
 {
+  // The coefficients of linear expansion over their standard error
   const NumericalSample estimates(getCoefficientsEstimates());
   const NumericalSample standardErrors(getCoefficientsStandardErrors());
   NumericalSample tScores(estimates.getSize(), 1);
@@ -261,12 +262,19 @@ NumericalSample LinearModelAnalysis::getCoefficientsTScores() const
 
 NumericalSample LinearModelAnalysis::getCoefficientsPValues() const
 {
-  const NumericalSample tscores(getCoefficientsTScores());
+  // Interest is Pr(X > |t|) with t the statistic defined as
+  // t: = beta / std_dev(beta)
+  // t ~ Student(dof)
+  // Pr(X > |t|) = Pr(X > sign(t)*t) + Pr(X < -sign(t)*t)
+  //             = 2 * Pr(X > sign(t)*t) as Student distribution is symmetric
+  //             = 2 * Pr(X > |t|)
+  const NumericalSample tScores(getCoefficientsTScores());
   const UnsignedInteger dof = getDegreesOfFreedom();
-  NumericalSample pValues(tscores.getSize(), 1);
+  NumericalSample pValues(tScores.getSize(), 1);
   for (UnsignedInteger i = 0; i < pValues.getSize(); ++i)
   {
-    pValues(i, 0) = 2.*DistFunc::pStudent(dof,std::abs(tscores(i, 0)),true);
+    // true flag define the complementary CDF, ie P(X > t)
+    pValues(i, 0) = 2.0 * DistFunc::pStudent(dof, std::abs(tScores(i, 0)), true);
   }
   return pValues;
 }
@@ -305,10 +313,7 @@ NumericalScalar LinearModelAnalysis::getAdjustedRSquared() const
   const UnsignedInteger dof = getDegreesOfFreedom();
   const UnsignedInteger n   = getResiduals().getSize();
   const NumericalScalar R2  = getRSquared();
-  return 1. -(1.-R2)*(n-1)/dof;
-  //const NumericalSample sampleY(linearModelResult_.getOutputSample());
-  //const NumericalSample residuals(getResiduals());
-  //return LinearModelTest::LinearModelAdjustedRSquared(sampleY,sampleY-residuals).getPValue();
+  return 1.0 - (1.0 - R2) * (n - 1) / dof;
 }
 
 /* Fisher test */
