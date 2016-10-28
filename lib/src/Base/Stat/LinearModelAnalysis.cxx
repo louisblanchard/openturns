@@ -32,6 +32,8 @@
 #include "openturns/FittingTest.hxx"
 #include "openturns/HypothesisTest.hxx"
 #include "openturns/FisherSnedecor.hxx"
+#include "openturns/ChiSquare.hxx"
+#include "openturns/UserDefined.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
 
@@ -370,9 +372,47 @@ TestResult LinearModelAnalysis::getNormalityTestResultAndersonDarling() const
 /* Chi-Squared normality test */
 TestResult LinearModelAnalysis::getNormalityTestResultChiSquared() const
 {
-  const NumericalSample sampleY(linearModelResult_.getOutputSample());
-  const NumericalSample residuals(getResiduals()); 
-  return HypothesisTest::ChiSquared(sampleY,sampleY-residuals);
+  // TODO : put the value in ResourceMap as LinearModelAnalysis-ChiSquareAdjust
+  // Default value is 2
+  // Possible values are {0, 2}
+  // TODO : add some docs
+  const UnsignedInteger csAdj = 2;
+  const UnsignedInteger size = getResiduals().getSize();
+  const UnsignedInteger nrClasses = static_cast<int>(std::ceil(2.0 * std::pow(size, 2.0 / 5)));
+  // Transform data into "uniform" data using CDF
+  const Normal normalDistribution(getResiduals().computeMean()[0], getResiduals().computeStandardDeviation()(0,0));
+  // Define the cdf values for the class
+  const NumericalSample cdfValues(normalDistribution.computeCDF(getResiduals()));
+  // Define the classes
+  // Define the width of each class
+  const NumericalScalar widthClass = 1.0 / nrClasses;
+  // To define the table, we use a UserDefined distribution
+  const UserDefined userDefinedCDF(cdfValues);
+  // Count elements per class
+  NumericalPoint count(nrClasses, 0.0);
+  NumericalPoint lowerBound(1);
+  NumericalPoint upperBound(1);
+  for (UnsignedInteger k = 0; k < nrClasses; ++ k)
+  {
+    lowerBound[0] = k * widthClass;
+    upperBound[0] = (k + 1) * widthClass;
+    const Interval interval(lowerBound, upperBound);
+    // Compute number of elements in the interval
+    // Number of elements = total_number * Probability
+    count[k] = userDefinedCDF.computeProbability(interval) * size;
+  }
+  // Define the number of elements per class if independent
+  const NumericalScalar theoriticalComponents =  size * 1.0 / nrClasses;
+  // Elements of statistic
+  NumericalScalar statistic = 0.0;
+  for (UnsignedInteger k = 0; k < nrClasses; ++ k)
+  {
+    statistic += std::pow(count[k] - theoriticalComponents, 2) / theoriticalComponents;
+  }
+  // Statistic follows a ChiSquare distribution with nrClasses - 3 dof (mu/sigma uknowns)
+  const NumericalScalar pValue = ChiSquare(nrClasses - 1 - csAdj).computeComplementaryCDF(statistic);
+  // TestResult output
+  return TestResult("ChiSquareNormality", true, pValue, 0.01);
 }
 
 /* [1] Draw a plot of residuals versus fitted values */
