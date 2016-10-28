@@ -353,10 +353,12 @@ NumericalScalar LinearModelAnalysis::getFisherPValue() const
 /* Kolmogorov-Smirnov normality test */
 TestResult LinearModelAnalysis::getNormalityTestResultKolmogorovSmirnov() const
 {
-  const NumericalSample sampleY(linearModelResult_.getOutputSample());
-  const NumericalSample residuals(getResiduals()); 
-  //return FittingTest::TwoSamplesKolmogorov(sampleY,sampleY-residuals);
-  return HypothesisTest::Smirnov(sampleY,sampleY-residuals);
+  // We check that residuals are centered with variance = sigma2
+  const NumericalSample residuals(getResiduals());
+  // Compute Sigma2
+  const NumericalScalar sigma2(residuals.computeRawMoment(2)[0]);
+  const Normal dist(0.0, std::sqrt(sigma2));
+  return FittingTest::Kolmogorov(residuals, dist);
 }
 
 /* Anderson-Darling normality test */
