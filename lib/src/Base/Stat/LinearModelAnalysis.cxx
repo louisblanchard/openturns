@@ -302,9 +302,15 @@ UnsignedInteger LinearModelAnalysis::getDegreesOfFreedom() const
 /* R-squared test */
 NumericalScalar LinearModelAnalysis::getRSquared() const
 {
-  const NumericalSample sampleY(linearModelResult_.getOutputSample());
+  // Get residuals and output samples
   const NumericalSample residuals(getResiduals());
-  return LinearModelTest::LinearModelRSquared(sampleY,sampleY-residuals).getPValue();
+  const NumericalSample outputSample =(getLinearModelResult().getOutputSample());
+  const UnsignedInteger size = residuals.getSize();
+  // Define RSS and SYY
+  const NumericalScalar RSS = residuals.computeRawMoment(2)[0];
+  const NumericalScalar SYY = outputSample.computeCenteredMoment(2)[0];
+  const NumericalScalar rSquared = 1.0 - RSS / SYY;
+  return rSquared;
 }
 
 /* Adjusted R-squared test */
