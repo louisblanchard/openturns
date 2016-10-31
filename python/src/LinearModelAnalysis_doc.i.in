@@ -89,3 +89,33 @@ From the previous values per class, we compute the Pearson test statistic :math:
 Finally, the p-value is computed thanks to a chi-square distribution with :math:`nClasses - 3` degrees of freedom."
 
 // ---------------------------------------------------------------------
+
+%feature("docstring") OT::LinearModelAnalysis::getNormalityTestResultKolmogorov
+"Performs Kolmogorov test to check gaussian assumption of the model
+
+Returns
+-------
+testResult : :class:`~openturns.TestResult`
+    Test result class.
+
+
+Notes
+-----
+We chech that the residual is gaussian thanks to :class:`~openturns.FittingTest::Kolmogorov`"
+
+// ---------------------------------------------------------------------
+
+%feature("docstring") OT::LinearModelAnalysis::getNormalityTestResultAndersonDarling
+"Performs Anderson-Darling test to check gaussian assumption of the model
+
+Returns
+-------
+testResult : :class:`~openturns.TestResult`
+    Test result class.
+
+
+Notes
+-----
+We chech that the residual is gaussian thanks to :class:`~openturns.NormalityTest::AndersonDarling`"
+
+// ---------------------------------------------------------------------
