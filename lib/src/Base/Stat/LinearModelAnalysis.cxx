@@ -375,7 +375,18 @@ TestResult LinearModelAnalysis::getNormalityTestResultChiSquared() const
   // TODO : put the value in ResourceMap as LinearModelAnalysis-ChiSquareAdjust
   // Default value is 2
   // Possible values are {0, 2}
-  // TODO : add some docs
+
+  // Chi-Square test for normality (https://en.wikipedia.org/wiki/Pearson's_chi-squared_test#Test_for_fit_of_a_distribution)
+  // See also Thode Jr., H.C. (2002): Testing for  Normality. Marcel Dekker, New York
+  // Moore, D.S. (1986): Tests of the chi-squared type. In: D'Agostino, R.B. and Stephens, M.A., eds.: Goodness-of-Fit Techniques. Marcel Dekker, New York.
+  // From residuals :
+  // 1) Define nrClasses := 2 k^{\frac{2}{5}} (k=residual.getSize())
+  // 2) Replace residuals per their CDF (under gaussian hypothesis)
+  // 3) Split [0,1] onto nrClasses
+  // 4) Count CDF per class ==> C_i
+  // 5) Under gaussian assumption, equiprobability fixes the expected count E_i ==> E_i = E = k / nrClasses
+  // 6) Compute the Pearson statistic P=\sum_{i=1}^{nClasses} \frac{C_{i} - E_{i})^{2}}{E_{i}}
+  // 7) Finally compute the pValue as ChiSquared(nrClasses-3).computeComplementaryCDF(P)
   const UnsignedInteger csAdj = 2;
   const UnsignedInteger size = getResiduals().getSize();
   const UnsignedInteger nrClasses = static_cast<int>(std::ceil(2.0 * std::pow(size, 2.0 / 5)));
