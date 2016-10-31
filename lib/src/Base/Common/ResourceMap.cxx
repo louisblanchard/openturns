@@ -414,6 +414,9 @@ void ResourceMap::loadDefaultConfiguration()
   // LinearModelFactory parameters //
   setAsNumericalScalar( "LinearModelFactory-DefaultLevelValue", 0.95 );
 
+  // LinearModelAnalysis parameters
+  setAsBool("LinearModelAnalysis-ChiSquareAdjust", true);
+
   // LinearModelTest parameters //
   setAsNumericalScalar( "LinearModelTest-DefaultLevel", 0.95 );
   setAsNumericalScalar( "LinearModelTest-DefaultHarrisonMcCabeBreakpoint", 0.5 );

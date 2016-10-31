@@ -143,6 +143,9 @@
   <AdaptiveStieltjesAlgorithm-MaximumSubIntervalsBetweenRoots value="64"      />
   <AdaptiveStieltjesAlgorithm-MaximumError                    value="1.0e-12" />
 
+  <!-- OT::LinearModelAnalysis parameters -->
+  <LinearModelAnalysis-ChiSquareAdjust value="1" />
+
   <!-- OT::LinearModelFactory parameters -->
   <LinearModelFactory-DefaultLevelValue value="0.95" />
 

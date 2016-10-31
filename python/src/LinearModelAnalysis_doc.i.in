@@ -86,7 +86,10 @@ Also, under the null hypothesis, the different classes are equiprobable ( :math:
 
 From the previous values per class, we compute the Pearson test statistic :math:`P=\sum_{i=1}^{nClasses} \frac{C_{i} - E_{i})^{2}}{E_{i}}`
 
-Finally, the p-value is computed thanks to a chi-square distribution with :math:`nClasses - 3` degrees of freedom."
+Finally, the p-value is computed thanks to a chi-square distribution with :math:`dof` degrees of freedom, where
+`dof` is adjusted thanks to the boolean ResouceMap key (`LinearModelAnalysis-ChiSquareAdjust`).
+If key is set to True, degree of freedom is :math:`nClasses - 3`. Otherwise it is :math:`nClasses - 1`
+It is recomanded to test with both `True` and `False` values."
 
 // ---------------------------------------------------------------------
 
