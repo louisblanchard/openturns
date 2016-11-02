@@ -167,8 +167,12 @@ String LinearModelStepwiseAlgorithm::getFormula() const
      \hat\sigma^2 = (1/n) (Y - HY) (Y - HY)^T
                 H = X (X^T X)^{-1} X^T
 
+    Using QR decomposition of X :(X=QR) we get : A = (X^T X)^{-1} = R^{-1} (R^T)^{-1}
+                                                 H = X A X^T = Q Q^T  
+
   When (X^T X)^{-1} has been computed, there are update methods to compute
   the inverse when a column is added to or removed from X.
+
 */
 
 /* TBB functor to speed-up backward insertion index computation
@@ -282,13 +286,25 @@ struct UpdateForwardFunctor
     The final trick is to replace [X]_{i=0} by X in top-left multiplications, and throw i-th
     coefficient and replace it by 0.
 
+    Note that we have : [X^T Y]_{i=0} = X^T Y - x_i^T Y e_i 
+    and : A_{i,} [X^T Y]_{i=0} = e_i^T A ( X^T Y - x_i^T Y e_i ) = e_i^T A X^T Y - x_i^T Y/a_{ii}  
+
+    Consequently : 
+      H_- Y = X A [X^T Y]_{i=0} - (1/a_{ii})  [X]_{i=0} A_{,i} A_{i,} [X^T Y]_{i=0}
+            = X A X^T Y - x_i^T Y X A e_i -(1/a_{ii}) ( e_i^T A X^T Y - x_i^T Y/a_{ii} ) X A e_i
+            = X A X^T Y - (e_i^T A X^T Y)/a_{ii} X A e_i
+            = X A X^T Y - ((X A e_i)^T Y)/a_{ii} X A e_i
+
+    Using QR decomposition of X we get : X A X^T = Q Q^T, X A e_i = Q (R^T)^{-1} e_i and a_{ii} = ((R^T)^{-1} e_i)^T (R^T)^{-1} e_i   
+
     We compute
-      B = X^T Y
+      residual = Y - Q Q^T Y
     and for each column j in S* \ Smin,
-      b_j = [B]_{j=0}
-      e_j = A b_j
-      f_j = e_j - ((e_j)_j/a_{jj}) A_{,j}
-      Y - H_- Y = Y - X f_j
+      b_j = (R^T)^{-1} e_i   
+      d_j = Q b_j
+      Y - H_- Y = residual + (d_j^T Y /(b_j^T b_j)) d_j
+
+      
     Note that j in S* \ Smin refers to columns in Xmax, we need an array to store
     positions of these columns in X.
  */
@@ -298,47 +314,47 @@ struct UpdateBackwardFunctor
   const Indices & indexSet_;
   const Indices & columnMaxToCurrent_; // position of maxX_ columns in X_
   const Indices & columnCurrentToMax_; // position of X_ columns in maxX_
-  const Matrix & X_;
   const Matrix & Y_;
-  const Matrix & A_;
-  const Matrix & B_;
+  const Matrix & residual_;
+  const Matrix & Q_;
+  const Matrix & invRt_;
   NumericalScalar criterion_;
   UnsignedInteger bestIndex_;
 
   UpdateBackwardFunctor(const Basis & basis, const Indices & indexSet, const Indices & columnMaxToCurrent, const Indices & columnCurrentToMax,
-                        const Matrix & X, const Matrix & Y, const Matrix & A, const Matrix & B)
+                        const Matrix & Y, const Matrix & residual, const Matrix & Q, const Matrix & invRt)
     : basis_(basis), indexSet_(indexSet), columnMaxToCurrent_(columnMaxToCurrent), columnCurrentToMax_(columnCurrentToMax)
-    , X_(X), Y_(Y), A_(A), B_(B)
-    , criterion_(SpecFunc::MaxNumericalScalar), bestIndex_(A.getNbColumns()) {}
+    , Y_(Y), residual_(residual), Q_(Q), invRt_(invRt)
+    , criterion_(SpecFunc::MaxNumericalScalar), bestIndex_(invRt.getNbColumns()) {}
 
   UpdateBackwardFunctor(const UpdateBackwardFunctor & other, TBB::Split)
     : basis_(other.basis_), indexSet_(other.indexSet_), columnMaxToCurrent_(other.columnMaxToCurrent_), columnCurrentToMax_(other.columnCurrentToMax_)
-    , X_(other.X_), Y_(other.Y_), A_(other.A_), B_(other.B_)
+    , Y_(other.Y_), residual_(other.residual_), Q_(other.Q_), invRt_(other.invRt_)
     , criterion_(other.criterion_), bestIndex_(other.bestIndex_) {}
 
   void operator() (const TBB::BlockedRange<UnsignedInteger> & r)
   {
-    const UnsignedInteger size(X_.getNbRows());
-    const UnsignedInteger p(B_.getNbRows());
-    NumericalPoint aiNP(p);
-    NumericalPoint eiNP(p);
-    Matrix fiM(p, 1);
-    NumericalPoint newResidualNP(size);
+    const UnsignedInteger size(Q_.getNbRows());
+    const UnsignedInteger p(invRt_.getNbRows());
+    Matrix bi(p, 1);
+    NumericalPoint biNP(p); 
+    NumericalPoint diNP(size);
+    NumericalPoint yNP(size);
+    memcpy(&yNP[0], &Y_(0, 0), sizeof(NumericalScalar)*size);
+    NumericalPoint residualNP(size);
+    memcpy(&residualNP[0], &residual_(0, 0), sizeof(NumericalScalar)*size);
 
     for (UnsignedInteger index = r.begin(); index != r.end(); ++index)
     {
       const UnsignedInteger iMax = indexSet_[index];
       const UnsignedInteger i = columnMaxToCurrent_[iMax];
-      Matrix Bi0(B_);
-      Bi0(i,0) = 0.0;
-      const Matrix ei(A_ * Bi0);
-      memcpy(&aiNP[0], &A_(0, i), sizeof(NumericalScalar)*p);
-      memcpy(&eiNP[0], &ei(0, 0), sizeof(NumericalScalar)*p);
-      const NumericalPoint fi(eiNP - (eiNP[i]/aiNP[i]) * aiNP);
-      memcpy(&fiM(0, 0), &fi[0], sizeof(NumericalScalar)*p);
-      const Matrix newResidual(Y_ - X_ * fiM);
-      memcpy(&newResidualNP[0], &newResidual(0, 0), sizeof(NumericalScalar)*size);
-      const NumericalScalar newCriterion(newResidualNP.normSquare());
+      memcpy(&biNP[0], &invRt_(0, i), sizeof(NumericalScalar)*p);
+      memcpy(&bi(0, 0), &biNP[0], sizeof(NumericalScalar)*p);
+      const Matrix di(Q_ * bi);
+      memcpy(&diNP[0], &di(0, 0), sizeof(NumericalScalar)*size);
+      const NumericalScalar alpha = dot(diNP, yNP) / dot(biNP, biNP);
+      const NumericalPoint newResidual(residualNP + alpha * diNP);
+      const NumericalScalar newCriterion(newResidual.normSquare());
       LOGDEBUG(OSS() << "Squared residual norm when removing column " << iMax << "(" << basis_[iMax] << "): " << newCriterion);
       if (newCriterion < criterion_)
       {
@@ -446,7 +462,7 @@ void LinearModelStepwiseAlgorithm::run()
         if (!minimalIndices_.contains(currentIndices_[i]))
           indexSet.add(currentIndices_[i]);
       }
-      UpdateBackwardFunctor updateFunctor(basis_, indexSet, columnMaxToCurrent, currentIndices_, currentX_, Y_, currentGramInverse_, currentB_);
+      UpdateBackwardFunctor updateFunctor(basis_, indexSet, columnMaxToCurrent, currentIndices_, Y_, currentResidual_, currentQ_, currentInvRt_);
       TBB::ParallelReduce(0, indexSet.getSize(), updateFunctor);
       indexB = updateFunctor.bestIndex_;
       LB = penalty_ * (currentX_.getNbColumns() - 1) + size * std::log(updateFunctor.criterion_ / size);
