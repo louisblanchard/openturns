@@ -430,7 +430,7 @@ void LinearModelStepwiseAlgorithm::run()
   while(iterations < maximumIterationNumber_)
   {
     ++iterations;
-    // Update A=(X^T*X)^{-1}, B = X^T*Y, residual = Y - X*A*X^T*Y
+    // Update Q,(R^T)^{-1}, residual = Y - Q*Q^T*Y  (X=QR) 
     Lstar = penalty_ * currentX_.getNbColumns() + computeLogLikelihood();
     LOGDEBUG(OSS() << "Iteration " << iterations << ", current criterion=" << Lstar);
 
@@ -512,7 +512,7 @@ void LinearModelStepwiseAlgorithm::run()
     }
     LOGDEBUG(OSS() << "Index set is now " << currentIndices_.__str__());
   }
-  // Update Q, R, (R^T)^{-1} (X=QR), residual = Y - Q*Q^T*Y 
+  // Update Q,(R^T)^{-1}, residual = Y - Q*Q^T*Y  (X=QR) 
   const UnsignedInteger p(currentX_.getNbColumns());
   const NumericalScalar criterion(penalty_ * p + computeLogLikelihood());
   LOGDEBUG(OSS() << "Final indices are " << currentIndices_.__str__() << " and criterion is " << criterion);
@@ -531,30 +531,21 @@ void LinearModelStepwiseAlgorithm::run()
       ++i;
     }
   }
-
   NumericalPoint diagonalGramInverse(p);
-  MatrixImplementation::iterator rowR(currentInvRt_.getImplementation()->begin());
+  NumericalPoint invRtiNP(p); 
   for (UnsignedInteger i = 0; i < p; ++i)
   {
-    Matrix invRti(1, p);
-    std::copy(rowR, rowR + p, invRti.getImplementation()->begin());
-    const Matrix invRiinvRti(invRti * invRti.transpose());
-    diagonalGramInverse[i] = invRiinvRti(0, 0);
-    rowR += p;
-  } 
-
+    memcpy(&invRtiNP[0], &currentInvRt_(0, i), sizeof(NumericalScalar)*p);
+    diagonalGramInverse[i] = dot(invRtiNP, invRtiNP);
+  }
   NumericalPoint leverages(size);
   Matrix Qt(currentQ_.transpose());
-  MatrixImplementation::iterator rowQ(Qt.getImplementation()->begin());
+  NumericalPoint QtiNP(p); 
   for (UnsignedInteger i = 0; i < size; ++i)
   {
-    Matrix Qi(1, p);
-    std::copy(rowQ, rowQ + p, Qi.getImplementation()->begin());
-    const Matrix QiQi(Qi * Qi.transpose());
-    leverages[i] = QiQi(0, 0);
-    rowQ += p;
-  } 
-
+    memcpy(&QtiNP[0], &Qt(0, i), sizeof(NumericalScalar)*p);
+    leverages[i] = dot(QtiNP, QtiNP);
+  }
   NumericalSample residualSample(size, 1);
   memcpy(&residualSample(0, 0), &currentResidual_(0, 0), sizeof(NumericalScalar)*size);
 
@@ -611,19 +602,14 @@ NumericalScalar LinearModelStepwiseAlgorithm::computeLogLikelihood()
 {
   const UnsignedInteger n = currentX_.getNbRows();
   const UnsignedInteger p = currentX_.getNbColumns();
-  currentQ_ = currentX_.computeQR(currentR_, n < p, true);
+  Matrix R;
+  currentQ_ = currentX_.computeQR(R, n < p, true);
   const MatrixImplementation b(*IdentityMatrix(p).getImplementation());
-  currentInvRt_ = currentR_.getImplementation()->solveLinearSystemTri(b, true, false, true);
+  currentInvRt_ = R.getImplementation()->solveLinearSystemTri(b, true, false, true);
 
   // residual = Y - Q*Q^T*Y
   const Matrix QtY = currentQ_.getImplementation()->genProd(*(Y_.getImplementation()), true, false);
   const Matrix Yhat(currentQ_ * QtY);
-
-  CovarianceMatrix XtX(currentX_.computeGram(true));
-  currentGramInverse_ = XtX.solveLinearSystem(IdentityMatrix(XtX.getNbRows()), false);
-  // B = X^T * Y
-  currentB_ = currentX_.getImplementation()->genProd(*(Y_.getImplementation()), true, false);
-
   currentResidual_ = Y_ - Yhat;
   const UnsignedInteger size(currentResidual_.getNbRows());
   NumericalPoint residualNP(size, 0.0);

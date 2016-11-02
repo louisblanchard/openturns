@@ -149,16 +149,9 @@ private:
 
   /** QR decomposition of the current matrix */
   Matrix currentQ_;
-  Matrix currentR_;
   Matrix currentInvRt_;
 
-  /** The matrix inverse: A=(X^T X)^-1 */
-  Matrix currentGramInverse_;
-
-  /** The current matrix B=X^T Y */
-  Matrix currentB_;
-
-  /** The current residual R=Y - X A X^T Y */
+  /** The current residual R=Y - Q Q^T Y */
   Matrix currentResidual_;
 
   /** The indices of current model */
