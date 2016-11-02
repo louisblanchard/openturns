@@ -190,32 +190,29 @@ String LinearModelStepwiseAlgorithm::getFormula() const
                      - x_+ x_+^T X A X^T
                      + x_+ x_+^T)
     We compute
-      M = X A
-      B = X^T Y
-      residual = Y - X A X^T Y = Y - M B
+      residual = Y - Q Q^T Y
     and for each column j in Smax \ S*,
-        b_j = X^T x_j
-        d_j = M b_j
+        d_j = Q Q^T x_j
         v_j = x_j - d_j
         Y - H_j Y = residual - (x_j^T residual /(x_j^T v_j)) v_j
+
 */
 struct UpdateForwardFunctor
 {
   const Basis & basis_;
   const Indices & indexSet_;
-  const Matrix & X_;
   const Matrix & Xmax_;
   const Matrix & residual_;
-  const Matrix & M_;
+  const Matrix & Q_;
   NumericalScalar criterion_;
   UnsignedInteger bestIndex_;
 
-  UpdateForwardFunctor(const Basis & basis, const Indices & indexSet, const Matrix & X, const Matrix & Xmax, const Matrix & residual, const Matrix & M)
-    : basis_(basis), indexSet_(indexSet), X_(X), Xmax_(Xmax), residual_(residual), M_(M)
+  UpdateForwardFunctor(const Basis & basis, const Indices & indexSet, const Matrix & Xmax, const Matrix & residual, const Matrix & Q)
+    : basis_(basis), indexSet_(indexSet), Xmax_(Xmax), residual_(residual), Q_(Q)
     , criterion_(SpecFunc::MaxNumericalScalar), bestIndex_(Xmax.getNbColumns()) {}
 
   UpdateForwardFunctor(const UpdateForwardFunctor & other, TBB::Split)
-    : basis_(other.basis_), indexSet_(other.indexSet_), X_(other.X_), Xmax_(other.Xmax_), residual_(other.residual_), M_(other.M_)
+    : basis_(other.basis_), indexSet_(other.indexSet_), Xmax_(other.Xmax_), residual_(other.residual_), Q_(other.Q_)
     , criterion_(other.criterion_), bestIndex_(other.bestIndex_) {}
 
   void operator() (const TBB::BlockedRange<UnsignedInteger> & r)
@@ -231,8 +228,8 @@ struct UpdateForwardFunctor
     {
       const UnsignedInteger i = indexSet_[index];
       memcpy(&xi(0, 0), &Xmax_(0, i), sizeof(NumericalScalar)*size);
-      const Matrix bi(X_.getImplementation()->genProd(*(xi.getImplementation()), true, false));
-      const Matrix di(M_ * bi);
+      const Matrix Qtxi(Q_.getImplementation()->genProd(*(xi.getImplementation()), true, false));
+      const Matrix di(Q_ * Qtxi);
       const Matrix vi(xi - di);
       memcpy(&viNP[0], &vi(0, 0), sizeof(NumericalScalar)*size);
       memcpy(&xiNP[0], &xi(0, 0), sizeof(NumericalScalar)*size);
@@ -425,8 +422,6 @@ void LinearModelStepwiseAlgorithm::run()
     UnsignedInteger indexF = maxX_.getNbColumns();
     if (direction_ == FORWARD || direction_ == BOTH)
     {
-      // M = X * A
-      const Matrix M(currentX_ * currentGramInverse_);
       // indexSet = Imax - I*
       Indices indexSet;
       for (UnsignedInteger i = 0; i < maxX_.getNbColumns(); ++i)
@@ -434,7 +429,7 @@ void LinearModelStepwiseAlgorithm::run()
         if (!currentIndices_.contains(i))
           indexSet.add(i);
       }
-      UpdateForwardFunctor updateFunctor(basis_, indexSet, currentX_, maxX_, currentResidual_, M);
+      UpdateForwardFunctor updateFunctor(basis_, indexSet, maxX_, currentResidual_, currentQ_);
       TBB::ParallelReduce(0, indexSet.getSize(), updateFunctor);
       indexF = updateFunctor.bestIndex_;
       LF = penalty_ * (currentX_.getNbColumns() + 1) + size * std::log(updateFunctor.criterion_ / size);
@@ -501,14 +496,15 @@ void LinearModelStepwiseAlgorithm::run()
     }
     LOGDEBUG(OSS() << "Index set is now " << currentIndices_.__str__());
   }
-  // Update A=(X^T*X)^{-1}, B = X^T*Y, residual = Y - X*A*X^T*Y
+  // Update Q, R, (R^T)^{-1} (X=QR), residual = Y - Q*Q^T*Y 
   const UnsignedInteger p(currentX_.getNbColumns());
   const NumericalScalar criterion(penalty_ * p + computeLogLikelihood());
   LOGDEBUG(OSS() << "Final indices are " << currentIndices_.__str__() << " and criterion is " << criterion);
 
   NumericalPoint regression(p);
-  const Matrix AB(currentGramInverse_ * currentB_);
-  memcpy(&regression[0], &AB(0, 0), sizeof(NumericalScalar)*p);
+  const Matrix QtY = currentQ_.getImplementation()->genProd(*(Y_.getImplementation()), true, false);
+  const Matrix invRQtY(currentInvRt_.transpose() * QtY);
+  memcpy(&regression[0], &invRQtY(0, 0), sizeof(NumericalScalar)*p);
 
   Description coefficientsNames(p);
   for (UnsignedInteger i = 0, k = 0; k < basis_.getSize(); ++k)
@@ -519,29 +515,19 @@ void LinearModelStepwiseAlgorithm::run()
       ++i;
     }
   }
+
   NumericalPoint diagonalGramInverse(p);
+  MatrixImplementation::iterator rowR(currentInvRt_.getImplementation()->begin());
   for (UnsignedInteger i = 0; i < p; ++i)
   {
-    diagonalGramInverse[i] = currentGramInverse_(i, i);
-  }
-  NumericalSample residualSample(size, 1);
-  memcpy(&residualSample(0, 0), &currentResidual_(0, 0), sizeof(NumericalScalar)*size);
+    Matrix invRti(1, p);
+    std::copy(rowR, rowR + p, invRti.getImplementation()->begin());
+    const Matrix invRiinvRti(invRti * invRti.transpose());
+    diagonalGramInverse[i] = invRiinvRti(0, 0);
+    rowR += p;
+  } 
 
   NumericalPoint leverages(size);
-  Matrix Xt(currentX_.transpose());
-  MatrixImplementation::iterator rowX(Xt.getImplementation()->begin());
-  for (UnsignedInteger i = 0; i < size; ++i)
-  {
-    Matrix Xi(1, p);
-    std::copy(rowX, rowX + p, Xi.getImplementation()->begin());
-    const Matrix AXi(currentGramInverse_.getImplementation()->genProd(*Xi.getImplementation(), false, true));
-    const Matrix XAXi(Xi * AXi);
-    leverages[i] = XAXi(0, 0);
-    rowX += p;
-  }
-
-  //
-  NumericalPoint leverages2(size);
   Matrix Qt(currentQ_.transpose());
   MatrixImplementation::iterator rowQ(Qt.getImplementation()->begin());
   for (UnsignedInteger i = 0; i < size; ++i)
@@ -549,23 +535,12 @@ void LinearModelStepwiseAlgorithm::run()
     Matrix Qi(1, p);
     std::copy(rowQ, rowQ + p, Qi.getImplementation()->begin());
     const Matrix QiQi(Qi * Qi.transpose());
-    leverages2[i] = QiQi(0, 0);
+    leverages[i] = QiQi(0, 0);
     rowQ += p;
   } 
 
-  NumericalPoint diagonalGramInverse2(p);
-  MatrixImplementation::iterator rowR(currentInvRt_.getImplementation()->begin());
-  for (UnsignedInteger i = 0; i < p; ++i)
-  {
-    Matrix invRi(1, p);
-    std::copy(rowR, rowR + p, invRi.getImplementation()->begin());
-    const Matrix invRi2(invRi * invRi.transpose());
-    diagonalGramInverse2[i] = invRi2(0, 0);
-    rowR += p;
-  } 
-  std::cout << "TEST Hii " << leverages-leverages2 << std::endl;
-  std::cout << "TEST Aii " << diagonalGramInverse-diagonalGramInverse2 << std::endl;
-  //
+  NumericalSample residualSample(size, 1);
+  memcpy(&residualSample(0, 0), &currentResidual_(0, 0), sizeof(NumericalScalar)*size);
 
   NumericalPoint sigma2(residualSample.computeRawMoment(2));
   const NumericalScalar factor = size * sigma2[0] / (size - p);
@@ -624,18 +599,15 @@ NumericalScalar LinearModelStepwiseAlgorithm::computeLogLikelihood()
   const MatrixImplementation b(*IdentityMatrix(p).getImplementation());
   currentInvRt_ = currentR_.getImplementation()->solveLinearSystemTri(b, true, false, true);
 
-  // residual = Y - X*A*X^t*Y
+  // residual = Y - Q*Q^T*Y
   const Matrix QtY = currentQ_.getImplementation()->genProd(*(Y_.getImplementation()), true, false);
-  const Matrix Yhat2(currentQ_ * QtY);
+  const Matrix Yhat(currentQ_ * QtY);
 
   CovarianceMatrix XtX(currentX_.computeGram(true));
   currentGramInverse_ = XtX.solveLinearSystem(IdentityMatrix(XtX.getNbRows()), false);
   // B = X^T * Y
   currentB_ = currentX_.getImplementation()->genProd(*(Y_.getImplementation()), true, false);
-  // M = X * A
-  const Matrix M(currentX_ * currentGramInverse_);
-  // residual = Y - X*A*X^t*Y
-  const Matrix Yhat(M * currentB_);
+
   currentResidual_ = Y_ - Yhat;
   const UnsignedInteger size(currentResidual_.getNbRows());
   NumericalPoint residualNP(size, 0.0);
@@ -644,7 +616,6 @@ NumericalScalar LinearModelStepwiseAlgorithm::computeLogLikelihood()
   const NumericalScalar normSquared = residualNP.normSquare();
   const NumericalScalar result = size * std::log(normSquared / size);
   LOGDEBUG(OSS() << "Residual squared norm=" << normSquared << ", loglikelihood=" << result);
-  std::cout << "TEST Yhat " << Yhat2-Yhat << std::endl;
   return result;
 }
 
