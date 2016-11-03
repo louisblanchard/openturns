@@ -326,6 +326,20 @@ Each selection method requires to find an index which minimizes some residual no
 In this section, we explain how computations can be performed very efficiently, by
 minimizing the number of operations.
 
+\subsection{QR decomposition of matrix $X$}
+
+Note that in practice $n >> p$ and consequently we don't want to compute $H_X$ the projection matrix of size $(n\times n)$.
+We don't need to compute $A_X$ the inverse Gram matrix of $X$ of size $(p\times p)$ because we have to solve linear system, consequently
+we use the QR decomposition of matrix $X$ into a product $X = Q_X\,R_X$ 
+of an orthogonal matrix $Q_X$ of size $(n\times p)$ and an upper triangular matrix $R_X$ of size $(p\times p)$.\\
+
+Using the QR decomposition of matrix $X$ we obtain :
+  \begin{eqnarray}
+  A_X &=& \big(X^T\,X\big)^{-1} = \big(R_X^T\,Q_X^T\,Q_X\,R_X\big)^{-1} = \big(R_X^T\,R_X\big)^{-1}= R_X^{-1}\,R_X^{-T} \\
+  H_X &=& X\,\big(X^T\,X\big)^{-1}\,X^T  = X\,A_X\,X^T = Q_X\,R_X\,R_X^{-1}\,R_X^{-T}\,R_X^T\,Q_X^T =Q_X\, Q_X^T
+ \end{eqnarray}
+  
+
 \subsection{Forward selection}
 
 It can be shown that the inverse Gram matrix of $X_{+i}$ of size $((p+1)\times(p+1))$  can be represented by a block partition
@@ -351,27 +365,14 @@ Y-H_{+i}\,Y  & = & Y-X\,A_X \, X^T\,Y -\frac{(x_i^T\,X\,A_X \, X^T\,Y-x_i^T\,Y)}
  & = & Y - \hat{Y} -\frac{x_i^T\,(Y\,-\,\hat{Y})}{x_i^T\,(H_X\,x_i\, \,-\,x_i)}\, \big(\,H_X\,x_i\, \,-\,x_i\,\big)
 \end{eqnarray}
 
-Note that in practice $n >> p$ and consequently we don't want to compute $H_X$ the projection matrix of size $(n\times n)$.
-We don't need to compute $A_X$ the inverse Gram matrix of $X$ of size $(p\times p)$ because we have to solve linear system, consequently
-we use the Cholesky decomposition of $G_X$ the Gram matrix of $X$: $L_X  \,/\, L_X\,L_X^T\,=\,G_X$.
+\subsubsection{Implementation using QR decomposition:}
+
 
 \begin{enumerate}
-\item The vector $\hat{Y}=H_X\,Y=X\big(G_X\big)^{-1}\,X^T\,Y $ of size $(n)$ does not depend on the column $x_i$ to add.
-The computation of this vector is described as follows:
-\begin{enumerate}
-\item First we compute the vector of size $(p)$: $B_X=X^T\,Y$.
-\item Then we solve the linear system $G_X \,z_1= B_X$ by first solving $L_X\,z_2= B_X$ for $z_2$ by forward substitution, and finally
- solving $L_X^T\,z_1=z_2$ for $z_1$ by backward substitution.
-\item Finally we compute the vector $\hat{Y}=X\,z_1$.
-\end{enumerate}
-\item The vector $\,H_X\,x_i\,=X\,\big(G_X\big)^{-1}\,X^T\,x_i$ of size $(n)$ depends on the column $x_i$ to add.
-The computation of this vector is described as follows:
-\begin{enumerate}
-\item First we compute the vector of size $(p)$: $ k_i=X^T\,x_i$.
-\item Then we solve the linear system $G_X \,z_1= k_i$ by solving $L_X\,z_2= k_i$ for $z_2$ by forward substitution
-\item Then we solve the linear system $L_X^T\,z_1=z_2$ for $z_1$ by backward substitution.
-\item Finally we compute the vector $d_i = X\,z_1$.
-\end{enumerate}
+\item The vector $\hat{Y}=H_X\,Y=Q_X\,Q_X^T\,Y $ of size $(n)$ does not depend on the column $x_i$ to add.
+The computation of this vector is done by two matrix-vector products. 
+\item The vector $\,H_X\,x_i\,= Q_X\,Q_X^T\,x_i$ of size $(n)$ depends on the column $x_i$ to add.
+The computation of this vector is done by two matrix-vector products. 
 \end{enumerate}
 
 
@@ -410,25 +411,29 @@ Y-H_{-i}\,Y & = &Y- \,X_{i=0}\,A_X\,X_{i=0}^T\,Y \,+\,\frac {1}{A_{i,i}}\,  \big
 \label{defH-Y}
  & = & Y- \,X\,\big(\,A_X\,\big[X^T\,Y\big]_{i=0}\, -\,\frac {A_{i,} \,\big[X^T\,Y\big]_{i=0}}{A_{i,i}}\,A_{,i}\,\big)
 \end{eqnarray}
+Then we rewrite the residual term  equation (\ref{defH-Y}) using $e_i$ the vector of size $(p)$ with a $1$ in the $i^{th}$ coordinates and $0$ elsewhere.
+We obtain :
+ \begin{eqnarray}
+Y-H_{-i}\,Y & = &Y- \,X\,\big(\,A_X\,(X^T\,Y-x_i^T\,Y\,e_i)\, -\,\frac {(A_X\,e_i)^T \,(X^T\,Y-x_i^T\,Y\,e_i)}{A_{i,i}}\,A_X\,e_i\,\big)  \\
+ & = &  Y- \,X\, A_X\,X^T\,Y \,+\, (x_i^T\,Y)\,X\, A_X\,e_i \,+\,\frac { e_i^T\,A_X\,X^T\,Y-(x_i^T\,Y) \,e_i^T\,A_X\,e_i}{A_{i,i}} \,X\, A_X\,e_i  \\
+ & = & Y- \hat{Y}  \,+\, (x_i^T\,Y)\,X\, A_X\,e_i \,+\,\frac { e_i^T\,A_X\,X^T\,Y}{A_{i,i}} \,X\, A_X\,e_i -(x_i^T\,Y)\,X\, A_X\,e_i \\
+\label{defH-Y2}
+ & = & Y- \hat{Y} \,+\,\,\frac { (X\, A_X\,e_i)^T\,Y}{A_{i,i}} \,X\, A_X\,e_i
+\end{eqnarray}
 
+\subsubsection{Implementation using QR decomposition:}
 
-We don't need to compute $A_X$ the inverse Gram matrix of $X$ of size $(p\times p)$ because we have to solve linear system, consequently
-we use the Cholesky decomposition of $G_X$ the Gram matrix of $X$: $L_X  \,/\, L_X\,L_X^T\,=\,G_X$.
 \begin{enumerate}
-\item The vector $\,A_X\,\big[X^T\,Y\big]_{i=0}=\big(G_X\big)^{-1}\,\big[X^T\,Y\big]_{i=0}$ of size $(p)$ depends on $x_i$ the column to delete.
-The computation of this vector is described as follows:
+\item The vector $\hat{Y}=H_X\,Y=Q_X\,Q_X^T\,Y $ of size $(n)$ does not depend on the column $x_i$ to delete.
+The computation of this vector is done by two matrix-vector products. 
+\item The vector $\,X\, A_X\,e_i=Q_X\,R_X\,R_X^{-1}\,R_X^{-T}\,e_i = Q_X\,R_X^{-T}\,e_i $ of size $(n)$ depends on $x_i$ the column to delete.
+The computation of this vector is done by two matrix-vector products :
 \begin{enumerate}
-\item First we compute the vector of size $(p)$: $B_X=X^T\,Y$.
-\item Then we solve the linear system $G_X \,d_i= \big[B_X\big]_{i=0}$ by solving $L_X\,z_2= \big[B_X\big]_{i=0}$ for $z_2$ by forward substitution
-\item Finally we solve the linear system $L_X^T\,d_i=z_2$ for $d_i$ by backward substitution.
+\item First we compute the vector of size $(p)$: $b_i=R_X^{-T}\,e_i$.
+\item Then we compute the vector of size $(p)$: $d_i=Q_X\,b_i$.
 \end{enumerate}
-\item The vector $\,A_{,i}$ of size $(p)$ depends on $x_i$ the column to delete.
-We have $\,A_{,i}=A_X \, e_i=\big(G_X\big)^{-1}\,e_i$  where $e_i$ denotes the vector of size $(p)$ with a $1$ in the $i^{th}$ coordinates and $0$ elsewhere.
-The computation of this vector is described as follows:
-\begin{enumerate}
-\item First we solve the linear system $G_X \,a_i= e_i$ by solving $L_X\,z_2= e_i$ for $z_2$ by forward substitution
-\item Finally we solve the linear system $L_X^T\,a_i=z_2$ for $a_i$ by backward substitution.
-\end{enumerate}
+\item The scalar $\,A_{i,i}=e_i^T\,A_X\,e_i =e_i^T\,R_X^{-1}\,R_X^{-T}\,e_i = (R_X^{-T}\,e_i)^T \,R_X^{-T}\,e_i$ depends on $x_i$ the column to delete.
+The computation of this scalar is done by $\,A_{i,i}=b_i^T\,b_i$ .
 \end{enumerate}
 
 
