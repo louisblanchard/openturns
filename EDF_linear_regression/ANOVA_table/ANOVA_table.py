@@ -14,6 +14,7 @@ outputSample = ctl
 outputSample.add(trt)
 outputSample.setDescription(["weight"])
 
-LinearModelAlgorithm algo(inputSample, outputSample)
+algo = ot.LinearModelAlgorithm(inputSample, outputSample)
 result = algo.getResult()
-result.printANOVAtable()
+analysis = ot.LinearModelAnalysis(result)
+print(analysis)

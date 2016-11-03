@@ -31,8 +31,8 @@ for i in xrange(dim):
 basis = ot.Basis([factory.build(enumerateFunction.inverse(indices)) for indices in interactions])
 ################################################################################################
 
-i_min = interactions.index([0,0,0,0,0])
-i_0 = i_min
+i_min = [interactions.index([0,0,0,0,0])]
+i_0 = i_min[:]
 
 #---------------- Forward / Backward------------------- 
 #   X: input sample
@@ -58,13 +58,22 @@ maxiteration = 1000
 
 for k in [penalty_AIC, penalty_BIC]:
   ## Forward / Backward
+  if k==penalty_AIC:  IC =" AIC "
+  if k==penalty_BIC:  IC =" BIC "  
   for forward in [True, False]:
     algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, forward, k, maxiteration)
     algo_result = ot.LinearModelAnalysis(algo.getResult())
+    print("{0:~^60s}".format(""))
+    if forward==True : print(" Forward " +IC)
+    else             : print(" Backward "+IC)
+    print("{0:~^60s}".format(""))
     print(algo_result)
   ## Both
   algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, i_0, k, maxiteration)
   algo_result = ot.LinearModelAnalysis(algo.getResult())
+  print("{0:~^60s}".format(""))
+  print(" Both "+IC)
+  print("{0:~^60s}".format(""))
   print(algo_result)
 
 
