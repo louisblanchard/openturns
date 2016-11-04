@@ -55,6 +55,7 @@ Multiple R-squared:  0.07308,   Adjusted R-squared:  0.02158
 F-statistic: 1.419 on 1 and 18 DF,  p-value: 0.249
 \end{lstlisting}
 
+\newpage
 Equivalent listing in python
 \begin{lstlisting}[style=pythonStyle]
 import openturns as ot
@@ -71,11 +72,41 @@ outputSample = ctl
 outputSample.add(trt)
 outputSample.setDescription(["weight"])
 
-LinearModelAlgorithm algo(inputSample, outputSample)
+algo = ot.LinearModelAlgorithm(inputSample, outputSample)
 result = algo.getResult()
-result.printANOVAtable()
+analysis = ot.LinearModelAnalysis(result)
+print(analysis)
 \end{lstlisting}
 
+Output python
+\begin{lstlisting}[style=output]
+ Call:
+Basis( [[Trt]->[1],[Trt]->[Trt]] )
+
+ Coefficients:
+             | Estimate    | Std Error   | t value     | Pr(>|t|)    | 
+----------------------------------------------------------------------
+[Trt]->[1]   | 5.032       | 0.220218    | 22.8501     | 9.54713e-15 | 
+[Trt]->[Trt] | -0.371      | 0.311435    | -1.19126    | 0.249023    | 
+----------------------------------------------------------------------
+
+ Residual standard error: 0.69639 on 18 degrees of freedom 
+ F-statistic: 1.4191 ,  p-value: 0.24822
+----------------------------------
+Multiple R-squared   | 0.0730776 | 
+Adjusted R-squared   | 0.0215819 | 
+----------------------------------
+
+---------------------------------
+Normality test       | p-value  | 
+---------------------------------
+Anderson-Darling     | 0.316615 | 
+Chi-Squared          | 0.433749 | 
+Kolmogorov-Smirnov   | 0.870208 | 
+---------------------------------
+\end{lstlisting}
+
+\newpage
 \subsection{Graphical diagnostics}
 
 R listing
@@ -120,29 +151,34 @@ inputSample = Sample[:,1:5]
 
 algo1 = ot.LinearModelAlgorithm(inputSample, outputSample)
 result1 = algo1.getResult()
+analysis1 = ot.LinearModelAnalysis(algo1.getResult())
+
+for plot in ["drawResidualsVsFitted", "drawScaleLocation", "drawQQplot", "drawCookDistance", "drawResidualsVsLeverages", "drawCookVsLeverages"]:
+    graph = getattr(analysis1, plot)()
+    graph.draw("model1-"+plot, 640, 480)
 
 # plot of residuals versus fitted values
-graph = result1.drawResidualsVsFitted()
+graph = analysis1.drawResidualsVsFitted()
 View(graph)
 
 # scale-location plot of sqrt(|residuals|) versus fitted values
-graph = result1.drawScaleLocation()
+graph = analysis1.drawScaleLocation()
 View(graph)
 
 # Normal quantiles-quantiles plot of standardized residuals
-graph = result1.drawQQplot()
+graph = analysis1.drawQQplot()
 View(graph)
 
 # plot of Cook's distances versus row labels
-graph = result1.drawCookDistance()
+graph = analysis1.drawCookDistance()
 View(graph)
 
 # plot of residuals versus leverages that adds bands corresponding to Cook's distances of 0.5 and 1
-graph = result1.drawResidualsVsLeverages()
+graph = analysis1.drawResidualsVsLeverages()
 View(graph)
 
 # plot of Cook's distances versus leverage/(1-leverage)
-graph = result1.drawCookVsLeverages()
+graph = analysis1.drawCookVsLeverages()
 View(graph)
 
 # model2
@@ -153,47 +189,96 @@ inputSample.stack(dpi)
 
 algo2 = ot.LinearModelAlgorithm(inputSample, outputSample)
 result2 = algo2.getResult()
+analysis2 = ot.LinearModelAnalysis(algo2.getResult())
+
+for plot in ["drawResidualsVsFitted", "drawScaleLocation", "drawQQplot", "drawCookDistance", "drawResidualsVsLeverages", "drawCookVsLeverages"]:
+    graph = getattr(analysis2, plot)()
+    graph.draw("model2-"+plot, 640, 480)
 
 # plot of residuals versus fitted values
-graph = result2.drawResidualsVsFitted()
+graph = analysis2.drawResidualsVsFitted()
 View(graph)
 
 # scale-location plot of sqrt(|residuals|) versus fitted values
-graph = result2.drawScaleLocation()
+graph = analysis2.drawScaleLocation()
 View(graph)
 
 # Normal quantiles-quantiles plot of standardized residuals
-graph = result2.drawQQplot()
+graph = analysis2.drawQQplot()
 View(graph)
 
 # plot of Cook's distances versus row labels
-graph = result2.drawCookDistance()
+graph = analysis2.drawCookDistance()
 View(graph)
 
 # plot of residuals versus leverages that adds bands corresponding to Cook's distances of 0.5 and 1
-graph = result2.drawResidualsVsLeverages()
+graph = analysis2.drawResidualsVsLeverages()
 View(graph)
 
 # plot of Cook's distances versus leverage/(1-leverage)
-graph = result2.drawCookVsLeverages()
+graph = analysis2.drawCookVsLeverages()
 View(graph)
 
 \end{lstlisting}
 
 \begin{figure}[p]
   \begin{center}
-    \includegraphics[scale=0.4]{plot11.png} \hspace*{2cm} \includegraphics[scale=0.4]{plot21.png} \\
-    \includegraphics[scale=0.4]{plot12.png} \hspace*{2cm} \includegraphics[scale=0.4]{plot22.png} \\
-    \includegraphics[scale=0.4]{plot13.png} \hspace*{2cm} \includegraphics[scale=0.4]{plot23.png} \\
+    \includegraphics[scale=0.48]{imgR/plot11.png} \hspace*{2cm} 
+	\includegraphics[scale=0.48]{imgR/plot21.png} \\
+    \includegraphics[scale=0.4]{imgOT/model1-drawResidualsVsFitted.png}\hspace*{1cm}
+	\includegraphics[scale=0.4]{imgOT/model2-drawResidualsVsFitted.png}\\
   \end{center}
+  \caption{Residuals Vs Fitted}
 \end{figure}
 
 \begin{figure}[p]
   \begin{center}
-    \includegraphics[scale=0.4]{plot14.png} \hspace*{2cm} \includegraphics[scale=0.4]{plot24.png} \\
-    \includegraphics[scale=0.4]{plot15.png} \hspace*{2cm} \includegraphics[scale=0.4]{plot25.png} \\
-    \includegraphics[scale=0.4]{plot16.png} \hspace*{2cm} \includegraphics[scale=0.4]{plot26.png} \\
+    \includegraphics[scale=0.48]{imgR/plot12.png} \hspace*{2cm}
+	\includegraphics[scale=0.48]{imgR/plot22.png} \\
+    \includegraphics[scale=0.4]{imgOT/model1-drawQQplot.png}\hspace*{1cm}
+	\includegraphics[scale=0.4]{imgOT/model2-drawQQplot.png}\\
   \end{center}
+  \caption{Normal Q-Q}
+\end{figure}
+
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[scale=0.48]{imgR/plot13.png} \hspace*{2cm}
+	\includegraphics[scale=0.48]{imgR/plot23.png} \\
+    \includegraphics[scale=0.4]{imgOT/model1-drawScaleLocation.png}\hspace*{1cm}
+	\includegraphics[scale=0.4]{imgOT/model2-drawScaleLocation.png}\\
+  \end{center}
+  \caption{Scale location}
+\end{figure}
+
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[scale=0.48]{imgR/plot14.png} \hspace*{2cm}
+	\includegraphics[scale=0.48]{imgR/plot24.png} \\
+    \includegraphics[scale=0.4]{imgOT/model1-drawCookDistance.png}\hspace*{1cm}
+	\includegraphics[scale=0.4]{imgOT/model2-drawCookDistance.png}\\
+  \end{center}
+  \caption{Cook's distance}
+\end{figure}
+
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[scale=0.48]{imgR/plot15.png} \hspace*{2cm}
+	\includegraphics[scale=0.48]{imgR/plot25.png} \\
+    \includegraphics[scale=0.4]{imgOT/model1-drawResidualsVsLeverages.png}\hspace*{1cm}
+	\includegraphics[scale=0.4]{imgOT/model2-drawResidualsVsLeverages.png}\\
+  \end{center}
+  \caption{Residuals Vs Leverages}
+\end{figure}
+
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[scale=0.48]{imgR/plot16.png} \hspace*{2cm}
+	\includegraphics[scale=0.48]{imgR/plot26.png} \\
+    \includegraphics[scale=0.4]{imgOT/model1-drawCookVsLeverages.png}\hspace*{1cm}
+	\includegraphics[scale=0.4]{imgOT/model2-drawCookVsLeverages.png}\\
+  \end{center}
+  \caption{Cook's distance Vs Leverages}
 \end{figure}
 
 \subsection{Step method}

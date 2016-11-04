@@ -448,17 +448,17 @@ Initialization: $S^* = S_0$ , $X = (x^k)_{k \in S^*}=\,$\texttt{\color{blue}{cur
 \BlankLine
 \While{ $n_{iter} < $  \texttt{\color{blue}{maxiter\_}}  }{
 \BlankLine
-We compute $J^* = \log L(\hat{\beta},\hat{\sigma}\mid Y)$ using  \texttt{\color{blue}{computeLogLikelihood()}}
-which compute the Cholesky decomposition of the Gram matrix $G_X=X^T\,X$ : $L_X  \,/\, L_X\,L_X^T\,=\,G_X$.\\
-Initialization: $J^i = +\infty$, $J^{i'} = +\infty$,  $ L_X=\,$\texttt{\color{blue}{currentCholeskyFactor\_}}, $B_X = X^T \,Y=\,$\texttt{\color{blue}{currentB\_}}\\
+We compute $J^* = \log L(\hat{\beta},\hat{\sigma}\mid Y)$ using  \texttt{\color{blue}{computeLogLikelihood()}} which compute the QR decomposition of matrix $X$ : $Q_X\,R_X=X$ 
+and update $ Q_X=\,$\texttt{\color{blue}{currentQ\_}}, $R_X^{-T} \,=\,$\texttt{\color{blue}{currentInvRt\_}}, 
+$\hat{\varepsilon}= Y-\hat{Y}= Y-Q_X\,Q_X^T\,Y =$ \texttt{\color{blue}{currentResidual\_}}.\\
+Initialization: $J^i = +\infty$, $J^{i'} = +\infty$\\
 \BlankLine
 \If{$($ \texttt{\color{blue}{direction\_}}   $\in \big\{$ FORWARD,BOTH $\big\})$}{
-We compute the $(n)$ vector: $ Y-\hat{Y}= Y-X\,\big(L_X \, L_X^T\big)^{-1}\,X^T\,Y $ by solving two linear systems \\
-$ [\,F_i\,,\,i\,] =$  \texttt{\color{blue}{computeUpdateForward}}$(S_{max} \backslash S^*,X,X_{max},L_X,Y-\hat{Y}) $\\
+$ [\,F_i\,,\,i\,] =$  \texttt{\color{blue}{computeUpdateForward}}$(S_{max} \backslash S^*,X_{max},Q_X,Y-\hat{Y}) $\\
 $ J^{i} = n\, \log(\frac{1}{n}F_{{i}})$
 }
 \If{$($ \texttt{\color{blue}{direction\_}}   $\in \big\{$ BACKWARD,BOTH $\big\})$}{
-	$ [\,F_{i'}\,,\,{i'}\,] =$ \texttt{\color{blue}{computeUpdateBackward}}$(S^*\backslash S_{min},X,Y,L_X,B_X) $\\
+	$ [\,F_{i'}\,,\,{i'}\,] =$ \texttt{\color{blue}{computeUpdateBackward}}$(S^*\backslash S_{min},X,Y,R_X^{-T},Q_X,Y-\hat{Y}) $\\
 	$ J^{i'} = n\, \log(\frac{1}{n}F_{{i'}})$
 }
 \uIf{$(J^i+$ \texttt{\color{blue}{penalty\_}} $ < J^*) $ {\bf or} $(J^{i'}-$ \texttt{\color{blue}{penalty\_}} $< J^*)$}{
@@ -475,12 +475,13 @@ Quit
 }
 $n_{iter} = n_{iter} + 1$
 }
-We update $L_X=$\texttt{\color{blue}{currentCholeskyFactor\_}}, $B_X=$\texttt{\color{blue}{currentB\_}} using \texttt{\color{blue}{computeLogLikelihood()}} \\
-We compute the $(p)$ vector: $\hat{\beta}= \big(L_X \, L_X^T\big)^{-1}\,B_X $ by solving two linear systems \\
-We compute the $(n)$ vectors: $\hat{Y}=X\,\hat{\beta} \,, \,\hat{\varepsilon}=Y-\hat{Y}$
-and the scalar $\hat{\sigma}^2 = \frac{1}{n} \,\hat{\varepsilon}^T\,\hat{\varepsilon}$  \\
-We compute the scalar: $H_{i,i} = x_i^T\,\big(L_X \, L_X^T\big)^{-1}\,x_i$  by solving two linear systems \\
-We construct \texttt{LinearModelResult} with parameters: $(X,Y,\hat{\varepsilon})$.
+We update $ Q_X=\,$\texttt{\color{blue}{currentQ\_}}, $R_X^{-T} \,=\,$\texttt{\color{blue}{currentInvRt\_}}, 
+$\hat{\varepsilon}= Y-\hat{Y}= Y-Q_X\,Q_X^T\,Y \,=\,$\texttt{\color{blue}{currentResidual\_}} 
+using \texttt{\color{blue}{computeLogLikelihood()}}\\
+We compute the $(p)$ vectors: $\hat{\beta}= A_X\,X^T\,Y= R_X^{-1}\,Q_X^T\,Y $ and $\big(A_{i,i}\big)_{i \in [1,p]} = \big(\,\|R_X^{-T}\,e_i\|^2\,\big)_{i \in [1,p]}$\\
+We compute the $(n)$ vectors: $\big(H_{i,i}\big)_{i \in [1,n]} = \big(\,\|Q_X^{T}\,e_i\|^2\,\big)_{i \in [1,n]}$ and
+ $\big(D_{i}\big)_{i \in [1,n]} =\Big(\,\frac{(n-1-p)\hat{\varepsilon}_i^2}{p\,\|\hat{\varepsilon}\|^2}\,\frac{H_{i,i}}{(1-H_{i,i})^2}\,\Big)_{i \in [1,n]} $\\
+We construct \texttt{LinearModelResult} with parameters: $\big(\,X,Y,\hat{\varepsilon},(A_{i,i})_{i \in [1,p]},(H_{i,i})_{i \in [1,n]},(D_{i})_{i \in [1,n]}\,\big)$.
 \caption{Stepwise method algorithm }
 \end{algorithm}
 
@@ -495,15 +496,15 @@ We construct \texttt{LinearModelResult} with parameters: $(X,Y,\hat{\varepsilon}
 \begin{algorithm}
 \label{ComputeUpdateForward_algo}
 \SetKwInOut{Input}{Input}
-\underline{\texttt{ComputeUpdateForward}}$(S_{max} \backslash S^*,X,X_{max},L_X,Y-\hat{Y})$\\
+\underline{\texttt{ComputeUpdateForward}}$(S_{max} \backslash S^*,X,X_{max},Q_X,Y-\hat{Y})$\\
 \Input{$(n \times p)$ matrix: \texttt{\color{blue}{X\_}} $\, =X\,$, $(n \times m)$ matrix: \texttt{\color{blue}{Xmax\_}}$\,= X_{max}\,$  }
-\Input{$(n\times p)$ matrix: \texttt{\color{blue}{L\_}}$\,=L_X\,$, $(n)$ vector: \texttt{\color{blue}{epsilon\_}} $\,=Y-\hat{Y}\,$   }
+\Input{$(n\times p)$ matrix: \texttt{\color{blue}{Q\_}}$\,=Q_X\,$, $(n)$ vector: \texttt{\color{blue}{residual\_}} $\,=Y-\hat{Y}\,$   }
 \BlankLine
 Initialisation: $F_i = +\infty$
 \BlankLine
 \For{($j \in S_{max} \backslash S^* $)}{
 \BlankLine
-We compute the $(n)$ vector: $d_{j}-x_j = X\,\big(L_X \, L_X^T\big)^{-1}\, X^T\,x_j -x_j $ by solving two linear systems \\
+We compute the $(n)$ vector: $d_{j}-x_j = Q_X\, Q_X^T\,x_j -x_j $ \\
 We compute the $(n)$ vector: $ Y-H_{+j}\,Y = Y-\hat{Y} -\frac{x_j^T\,(Y -\hat{Y})}{x_j^T\,(d_{j}-x_j )} \big(d_{j}-x_j \big)\,\, $\\
 We compute the scalar: $F_j \hat{=}\|\,Y-H_{+j}\,Y\,\|^2_2 $\\
 \If{$F_j \, < \, F_i $ }{
@@ -517,7 +518,7 @@ $F_i\,=\, F_j$ and $i=j$
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{\texttt{ComputeUpdateBackward} algorithm}
 
-The function \texttt{ComputeUpdateBackward} compute the least square of the residual term  $(Y-H_{-i}\,Y)$ using equation (\ref{defH-Y}).
+The function \texttt{ComputeUpdateBackward} compute the least square of the residual term  $(Y-H_{-i}\,Y)$ using equation (\ref{defH-Y2}).
  The \texttt{ComputeUpdateBackward} algorithm (\ref{ComputeUpdateBackward_algo}) is the following:
 
 
@@ -525,18 +526,18 @@ The function \texttt{ComputeUpdateBackward} compute the least square of the resi
 \begin{algorithm}
 \label{ComputeUpdateBackward_algo}
 \SetKwInOut{Input}{Input}
-\underline{\texttt{ComputeUpdateBackward}}$(S^*\backslash S_{min},X,Y,L_X,B_X)$\\
-\Input{$(n \times p)$ matrix: \texttt{\color{blue}{X\_}} $\, =X\, $,  $(n)$ vector: \texttt{\color{blue}{Y\_}} $=Y\,$ }
-\Input{$(p \times p)$ matrix: \texttt{\color{blue}{L\_}}  $\, =L_X\, $,$(p)$ vector: \texttt{\color{blue}{B\_}}$\, =B_X\,$  }
+\underline{\texttt{ComputeUpdateBackward}}$(S^*\backslash S_{min},X,Y,R_X^{-T},Q_X,Y-\hat{Y})$\\
+\Input{$(n \times p)$ matrix: \texttt{\color{blue}{X\_}} $\, =X\, $,  $(n)$ vectors: \texttt{\color{blue}{Y\_}} $=Y\,$ and \texttt{\color{blue}{residual\_}} $\,=Y-\hat{Y}\,$ }
+\Input{$(p \times p)$ matrix: \texttt{\color{blue}{invRt\_}}  $\, =R_X^{-T}\,$, $(n \times p)$ matrix: \texttt{\color{blue}{Q\_}}  $\, =Q_X\,$}
 \BlankLine
 Initialisation: $F_{i'} = +\infty$
 \BlankLine
 \For{($j \in  S^*\backslash S_{min}$)}{
 \BlankLine
-We compute the $(p)$ vector: $ d_{j} =\,\big(L_X \, L_X^T\big)^{-1}\,\big[B_X\big]_{j=0}$ by solving two linear systems\\
-We compute the $(p)$ vector: $ a_{j} =\,\big(L_X \, L_X^T\big)^{-1}\,e_{j}$ by solving two linear systems\\
+We compute the $(p)$ vector: $ b_{j} =\,R_X^{-T}\,e_{j}$ \\
+We compute the $(p)$ vector: $ d_{j} =\,Q_X\,b_{j}$\\
 We compute the $(n)$ vector: $ Y- H_{-i}\,Y
-\,=\,Y- \,X\,  \big(\,d_{j} \,-\,\frac {{(d_{j}})_j}{(a_{j})_j}\,a_{j}\,\big)\,\,  $\\
+\,=\,Y-\hat{Y} \,+\,\frac {d_{j}^T\,Y}{\|\,b_{j}\,\|^2}\,d_{j}\,\big)\,\,  $\\
 We compute the scalar: $F_j \hat{=}\|\,Y-H_{-}\,Y\,\|^2_2 $\\
 \If{$F_j \, < \, F_{i'} $ }{
 $F_{i'}\,=\, F_j$ and ${i'}=j$
