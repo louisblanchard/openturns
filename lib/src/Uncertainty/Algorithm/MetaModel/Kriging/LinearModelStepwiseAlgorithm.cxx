@@ -168,20 +168,25 @@ String LinearModelStepwiseAlgorithm::getFormula() const
                 H = X (X^T X)^{-1} X^T
 
     Using QR decomposition of X :(X=QR) we get : A = (X^T X)^{-1} = R^{-1} (R^T)^{-1}
-                                                 H = X A X^T = Q Q^T  
+                                                 H = X A X^T = Q Q^T
 
   When (X^T X)^{-1} has been computed, there are update methods to compute
   the inverse when a column is added to or removed from X.
 
 */
 
-/* TBB functor to speed-up backward insertion index computation
+/* TBB functor to speed-up forward insertion index computation
 
     If X is augmented by one column:
       X_+ = (X x_+)
-                         / A + (1/c) D D^T |  -(1/c) D \
-      (X_+ X^T_+)^{-1} = |-----------------+-----------|
-                         \      -(1/c) D^T |   (1/c)   /
+                         ( A + (1/c) D D^T |  -(1/c) D )
+      (X^T_+ X_+)^{-1} = (-----------------+-----------)
+                         (      -(1/c) D^T |   (1/c)   )
+
+                         ( A | 0 )   1 ( D D^T | -D )
+                       = (---+---) + - (-------+----)
+                         ( 0 | 0 )   c (  -D^T |  1 )
+
      with   D = A X^T x_+
             c = x_+^T x_+ - x_+^T X D
 
@@ -286,25 +291,24 @@ struct UpdateForwardFunctor
     The final trick is to replace [X]_{i=0} by X in top-left multiplications, and throw i-th
     coefficient and replace it by 0.
 
-    Note that we have : [X^T Y]_{i=0} = X^T Y - x_i^T Y e_i 
-    and : A_{i,} [X^T Y]_{i=0} = e_i^T A ( X^T Y - x_i^T Y e_i ) = e_i^T A X^T Y - x_i^T Y/a_{ii}  
+    Note that we have : [X^T Y]_{i=0} = X^T Y - x_i^T Y e_i
+    and : A_{i,} [X^T Y]_{i=0} = e_i^T A ( X^T Y - x_i^T Y e_i ) = e_i^T A X^T Y - x_i^T Y/a_{ii}
 
-    Consequently : 
+    Consequently :
       H_- Y = X A [X^T Y]_{i=0} - (1/a_{ii})  [X]_{i=0} A_{,i} A_{i,} [X^T Y]_{i=0}
             = X A X^T Y - x_i^T Y X A e_i -(1/a_{ii}) ( e_i^T A X^T Y - x_i^T Y/a_{ii} ) X A e_i
             = X A X^T Y - (e_i^T A X^T Y)/a_{ii} X A e_i
             = X A X^T Y - ((X A e_i)^T Y)/a_{ii} X A e_i
 
-    Using QR decomposition of X we get : X A X^T = Q Q^T, X A e_i = Q (R^T)^{-1} e_i and a_{ii} = ((R^T)^{-1} e_i)^T (R^T)^{-1} e_i   
+    Using QR decomposition of X we get : X A X^T = Q Q^T, X A e_i = Q (R^T)^{-1} e_i and a_{ii} = ((R^T)^{-1} e_i)^T (R^T)^{-1} e_i
 
     We compute
       residual = Y - Q Q^T Y
     and for each column j in S* \ Smin,
-      b_j = (R^T)^{-1} e_i   
+      b_j = (R^T)^{-1} e_i
       d_j = Q b_j
       Y - H_- Y = residual + (d_j^T Y /(b_j^T b_j)) d_j
 
-      
     Note that j in S* \ Smin refers to columns in Xmax, we need an array to store
     positions of these columns in X.
  */
@@ -337,7 +341,7 @@ struct UpdateBackwardFunctor
     const UnsignedInteger size(Q_.getNbRows());
     const UnsignedInteger p(invRt_.getNbRows());
     Matrix bi(p, 1);
-    NumericalPoint biNP(p); 
+    NumericalPoint biNP(p);
     NumericalPoint diNP(size);
     NumericalPoint yNP(size);
     memcpy(&yNP[0], &Y_(0, 0), sizeof(NumericalScalar)*size);
@@ -424,14 +428,15 @@ void LinearModelStepwiseAlgorithm::run()
     for (UnsignedInteger i = 0; i < startIndices_.getSize(); ++i)
       columnMaxToCurrent[startIndices_[i]] = i;
   }
+  UnsignedInteger p = currentX_.getNbColumns();
 
   UnsignedInteger iterations = 0;
   NumericalScalar Lstar;
   while(iterations < maximumIterationNumber_)
   {
     ++iterations;
-    // Update Q,(R^T)^{-1}, residual = Y - Q*Q^T*Y  (X=QR) 
-    Lstar = penalty_ * currentX_.getNbColumns() + computeLogLikelihood();
+    // Update Q,(R^T)^{-1}, residual = Y - Q*Q^T*Y  (X=QR)
+    Lstar = penalty_ * p + computeLogLikelihood();
     LOGDEBUG(OSS() << "Iteration " << iterations << ", current criterion=" << Lstar);
 
     NumericalScalar LF = SpecFunc::MaxNumericalScalar;
@@ -448,7 +453,7 @@ void LinearModelStepwiseAlgorithm::run()
       UpdateForwardFunctor updateFunctor(basis_, indexSet, maxX_, currentResidual_, currentQ_);
       TBB::ParallelReduce(0, indexSet.getSize(), updateFunctor);
       indexF = updateFunctor.bestIndex_;
-      LF = penalty_ * (currentX_.getNbColumns() + 1) + size * std::log(updateFunctor.criterion_ / size);
+      LF = penalty_ * (p + 1) + size * std::log(updateFunctor.criterion_ / size);
       LOGDEBUG(OSS() << "Best candidate in forward direction is " << indexF << "(" << basis_[indexF] << "), squared residual norm=" << updateFunctor.criterion_ << ", criterion=" << LF);
     }
     NumericalScalar LB = SpecFunc::MaxNumericalScalar;
@@ -465,7 +470,7 @@ void LinearModelStepwiseAlgorithm::run()
       UpdateBackwardFunctor updateFunctor(basis_, indexSet, columnMaxToCurrent, currentIndices_, Y_, currentResidual_, currentQ_, currentInvRt_);
       TBB::ParallelReduce(0, indexSet.getSize(), updateFunctor);
       indexB = updateFunctor.bestIndex_;
-      LB = penalty_ * (currentX_.getNbColumns() - 1) + size * std::log(updateFunctor.criterion_ / size);
+      LB = penalty_ * (p - 1) + size * std::log(updateFunctor.criterion_ / size);
       LOGDEBUG(OSS() << "Best candidate in backward direction is " << indexB << "(" << basis_[indexB] << "), squared residual norm=" << updateFunctor.criterion_ << ", criterion=" << LB);
     }
     if (!(LF < Lstar || LB < Lstar))
@@ -477,22 +482,24 @@ void LinearModelStepwiseAlgorithm::run()
       // Add indexF to currentIndices_
       currentIndices_.add(indexF);
       // Add column indexF to currentX_
-      columnMaxToCurrent[indexF] = currentX_.getNbColumns();
-      Matrix newX(currentX_.getNbRows(), currentX_.getNbColumns() + 1);
-      memcpy(&newX(0, 0), &currentX_(0, 0), sizeof(NumericalScalar)*size*currentX_.getNbColumns());
-      memcpy(&newX(0, currentX_.getNbColumns()), &maxX_(0, indexF), sizeof(NumericalScalar)*size);
+      columnMaxToCurrent[indexF] = p;
+      Matrix newX(size, p + 1);
+      memcpy(&newX(0, 0), &currentX_(0, 0), sizeof(NumericalScalar) * size * p);
+      memcpy(&newX(0, p), &maxX_(0, indexF), sizeof(NumericalScalar) * size);
       currentX_ = newX;
+      ++p;
     }
     else
     {
       LOGDEBUG(OSS() << "Remove column " << indexB);
       // Remove column indexB from currentX_
-      Matrix newX(currentX_.getNbRows(), currentX_.getNbColumns() - 1);
+      Matrix newX(size, p - 1);
       const UnsignedInteger pos(columnMaxToCurrent[indexB]);
-      memcpy(&newX(0, 0), &currentX_(0, 0), sizeof(NumericalScalar)*size*pos);
-      if (pos+1 != currentX_.getNbColumns())
-        memcpy(&newX(0, pos), &currentX_(0, pos+1), sizeof(NumericalScalar)*size*(currentX_.getNbColumns() - pos - 1));
+      memcpy(&newX(0, 0), &currentX_(0, 0), sizeof(NumericalScalar) * size * pos);
+      if (pos+1 != p)
+        memcpy(&newX(0, pos), &currentX_(0, pos+1), sizeof(NumericalScalar) * size * (p - pos - 1));
       currentX_ = newX;
+      --p;
       // Update columnMaxToCurrent
       const UnsignedInteger indexBpos = columnMaxToCurrent[indexB];
       for (Indices::iterator it = columnMaxToCurrent.begin(); it != columnMaxToCurrent.end(); ++it)
@@ -512,8 +519,7 @@ void LinearModelStepwiseAlgorithm::run()
     }
     LOGDEBUG(OSS() << "Index set is now " << currentIndices_.__str__());
   }
-  // Update Q,(R^T)^{-1}, residual = Y - Q*Q^T*Y  (X=QR) 
-  const UnsignedInteger p(currentX_.getNbColumns());
+  // Update Q,(R^T)^{-1}, residual = Y - Q*Q^T*Y  (X=QR)
   const NumericalScalar criterion(penalty_ * p + computeLogLikelihood());
   LOGDEBUG(OSS() << "Final indices are " << currentIndices_.__str__() << " and criterion is " << criterion);
 
@@ -532,7 +538,7 @@ void LinearModelStepwiseAlgorithm::run()
     }
   }
   NumericalPoint diagonalGramInverse(p);
-  NumericalPoint invRtiNP(p); 
+  NumericalPoint invRtiNP(p);
   for (UnsignedInteger i = 0; i < p; ++i)
   {
     memcpy(&invRtiNP[0], &currentInvRt_(0, i), sizeof(NumericalScalar)*p);
@@ -540,20 +546,20 @@ void LinearModelStepwiseAlgorithm::run()
   }
   NumericalPoint leverages(size);
   Matrix Qt(currentQ_.transpose());
-  NumericalPoint QtiNP(p); 
+  NumericalPoint QtiNP(p);
   for (UnsignedInteger i = 0; i < size; ++i)
   {
     memcpy(&QtiNP[0], &Qt(0, i), sizeof(NumericalScalar)*p);
     leverages[i] = dot(QtiNP, QtiNP);
   }
   NumericalSample residualSample(size, 1);
-  memcpy(&residualSample(0, 0), &currentResidual_(0, 0), sizeof(NumericalScalar)*size);
+  memcpy(&residualSample(0, 0), &currentResidual_(0, 0), sizeof(NumericalScalar) * size);
 
   NumericalPoint sigma2(residualSample.computeRawMoment(2));
   const NumericalScalar factor = size * sigma2[0] / (size - p);
   NumericalSample standardizedResiduals(size, 1);
   for(UnsignedInteger i = 0; i < size; ++i)
-  { 
+  {
     standardizedResiduals(i, 0) = residualSample(i, 0) / std::sqrt(factor * (1.0 - leverages[i]));
   }
 
@@ -586,7 +592,7 @@ void LinearModelStepwiseAlgorithm::buildCurrentMatrixFromIndices(const Indices &
   currentX_ = Matrix(size, columns.getSize());
   currentIndices_ = columns;
   for (UnsignedInteger i = 0; i < columns.getSize(); ++i)
-    memcpy(&currentX_(0, columns[i]), &maxX_(0, i), sizeof(NumericalScalar)*size);
+    memcpy(&currentX_(0, columns[i]), &maxX_(0, i), sizeof(NumericalScalar) * size);
 }
 
 
@@ -600,10 +606,10 @@ LinearModelResult LinearModelStepwiseAlgorithm::getResult()
 /* Compute the likelihood function */
 NumericalScalar LinearModelStepwiseAlgorithm::computeLogLikelihood()
 {
-  const UnsignedInteger n = currentX_.getNbRows();
+  const UnsignedInteger size = currentX_.getNbRows();
   const UnsignedInteger p = currentX_.getNbColumns();
   Matrix R;
-  currentQ_ = currentX_.computeQR(R, n < p, true);
+  currentQ_ = currentX_.computeQR(R, size < p, true);
   const MatrixImplementation b(*IdentityMatrix(p).getImplementation());
   currentInvRt_ = R.getImplementation()->solveLinearSystemTri(b, true, false, true);
 
@@ -611,7 +617,6 @@ NumericalScalar LinearModelStepwiseAlgorithm::computeLogLikelihood()
   const Matrix QtY = currentQ_.getImplementation()->genProd(*(Y_.getImplementation()), true, false);
   const Matrix Yhat(currentQ_ * QtY);
   currentResidual_ = Y_ - Yhat;
-  const UnsignedInteger size(currentResidual_.getNbRows());
   NumericalPoint residualNP(size, 0.0);
   memcpy(&residualNP[0], &currentResidual_(0,0), sizeof(NumericalScalar) * size);
 
