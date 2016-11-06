@@ -19,9 +19,8 @@ if ( PDFLATEX_COMPILER AND BIBTEX_COMPILER )
   endif ()
   add_latex_document ( OTLinearModel_Documentation.tex
     INPUTS GenericInformation.tex.in OTLinearModel_summary.tex Math_Notations.sty OTLinearModel_ArchitectureGuide.tex OTLinearModel_title.tex OTLinearModel_Documentation.sty OTLinearModel_UseCasesGuide.tex
-    LinearModelAlgorithm.png LinearModelStepwiseAlgorithm.png
-    plot11.png plot12.png plot13.png plot14.png plot15.png plot16.png
-    plot21.png plot22.png plot23.png plot24.png plot25.png plot26.png
+    IMAGES LinearModelAlgorithm.png LinearModelStepwiseAlgorithm.png
+    IMAGE_DIRS imgR imgOT
 DEFAULT_PDF
     MANGLE_TARGET_NAMES
   ) 
