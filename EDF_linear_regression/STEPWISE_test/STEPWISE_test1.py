@@ -49,6 +49,7 @@ for i in xrange(dim):
   indices = [0]*dim
   indices[i] = 1
   i_0.append(interactions.index(indices))
+i_0 = [i_0]
 
 #---------------- Forward / Backward------------------- 
 #   X: input sample
@@ -72,29 +73,23 @@ penalty_BIC = log(X.getSize())
 penalty_AIC = 2.
 maxiteration = 1000
 
-ot.Log.Show(ot.Log.ALL)
-
-algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, True, penalty_AIC, maxiteration)
-algo.run()
-algo_result = algo.getResult()
-analysis = ot.LinearModelAnalysis(algo_result)
- 
-from openturns.viewer import View
-
-for plot in ["drawResidualsVsFitted", "drawScaleLocation", "drawQQplot", "drawCookDistance", "drawResidualsVsLeverages", "drawCookVsLeverages"]:
-     graph = getattr(analysis, plot)()
-     graph.draw(plot, 640, 480);
-     View(graph).show()
-
-
-# for k in [penalty_AIC, penalty_BIC]:
-#   ## Forward / Backward
-#   for forward in [True, False]:
-#     algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, forward, k, maxiteration)
-#     algo_result = ot.LinearModelAnalysis(algo.getResult())
-#     algo_result.print()
-#   ## Both
-#   algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, i_0, k, maxiteration)
-#   algo_result = ot.LinearModelAnalysis(algo.getResult())
-#   algo_result.print()
+for k in [penalty_AIC, penalty_BIC]:
+  ## Forward / Backward
+  if k==penalty_AIC:  IC =" AIC "
+  if k==penalty_BIC:  IC =" BIC "  
+  for forward in [True, False]:
+    algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, forward, k, maxiteration)
+    algo_result = ot.LinearModelAnalysis(algo.getResult())
+    print("{0:~^60s}".format(""))
+    if forward==True : print(" Forward " +IC)
+    else             : print(" Backward "+IC)
+    print("{0:~^60s}".format(""))
+    print(algo_result)
+  ## Both
+  algo = ot.LinearModelStepwiseAlgorithm(X, basis, Y, i_min, i_0, k, maxiteration)
+  algo_result = ot.LinearModelAnalysis(algo.getResult())
+  print("{0:~^60s}".format(""))
+  print(" Both "+IC)
+  print("{0:~^60s}".format(""))
+  print(algo_result)
 
