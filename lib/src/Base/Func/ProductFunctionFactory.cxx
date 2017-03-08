@@ -1,6 +1,6 @@
 //                                               -*- C++ -*-
 /**
- *  @brief This is the orthogonal function basis
+ *  @brief This is the  function basis
  *
  *  Copyright 2005-2016 Airbus-EDF-IMACS-Phimeca
  *
@@ -33,20 +33,20 @@ BEGIN_NAMESPACE_OPENTURNS
 
 
 
-TEMPLATE_CLASSNAMEINIT(PersistentCollection<OrthogonalUniVariateFunctionFamily>);
+TEMPLATE_CLASSNAMEINIT(PersistentCollection<UniVariateFunctionFamily>);
 
-static const Factory<PersistentCollection<OrthogonalUniVariateFunctionFamily> > Factory_PersistentCollection_OrthogonalUniVariateFunctionFamily;
+static const Factory<PersistentCollection<UniVariateFunctionFamily> > Factory_PersistentCollection_UniVariateFunctionFamily;
 
-CLASSNAMEINIT(OrthogonalProductFunctionFactory);
+CLASSNAMEINIT(ProductFunctionFactory);
 
-static const Factory<OrthogonalProductFunctionFactory> Factory_OrthogonalProductFunctionFactory;
+static const Factory<ProductFunctionFactory> Factory_ProductFunctionFactory;
 
 typedef Collection<NumericalPoint> NumericalPointCollection;
 typedef ProductUniVariateFunctionEvaluationImplementation::UniVariateFunctionCollection UniVariateFunctionCollection;
 
 /* Default constructor */
-OrthogonalProductFunctionFactory::OrthogonalProductFunctionFactory()
-  : OrthogonalFunctionFactory()
+ProductFunctionFactory::ProductFunctionFactory()
+  : FunctionFactory()
   , coll_()
   , phi_()
 {
@@ -55,8 +55,8 @@ OrthogonalProductFunctionFactory::OrthogonalProductFunctionFactory()
 
 
 /* Constructor */
-OrthogonalProductFunctionFactory::OrthogonalProductFunctionFactory(const FunctionFamilyCollection & coll)
-  : OrthogonalFunctionFactory()
+ProductFunctionFactory::ProductFunctionFactory(const FunctionFamilyCollection & coll)
+  : FunctionFactory()
   , coll_(coll)
   , phi_(coll.getSize())
 {
@@ -65,9 +65,9 @@ OrthogonalProductFunctionFactory::OrthogonalProductFunctionFactory(const Functio
 
 
 /* Constructor */
-OrthogonalProductFunctionFactory::OrthogonalProductFunctionFactory(const FunctionFamilyCollection & coll,
+ProductFunctionFactory::ProductFunctionFactory(const FunctionFamilyCollection & coll,
     const EnumerateFunction & phi)
-  : OrthogonalFunctionFactory(),
+  : FunctionFactory(),
     coll_(coll),
     phi_(phi)
 {
@@ -77,27 +77,27 @@ OrthogonalProductFunctionFactory::OrthogonalProductFunctionFactory(const Functio
 
 
 /* Virtual constructor */
-OrthogonalProductFunctionFactory * OrthogonalProductFunctionFactory::clone() const
+ProductFunctionFactory * ProductFunctionFactory::clone() const
 {
-  return new OrthogonalProductFunctionFactory(*this);
+  return new ProductFunctionFactory(*this);
 }
 
 
 /* Return the enumerate function that translate unidimensional indices into multidimensional indices */
-EnumerateFunction OrthogonalProductFunctionFactory::getEnumerateFunction() const
+EnumerateFunction ProductFunctionFactory::getEnumerateFunction() const
 {
   return phi_;
 }
 
 
-/* Return the collection of univariate orthogonal polynomial families */
-OrthogonalProductFunctionFactory::FunctionFamilyCollection OrthogonalProductFunctionFactory::getFunctionFamilyCollection() const
+/* Return the collection of univariate  polynomial families */
+ProductFunctionFactory::FunctionFamilyCollection ProductFunctionFactory::getFunctionFamilyCollection() const
 {
   return coll_;
 }
 
 /* Build the NumericalMathFunction of the given index */
-NumericalMathFunction OrthogonalProductFunctionFactory::build(const UnsignedInteger index) const
+NumericalMathFunction ProductFunctionFactory::build(const UnsignedInteger index) const
 {
   // Compute the multi-indices using the EnumerateFunction
   Indices indices(phi_(index));
@@ -116,7 +116,7 @@ NumericalMathFunction OrthogonalProductFunctionFactory::build(const UnsignedInte
 
 
 /* String converter */
-String OrthogonalProductFunctionFactory::__repr__() const
+String ProductFunctionFactory::__repr__() const
 {
   return OSS() << "class=" << getClassName()
          << " univariate function collection=" << coll_
@@ -125,24 +125,24 @@ String OrthogonalProductFunctionFactory::__repr__() const
 
 
 /* Method save() stores the object through the StorageManager */
-void OrthogonalProductFunctionFactory::save(Advocate & adv) const
+void ProductFunctionFactory::save(Advocate & adv) const
 {
-  OrthogonalFunctionFactory::save(adv);
+  FunctionFactory::save(adv);
   adv.saveAttribute( "coll_", coll_ );
   adv.saveAttribute( "phi_", phi_ );
 }
 
 
 /* Method load() reloads the object from the StorageManager */
-void OrthogonalProductFunctionFactory::load(Advocate & adv)
+void ProductFunctionFactory::load(Advocate & adv)
 {
-  OrthogonalFunctionFactory::load(adv);
+  FunctionFactory::load(adv);
   adv.loadAttribute( "coll_", coll_ );
   adv.loadAttribute( "phi_", phi_ );
 }
 
 /* Build the measure based on the one found in the family collection */
-void OrthogonalProductFunctionFactory::buildMeasure()
+void ProductFunctionFactory::buildMeasure()
 {
   const UnsignedInteger size = coll_.getSize();
   Collection<Distribution> distributions(size);

@@ -1,6 +1,6 @@
 //                                               -*- C++ -*-
 /**
- *  @brief This is the orthogonal function basis
+ *  @brief This is the  function basis
  *
  *  Copyright 2005-2016 Airbus-EDF-IMACS-Phimeca
  *
@@ -18,47 +18,47 @@
  *  along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef OPENTURNS_ORTHOGONALPRODUCTFUNCTIONFACTORY_HXX
-#define OPENTURNS_ORTHOGONALPRODUCTFUNCTIONFACTORY_HXX
+#ifndef OPENTURNS_PRODUCTFUNCTIONFACTORY_HXX
+#define OPENTURNS_PRODUCTFUNCTIONFACTORY_HXX
 
-#include "openturns/OrthogonalFunctionFactory.hxx"
+#include "openturns/FunctionFactory.hxx"
 #include "openturns/Distribution.hxx"
 #include "openturns/Indices.hxx"
 #include "openturns/NumericalPoint.hxx"
 #include "openturns/NumericalSample.hxx"
 #include "openturns/NumericalMathFunction.hxx"
 #include "openturns/PersistentCollection.hxx"
-#include "openturns/OrthogonalUniVariateFunctionFamily.hxx"
+#include "openturns/UniVariateFunctionFamily.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
 
 
 
 /**
- * @class OrthogonalProductFunctionFactory
+ * @class ProductFunctionFactory
  *
- * This is the orthogonal function basis
+ * This is the  function basis
  */
 
-class OT_API OrthogonalProductFunctionFactory
-  : public OrthogonalFunctionFactory
+class OT_API ProductFunctionFactory
+  : public FunctionFactory
 {
   CLASSNAME;
 public:
 
-  typedef Collection<OrthogonalUniVariateFunctionFamily>           FunctionFamilyCollection;
-  typedef PersistentCollection<OrthogonalUniVariateFunctionFamily> FunctionFamilyPersistentCollection;
+  typedef Collection<UniVariateFunctionFamily>           FunctionFamilyCollection;
+  typedef PersistentCollection<UniVariateFunctionFamily> FunctionFamilyPersistentCollection;
 
-  friend class Factory<OrthogonalProductFunctionFactory>;
+  friend class Factory<ProductFunctionFactory>;
 
   /** Default constructor */
-  OrthogonalProductFunctionFactory();
+  ProductFunctionFactory();
 
   /** Constructor */
-  OrthogonalProductFunctionFactory(const FunctionFamilyCollection & coll);
+  ProductFunctionFactory(const FunctionFamilyCollection & coll);
 
   /** Constructor */
-  OrthogonalProductFunctionFactory(const FunctionFamilyCollection & coll,
+  ProductFunctionFactory(const FunctionFamilyCollection & coll,
                                    const EnumerateFunction & phi);
 
   /** Build the NumericalMathFunction of the given index */
@@ -67,11 +67,11 @@ public:
   /** Return the enumerate function that translate unidimensional indices nto multidimensional indices */
   EnumerateFunction getEnumerateFunction() const;
 
-  /** Return the collection of univariate orthogonal polynomial families */
+  /** Return the collection of univariate  polynomial families */
   FunctionFamilyCollection getFunctionFamilyCollection() const;
 
   /** Virtual constructor */
-  virtual OrthogonalProductFunctionFactory * clone() const;
+  virtual ProductFunctionFactory * clone() const;
 
   /** String converter */
   virtual String __repr__() const;
@@ -94,9 +94,9 @@ private:
   /** The Phi function */
   EnumerateFunction phi_;
 
-} ; /* class OrthogonalProductFunctionFactory */
+} ; /* class ProductFunctionFactory */
 
 
 END_NAMESPACE_OPENTURNS
 
-#endif /* OPENTURNS_ORTHOGONALPRODUCTFUNCTIONFACTORY_HXX */
+#endif /* OPENTURNS_PRODUCTFUNCTIONFACTORY_HXX */
