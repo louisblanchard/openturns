@@ -104,6 +104,8 @@ ot_add_source_file (ParametricHessianImplementation.cxx)
 ot_add_source_file (P1LagrangeEvaluationImplementation.cxx)
 ot_add_source_file (FunctionalBasisImplementation.cxx)
 ot_add_source_file (FunctionalBasis.cxx)
+ot_add_source_file (UniVariateFunctionFactory.cxx)
+ot_add_source_file (ProductFunctionFactory.cxx)
 
 ot_install_header_file (AggregatedFunction.hxx)
 if (MUPARSER_FOUND)
@@ -208,6 +210,8 @@ ot_install_header_file (ParametricHessianImplementation.hxx)
 ot_install_header_file (P1LagrangeEvaluationImplementation.hxx)
 ot_install_header_file (FunctionalBasisImplementation.hxx)
 ot_install_header_file (FunctionalBasis.hxx)
+ot_install_header_file (UniVariateFunctionFactory.hxx)
+ot_install_header_file (ProductFunctionFactory.hxx)
 
 # Recurse in subdirectories
 add_subdirectory (SpecFunc)
