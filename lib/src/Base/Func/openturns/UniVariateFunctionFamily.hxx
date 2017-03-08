@@ -52,9 +52,6 @@ public:
   /** The method to get the function of any order. */
   UniVariateFunction build(const UnsignedInteger order) const;
 
-  /** Measure accessor */
-  Distribution getMeasure() const;
-
 protected:
 
 private:

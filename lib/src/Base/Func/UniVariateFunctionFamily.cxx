@@ -52,12 +52,6 @@ UniVariateFunction UniVariateFunctionFamily::build(const UnsignedInteger order) 
 }
 
 
-/* Measure accessor */
-Distribution UniVariateFunctionFamily::getMeasure() const
-{
-  return getImplementation()->getMeasure();
-}
-
 /* String converter */
 String UniVariateFunctionFamily::__repr__() const
 {
