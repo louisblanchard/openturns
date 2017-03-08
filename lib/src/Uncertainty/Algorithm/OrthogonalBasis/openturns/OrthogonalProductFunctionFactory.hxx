@@ -29,6 +29,7 @@
 #include "openturns/NumericalMathFunction.hxx"
 #include "openturns/PersistentCollection.hxx"
 #include "openturns/OrthogonalUniVariateFunctionFamily.hxx"
+#include "openturns/ProductFunctionFactory.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
 
@@ -82,14 +83,14 @@ public:
 protected:
 
 private:
+  /** Build product function factory */
+  void buildProductFunctionFactory(const FunctionFamilyCollection & coll);
+
   /** Build the measure based on the one found in the family collection */
-  void buildMeasure();
+  void buildMeasure(const FunctionFamilyCollection & coll);
 
-  /** The 1D polynomial family collection */
-  FunctionFamilyPersistentCollection coll_;
-
-  /** The Phi function */
-  EnumerateFunction phi_;
+  /** The product function factory */
+  ProductFunctionFactory productFunctionFactory_;
 
 } ; /* class OrthogonalProductFunctionFactory */
 
