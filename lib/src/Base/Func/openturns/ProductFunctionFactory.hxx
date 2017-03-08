@@ -67,6 +67,12 @@ public:
   /** Return the enumerate function that translate unidimensional indices nto multidimensional indices */
   EnumerateFunction getEnumerateFunction() const;
 
+  /** set the enumerate function that translate unidimensional indices nto multidimensional indices */
+  void setEnumerateFunction(const EnumerateFunction & phi);
+
+  /** set the function familly collection */
+  void setFunctionFamilyCollection(const FunctionFamilyCollection & coll);
+
   /** Virtual constructor */
   virtual ProductFunctionFactory * clone() const;
 

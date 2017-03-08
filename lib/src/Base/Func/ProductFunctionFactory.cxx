@@ -88,6 +88,17 @@ EnumerateFunction ProductFunctionFactory::getEnumerateFunction() const
   return phi_;
 }
 
+/* set the enumerate function that translate unidimensional indices into multidimensional indices */
+void ProductFunctionFactory::setEnumerateFunction(const EnumerateFunction & phi) 
+{
+  phi_ = phi;
+}
+
+/* set the function familly collection */
+void ProductFunctionFactory::setFunctionFamilyCollection(const FunctionFamilyCollection & coll)
+{
+  coll_ = coll;
+}
 
 /* Build the NumericalMathFunction of the given index */
 NumericalMathFunction ProductFunctionFactory::build(const UnsignedInteger index) const
