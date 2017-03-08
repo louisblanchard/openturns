@@ -26,6 +26,7 @@
 #include "openturns/OrthogonalUniVariatePolynomial.hxx"
 #include "openturns/Distribution.hxx"
 #include "openturns/UniVariateFunction.hxx"
+#include "openturns/UniVariateFunctionFactory.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
 
@@ -38,13 +39,11 @@ BEGIN_NAMESPACE_OPENTURNS
  */
 
 class OT_API OrthogonalUniVariateFunctionFactory
-  : public PersistentObject
+  : public UniVariateFunctionFactory
 {
   CLASSNAME;
 
 public:
-
-  typedef Collection<UniVariateFunction> UniVariateFunctionCollection;
 
   enum ParameterSet { ANALYSIS, PROBABILITY };
 
@@ -56,9 +55,6 @@ public:
 
   /** String converter */
   virtual String __repr__() const;
-
-  /** The method to get the function of any order. */
-  virtual UniVariateFunction build(const UnsignedInteger order) const;
 
   /** Measure accessor */
   Distribution getMeasure() const;
@@ -76,14 +72,9 @@ protected:
   /** Default constructor */
   OrthogonalUniVariateFunctionFactory();
 
-  /** Cache initialization */
-  virtual void initializeCache();
-
   /** The distribution of the particular Orthonormal polynomial */
   Distribution measure_;
 
-  /** A cache to save already computed functions */
-  mutable UniVariateFunctionCollection functionsCache_;
 } ; /* class OrthogonalUniVariateFunctionFactory */
 
 
