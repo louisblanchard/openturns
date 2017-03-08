@@ -1,6 +1,6 @@
 //                                               -*- C++ -*-
 /**
- *  @brief This is the interface class for orthogonal function factories
+ *  @brief This is the interface class for  function factories
  *
  *  Copyright 2005-2016 Airbus-EDF-IMACS-Phimeca
  *
@@ -18,7 +18,7 @@
  *  along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include "openturns/OrthogonalUniVariateFunctionFamily.hxx"
+#include "openturns/UniVariateFunctionFamily.hxx"
 #include "openturns/OSS.hxx"
 #include "openturns/PersistentObjectFactory.hxx"
 #include "openturns/FourierSeriesFactory.hxx"
@@ -27,39 +27,39 @@ BEGIN_NAMESPACE_OPENTURNS
 
 
 
-CLASSNAMEINIT(OrthogonalUniVariateFunctionFamily);
+CLASSNAMEINIT(UniVariateFunctionFamily);
 
 /* Default constructor */
-OrthogonalUniVariateFunctionFamily::OrthogonalUniVariateFunctionFamily()
-  : TypedInterfaceObject<OrthogonalUniVariateFunctionFactory>(new FourierSeriesFactory)
+UniVariateFunctionFamily::UniVariateFunctionFamily()
+  : TypedInterfaceObject<UniVariateFunctionFactory>(new FourierSeriesFactory)
 {
   // Nothing to do
 }
 
 
 /* Constructor from implementation */
-OrthogonalUniVariateFunctionFamily::OrthogonalUniVariateFunctionFamily(const OrthogonalUniVariateFunctionFactory & implementation)
-  : TypedInterfaceObject<OrthogonalUniVariateFunctionFactory>(implementation.clone())
+UniVariateFunctionFamily::UniVariateFunctionFamily(const UniVariateFunctionFactory & implementation)
+  : TypedInterfaceObject<UniVariateFunctionFactory>(implementation.clone())
 {
   // Nothing to do
 }
 
 
 /* The method to get the function of any order */
-UniVariateFunction OrthogonalUniVariateFunctionFamily::build(const UnsignedInteger order) const
+UniVariateFunction UniVariateFunctionFamily::build(const UnsignedInteger order) const
 {
   return getImplementation()->build(order);
 }
 
 
 /* Measure accessor */
-Distribution OrthogonalUniVariateFunctionFamily::getMeasure() const
+Distribution UniVariateFunctionFamily::getMeasure() const
 {
   return getImplementation()->getMeasure();
 }
 
 /* String converter */
-String OrthogonalUniVariateFunctionFamily::__repr__() const
+String UniVariateFunctionFamily::__repr__() const
 {
   return OSS() << "class=" << getClassName()
          << " implementation=" << getImplementation()->__repr__();

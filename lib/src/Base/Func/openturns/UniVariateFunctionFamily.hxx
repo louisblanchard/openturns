@@ -1,6 +1,6 @@
 //                                               -*- C++ -*-
 /**
- *  @brief This is the interface class for orthogonal function factories
+ *  @brief This is the interface class for  function factories
  *
  *  Copyright 2005-2016 Airbus-EDF-IMACS-Phimeca
  *
@@ -18,33 +18,33 @@
  *  along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef OPENTURNS_ORTHOGONALUNIVARIATEFUNCTIONFAMILY_HXX
-#define OPENTURNS_ORTHOGONALUNIVARIATEFUNCTIONFAMILY_HXX
+#ifndef OPENTURNS_UNIVARIATEFUNCTIONFAMILY_HXX
+#define OPENTURNS_UNIVARIATEFUNCTIONFAMILY_HXX
 
 #include "openturns/TypedInterfaceObject.hxx"
-#include "openturns/OrthogonalUniVariateFunctionFactory.hxx"
+#include "openturns/UniVariateFunctionFactory.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
 
 
 
 /**
- * @class OrthogonalUniVariateFunctionFamily
+ * @class UniVariateFunctionFamily
  *
- * This is the interface class for orthogonal function factories
+ * This is the interface class for  function factories
  */
 
-class OT_API OrthogonalUniVariateFunctionFamily
-  : public TypedInterfaceObject<OrthogonalUniVariateFunctionFactory>
+class OT_API UniVariateFunctionFamily
+  : public TypedInterfaceObject<UniVariateFunctionFactory>
 {
   CLASSNAME;
 public:
 
   /** Default constructor */
-  OrthogonalUniVariateFunctionFamily();
+  UniVariateFunctionFamily();
 
   /** Constructor from implementation */
-  OrthogonalUniVariateFunctionFamily(const OrthogonalUniVariateFunctionFactory & implementation);
+  UniVariateFunctionFamily(const UniVariateFunctionFactory & implementation);
 
   /** String converter */
   virtual String __repr__() const;
@@ -59,9 +59,9 @@ protected:
 
 private:
 
-} ; /* class OrthogonalUniVariateFunctionFamily */
+} ; /* class UniVariateFunctionFamily */
 
 
 END_NAMESPACE_OPENTURNS
 
-#endif /* OPENTURNS_ORTHOGONALUNIVARIATEFUNCTIONFAMILY_HXX */
+#endif /* OPENTURNS_UNIVARIATEFUNCTIONFAMILY_HXX */
