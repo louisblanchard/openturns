@@ -35,22 +35,10 @@ static const Factory<UniVariateFunctionFactory> Factory_UniVariateFunctionFactor
 /* Default constructor */
 UniVariateFunctionFactory::UniVariateFunctionFactory()
   : PersistentObject()
-  , measure_()
   , functionsCache_(0)
 {
   // Nothing to do. The derived class will have to call initializeCaches().
 }
-
-
-/* Constructor */
-UniVariateFunctionFactory::UniVariateFunctionFactory(const Distribution & measure)
-  : PersistentObject()
-  , measure_(measure)
-  , functionsCache_(0)
-{
-  // Nothing to do. The derived class will have to call initializeCaches().
-}
-
 
 /* Virtual constructor */
 UniVariateFunctionFactory * UniVariateFunctionFactory::clone() const
@@ -62,8 +50,7 @@ UniVariateFunctionFactory * UniVariateFunctionFactory::clone() const
 /* String converter */
 String UniVariateFunctionFactory::__repr__() const
 {
-  return OSS() << "class=" << getClassName()
-         << " measure=" << measure_;
+  return OSS() << "class=" << getClassName();
 }
 
 
@@ -71,13 +58,6 @@ String UniVariateFunctionFactory::__repr__() const
 UniVariateFunction UniVariateFunctionFactory::build(const UnsignedInteger order) const
 {
   throw NotYetImplementedException(HERE) << "UniVariateFunctionFactory::build";
-}
-
-
-/* Measure accessor */
-Distribution UniVariateFunctionFactory::getMeasure() const
-{
-  return measure_;
 }
 
 /* Cache initialization */
@@ -90,7 +70,6 @@ void UniVariateFunctionFactory::initializeCache()
 void UniVariateFunctionFactory::save(Advocate & adv) const
 {
   PersistentObject::save(adv);
-  adv.saveAttribute("measure_", measure_);
 }
 
 
@@ -98,7 +77,6 @@ void UniVariateFunctionFactory::save(Advocate & adv) const
 void UniVariateFunctionFactory::load(Advocate & adv)
 {
   PersistentObject::load(adv);
-  adv.loadAttribute("measure_", measure_);
 }
 
 END_NAMESPACE_OPENTURNS

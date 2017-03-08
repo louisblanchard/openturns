@@ -24,7 +24,6 @@
 #include "openturns/PersistentObject.hxx"
 #include "openturns/PersistentCollection.hxx"
 #include "openturns/UniVariatePolynomial.hxx"
-#include "openturns/Distribution.hxx"
 #include "openturns/UniVariateFunction.hxx"
 
 BEGIN_NAMESPACE_OPENTURNS
@@ -46,11 +45,6 @@ public:
 
   typedef Collection<UniVariateFunction> UniVariateFunctionCollection;
 
-  enum ParameterSet { ANALYSIS, PROBABILITY };
-
-  /** Constructor */
-  explicit UniVariateFunctionFactory(const Distribution & measure);
-
   /** Virtual constructor */
   virtual UniVariateFunctionFactory * clone() const;
 
@@ -59,9 +53,6 @@ public:
 
   /** The method to get the function of any order. */
   virtual UniVariateFunction build(const UnsignedInteger order) const;
-
-  /** Measure accessor */
-  Distribution getMeasure() const;
 
   /** Method save() stores the object through the StorageManager */
   void save(Advocate & adv) const;
@@ -78,9 +69,6 @@ protected:
 
   /** Cache initialization */
   virtual void initializeCache();
-
-  /** The distribution of the particular Orthonormal polynomial */
-  Distribution measure_;
 
   /** A cache to save already computed functions */
   mutable UniVariateFunctionCollection functionsCache_;
