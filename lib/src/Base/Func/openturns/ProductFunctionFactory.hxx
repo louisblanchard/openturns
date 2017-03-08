@@ -22,6 +22,7 @@
 #define OPENTURNS_PRODUCTFUNCTIONFACTORY_HXX
 
 #include "openturns/FunctionalBasisImplementation.hxx"
+#include "openturns/EnumerateFunction.hxx"
 #include "openturns/Indices.hxx"
 #include "openturns/NumericalPoint.hxx"
 #include "openturns/NumericalSample.hxx"
@@ -58,7 +59,7 @@ public:
 
   /** Constructor */
   ProductFunctionFactory(const FunctionFamilyCollection & coll,
-                                   const EnumerateFunction & phi);
+                         const EnumerateFunction & phi);
 
   /** Build the NumericalMathFunction of the given index */
   NumericalMathFunction build(const UnsignedInteger index) const;

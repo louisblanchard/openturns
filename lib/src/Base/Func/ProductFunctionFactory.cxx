@@ -46,7 +46,7 @@ typedef ProductUniVariateFunctionEvaluationImplementation::UniVariateFunctionCol
 
 /* Default constructor */
 ProductFunctionFactory::ProductFunctionFactory()
-  : FunctionFactory()
+  : FunctionalBasisImplementation()
   , coll_()
   , phi_()
 {
@@ -56,7 +56,7 @@ ProductFunctionFactory::ProductFunctionFactory()
 
 /* Constructor */
 ProductFunctionFactory::ProductFunctionFactory(const FunctionFamilyCollection & coll)
-  : FunctionFactory()
+  : FunctionalBasisImplementation()
   , coll_(coll)
   , phi_(coll.getSize())
 {
@@ -67,7 +67,7 @@ ProductFunctionFactory::ProductFunctionFactory(const FunctionFamilyCollection & 
 /* Constructor */
 ProductFunctionFactory::ProductFunctionFactory(const FunctionFamilyCollection & coll,
     const EnumerateFunction & phi)
-  : FunctionFactory(),
+  : FunctionalBasisImplementation(),
     coll_(coll),
     phi_(phi)
 {
@@ -119,7 +119,7 @@ String ProductFunctionFactory::__repr__() const
 /* Method save() stores the object through the StorageManager */
 void ProductFunctionFactory::save(Advocate & adv) const
 {
-  FunctionFactory::save(adv);
+  FunctionalBasisImplementation::save(adv);
   adv.saveAttribute( "coll_", coll_ );
   adv.saveAttribute( "phi_", phi_ );
 }
@@ -128,7 +128,7 @@ void ProductFunctionFactory::save(Advocate & adv) const
 /* Method load() reloads the object from the StorageManager */
 void ProductFunctionFactory::load(Advocate & adv)
 {
-  FunctionFactory::load(adv);
+  FunctionalBasisImplementation::load(adv);
   adv.loadAttribute( "coll_", coll_ );
   adv.loadAttribute( "phi_", phi_ );
 }
