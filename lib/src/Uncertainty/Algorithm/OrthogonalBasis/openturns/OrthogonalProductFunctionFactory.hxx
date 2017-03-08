@@ -84,7 +84,8 @@ protected:
 
 private:
   /** Build product function factory */
-  void buildProductFunctionFactory(const FunctionFamilyCollection & coll);
+  void buildProductFunctionFactory(const FunctionFamilyCollection & coll,
+                                   const EnumerateFunction & phi);
 
   /** Build the measure based on the one found in the family collection */
   void buildMeasure(const FunctionFamilyCollection & coll);

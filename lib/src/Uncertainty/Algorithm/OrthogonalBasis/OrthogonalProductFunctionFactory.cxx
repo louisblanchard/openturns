@@ -57,7 +57,7 @@ OrthogonalProductFunctionFactory::OrthogonalProductFunctionFactory()
 OrthogonalProductFunctionFactory::OrthogonalProductFunctionFactory(const FunctionFamilyCollection & coll)
   : OrthogonalFunctionFactory()
 {
-  buildProductFunctionFactory(coll);
+  buildProductFunctionFactory(coll, EnumerateFunction(coll.getSize()) );
   buildMeasure(coll);
 }
 
@@ -68,8 +68,8 @@ OrthogonalProductFunctionFactory::OrthogonalProductFunctionFactory(const Functio
   : OrthogonalFunctionFactory()
 {
   if (coll.getSize() != phi.getDimension()) throw InvalidArgumentException(HERE) << "Error: the enumerate function must have a dimension equal to the collection size";
-  buildProductFunctionFactory(coll); 
-  buildMeasure(coll);
+  buildProductFunctionFactory(coll, phi); 
+  buildMeasure(coll); 
 }
 
 
@@ -118,15 +118,17 @@ void OrthogonalProductFunctionFactory::load(Advocate & adv)
 }
 
 /*  Build product function factory */
-void OrthogonalProductFunctionFactory::buildProductFunctionFactory(const FunctionFamilyCollection & coll)
+void OrthogonalProductFunctionFactory::buildProductFunctionFactory(const FunctionFamilyCollection & coll,
+     const EnumerateFunction & phi)
 {
   ProductFunctionFactory::FunctionFamilyCollection functionColl;
   const UnsignedInteger size = coll.getSize();
   for (UnsignedInteger i = 0; i < size; ++ i)
   {
-    functionColl.add(UniVariateFunctionFamily(coll[i].getImplementation()));
+    functionColl.add(UniVariateFunctionFamily(*coll[i].getImplementation()));
   }
-  //productFunctionFactory_()
+  productFunctionFactory_.setFunctionFamilyCollection(functionColl); 
+  productFunctionFactory_.setEnumerateFunction(phi);
 }
 
 /* Build the measure based on the one found in the family collection */
