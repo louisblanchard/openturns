@@ -31,7 +31,7 @@ CLASSNAMEINIT(UniVariateFunctionFamily);
 
 /* Default constructor */
 UniVariateFunctionFamily::UniVariateFunctionFamily()
-  : TypedInterfaceObject<UniVariateFunctionFactory>(new FourierSeriesFactory)
+  : TypedInterfaceObject<UniVariateFunctionFactory>(new UniVariateFunctionFactory)
 {
   // Nothing to do
 }

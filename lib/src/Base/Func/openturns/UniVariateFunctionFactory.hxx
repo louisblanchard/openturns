@@ -60,12 +60,12 @@ public:
   /** Method load() reloads the object from the StorageManager */
   void load(Advocate & adv);
 
+  /** Default constructor */
+  UniVariateFunctionFactory();
+
 protected:
 
   friend class Factory<UniVariateFunctionFactory>;
-
-  /** Default constructor */
-  UniVariateFunctionFactory();
 
   /** Cache initialization */
   virtual void initializeCache();
