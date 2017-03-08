@@ -85,8 +85,6 @@ public:
 protected:
 
 private:
-  /** Build the measure based on the one found in the family collection */
-  void buildMeasure();
 
   /** The 1D polynomial family collection */
   FunctionFamilyPersistentCollection coll_;

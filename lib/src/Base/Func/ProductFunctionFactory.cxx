@@ -60,7 +60,7 @@ ProductFunctionFactory::ProductFunctionFactory(const FunctionFamilyCollection & 
   , coll_(coll)
   , phi_(coll.getSize())
 {
-  buildMeasure();
+  // Nothing to do
 }
 
 
@@ -72,7 +72,6 @@ ProductFunctionFactory::ProductFunctionFactory(const FunctionFamilyCollection & 
     phi_(phi)
 {
   if (coll.getSize() != phi.getDimension()) throw InvalidArgumentException(HERE) << "Error: the enumerate function must have a dimension equal to the collection size";
-  buildMeasure();
 }
 
 
@@ -119,8 +118,7 @@ NumericalMathFunction ProductFunctionFactory::build(const UnsignedInteger index)
 String ProductFunctionFactory::__repr__() const
 {
   return OSS() << "class=" << getClassName()
-         << " univariate function collection=" << coll_
-         << " measure=" << measure_;
+         << " univariate function collection=" << coll_;
 }
 
 
@@ -139,18 +137,6 @@ void ProductFunctionFactory::load(Advocate & adv)
   FunctionFactory::load(adv);
   adv.loadAttribute( "coll_", coll_ );
   adv.loadAttribute( "phi_", phi_ );
-}
-
-/* Build the measure based on the one found in the family collection */
-void ProductFunctionFactory::buildMeasure()
-{
-  const UnsignedInteger size = coll_.getSize();
-  Collection<Distribution> distributions(size);
-  for (UnsignedInteger i = 0; i < size; ++i)
-  {
-    distributions[i] = coll_[i].getMeasure();
-  }
-  measure_ = ComposedDistribution(distributions);
 }
 
 
