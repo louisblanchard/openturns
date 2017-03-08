@@ -18,12 +18,12 @@
  *  along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef OPENTURNS_ORTHOGONALUNIVARIATEFUNCTIONFACTORY
-#define OPENTURNS_ORTHOGONALUNIVARIATEFUNCTIONFACTORY
+#ifndef OPENTURNS_UNIVARIATEFUNCTIONFACTORY
+#define OPENTURNS_UNIVARIATEFUNCTIONFACTORY
 
 #include "openturns/PersistentObject.hxx"
 #include "openturns/PersistentCollection.hxx"
-#include "openturns/OrthogonalUniVariatePolynomial.hxx"
+#include "openturns/UniVariatePolynomial.hxx"
 #include "openturns/Distribution.hxx"
 #include "openturns/UniVariateFunction.hxx"
 
@@ -32,12 +32,12 @@ BEGIN_NAMESPACE_OPENTURNS
 
 
 /**
- * @class OrthogonalUniVariateFunctionFactory
+ * @class UniVariateFunctionFactory
  *
  * This an abstract class for 1D function factories
  */
 
-class OT_API OrthogonalUniVariateFunctionFactory
+class OT_API UniVariateFunctionFactory
   : public PersistentObject
 {
   CLASSNAME;
@@ -49,10 +49,10 @@ public:
   enum ParameterSet { ANALYSIS, PROBABILITY };
 
   /** Constructor */
-  explicit OrthogonalUniVariateFunctionFactory(const Distribution & measure);
+  explicit UniVariateFunctionFactory(const Distribution & measure);
 
   /** Virtual constructor */
-  virtual OrthogonalUniVariateFunctionFactory * clone() const;
+  virtual UniVariateFunctionFactory * clone() const;
 
   /** String converter */
   virtual String __repr__() const;
@@ -71,10 +71,10 @@ public:
 
 protected:
 
-  friend class Factory<OrthogonalUniVariateFunctionFactory>;
+  friend class Factory<UniVariateFunctionFactory>;
 
   /** Default constructor */
-  OrthogonalUniVariateFunctionFactory();
+  UniVariateFunctionFactory();
 
   /** Cache initialization */
   virtual void initializeCache();
@@ -84,9 +84,9 @@ protected:
 
   /** A cache to save already computed functions */
   mutable UniVariateFunctionCollection functionsCache_;
-} ; /* class OrthogonalUniVariateFunctionFactory */
+} ; /* class UniVariateFunctionFactory */
 
 
 END_NAMESPACE_OPENTURNS
 
-#endif /* OPENTURNS_ORTHOGONALUNIVARIATEFUNCTIONFACTORY */
+#endif /* OPENTURNS_UNIVARIATEFUNCTIONFACTORY */

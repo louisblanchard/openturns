@@ -27,13 +27,13 @@ BEGIN_NAMESPACE_OPENTURNS
 
 
 
-CLASSNAMEINIT(OrthogonalUniVariateFunctionFactory);
+CLASSNAMEINIT(UniVariateFunctionFactory);
 
-static const Factory<OrthogonalUniVariateFunctionFactory> Factory_OrthogonalUniVariateFunctionFactory;
+static const Factory<UniVariateFunctionFactory> Factory_UniVariateFunctionFactory;
 
 
 /* Default constructor */
-OrthogonalUniVariateFunctionFactory::OrthogonalUniVariateFunctionFactory()
+UniVariateFunctionFactory::UniVariateFunctionFactory()
   : PersistentObject()
   , measure_()
   , functionsCache_(0)
@@ -43,7 +43,7 @@ OrthogonalUniVariateFunctionFactory::OrthogonalUniVariateFunctionFactory()
 
 
 /* Constructor */
-OrthogonalUniVariateFunctionFactory::OrthogonalUniVariateFunctionFactory(const Distribution & measure)
+UniVariateFunctionFactory::UniVariateFunctionFactory(const Distribution & measure)
   : PersistentObject()
   , measure_(measure)
   , functionsCache_(0)
@@ -53,14 +53,14 @@ OrthogonalUniVariateFunctionFactory::OrthogonalUniVariateFunctionFactory(const D
 
 
 /* Virtual constructor */
-OrthogonalUniVariateFunctionFactory * OrthogonalUniVariateFunctionFactory::clone() const
+UniVariateFunctionFactory * UniVariateFunctionFactory::clone() const
 {
-  return new OrthogonalUniVariateFunctionFactory(*this);
+  return new UniVariateFunctionFactory(*this);
 }
 
 
 /* String converter */
-String OrthogonalUniVariateFunctionFactory::__repr__() const
+String UniVariateFunctionFactory::__repr__() const
 {
   return OSS() << "class=" << getClassName()
          << " measure=" << measure_;
@@ -68,26 +68,26 @@ String OrthogonalUniVariateFunctionFactory::__repr__() const
 
 
 /* The method to get the function of any order */
-UniVariateFunction OrthogonalUniVariateFunctionFactory::build(const UnsignedInteger order) const
+UniVariateFunction UniVariateFunctionFactory::build(const UnsignedInteger order) const
 {
-  throw NotYetImplementedException(HERE) << "OrthogonalUniVariateFunctionFactory::build";
+  throw NotYetImplementedException(HERE) << "UniVariateFunctionFactory::build";
 }
 
 
 /* Measure accessor */
-Distribution OrthogonalUniVariateFunctionFactory::getMeasure() const
+Distribution UniVariateFunctionFactory::getMeasure() const
 {
   return measure_;
 }
 
 /* Cache initialization */
-void OrthogonalUniVariateFunctionFactory::initializeCache()
+void UniVariateFunctionFactory::initializeCache()
 {
 
 }
 
 /* Method save() stores the object through the StorageManager */
-void OrthogonalUniVariateFunctionFactory::save(Advocate & adv) const
+void UniVariateFunctionFactory::save(Advocate & adv) const
 {
   PersistentObject::save(adv);
   adv.saveAttribute("measure_", measure_);
@@ -95,7 +95,7 @@ void OrthogonalUniVariateFunctionFactory::save(Advocate & adv) const
 
 
 /* Method load() reloads the object from the StorageManager */
-void OrthogonalUniVariateFunctionFactory::load(Advocate & adv)
+void UniVariateFunctionFactory::load(Advocate & adv)
 {
   PersistentObject::load(adv);
   adv.loadAttribute("measure_", measure_);
