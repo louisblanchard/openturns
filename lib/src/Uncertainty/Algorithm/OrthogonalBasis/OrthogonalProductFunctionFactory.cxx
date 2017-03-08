@@ -89,13 +89,6 @@ EnumerateFunction OrthogonalProductFunctionFactory::getEnumerateFunction() const
   return phi_;
 }
 
-
-/* Return the collection of univariate orthogonal polynomial families */
-OrthogonalProductFunctionFactory::FunctionFamilyCollection OrthogonalProductFunctionFactory::getFunctionFamilyCollection() const
-{
-  return coll_;
-}
-
 /* Build the NumericalMathFunction of the given index */
 NumericalMathFunction OrthogonalProductFunctionFactory::build(const UnsignedInteger index) const
 {

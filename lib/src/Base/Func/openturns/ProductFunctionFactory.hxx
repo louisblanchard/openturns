@@ -21,8 +21,7 @@
 #ifndef OPENTURNS_PRODUCTFUNCTIONFACTORY_HXX
 #define OPENTURNS_PRODUCTFUNCTIONFACTORY_HXX
 
-#include "openturns/FunctionFactory.hxx"
-#include "openturns/Distribution.hxx"
+#include "openturns/FunctionalBasisImplementation.hxx"
 #include "openturns/Indices.hxx"
 #include "openturns/NumericalPoint.hxx"
 #include "openturns/NumericalSample.hxx"
@@ -41,7 +40,7 @@ BEGIN_NAMESPACE_OPENTURNS
  */
 
 class OT_API ProductFunctionFactory
-  : public FunctionFactory
+  : public FunctionalBasisImplementation
 {
   CLASSNAME;
 public:
@@ -66,9 +65,6 @@ public:
 
   /** Return the enumerate function that translate unidimensional indices nto multidimensional indices */
   EnumerateFunction getEnumerateFunction() const;
-
-  /** Return the collection of univariate  polynomial families */
-  FunctionFamilyCollection getFunctionFamilyCollection() const;
 
   /** Virtual constructor */
   virtual ProductFunctionFactory * clone() const;

@@ -89,12 +89,6 @@ EnumerateFunction ProductFunctionFactory::getEnumerateFunction() const
 }
 
 
-/* Return the collection of univariate  polynomial families */
-ProductFunctionFactory::FunctionFamilyCollection ProductFunctionFactory::getFunctionFamilyCollection() const
-{
-  return coll_;
-}
-
 /* Build the NumericalMathFunction of the given index */
 NumericalMathFunction ProductFunctionFactory::build(const UnsignedInteger index) const
 {

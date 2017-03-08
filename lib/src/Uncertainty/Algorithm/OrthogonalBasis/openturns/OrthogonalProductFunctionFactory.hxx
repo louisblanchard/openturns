@@ -67,9 +67,6 @@ public:
   /** Return the enumerate function that translate unidimensional indices nto multidimensional indices */
   EnumerateFunction getEnumerateFunction() const;
 
-  /** Return the collection of univariate orthogonal polynomial families */
-  FunctionFamilyCollection getFunctionFamilyCollection() const;
-
   /** Virtual constructor */
   virtual OrthogonalProductFunctionFactory * clone() const;
 
